@@ -1,1 +1,30 @@
-﻿Console.WriteLine("Welcome to Sneaky Snake!");
+﻿using System.Numerics;
+using Raylib_cs;
+
+namespace SneakySnake;
+
+internal static class Program
+{
+    [STAThread]
+    public static void Main()
+    {
+        int screenWidth = 800;
+        int screenHeight = 600;
+        Raylib.InitWindow(screenWidth, screenHeight, "Sneaky Snake");
+
+        Font font = Raylib.GetFontDefault();
+
+        while (!Raylib.WindowShouldClose())
+        {
+            Vector2 textSize = Raylib.MeasureTextEx(font, "Welcome to Sneaky Snake!", 20, 1);
+
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.SkyBlue);
+            Raylib.DrawText("Welcome to Sneaky Snake!", (screenWidth / 2) - ((int)textSize.X / 2), (screenHeight / 2) - ((int)textSize.Y / 2), 20, Color.Black);
+
+            Raylib.EndDrawing();
+        }
+
+        Raylib.CloseWindow();
+    }
+}
