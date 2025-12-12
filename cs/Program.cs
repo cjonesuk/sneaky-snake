@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using Raylib_cs;
 
 namespace SneakySnake;
@@ -7,6 +6,8 @@ namespace SneakySnake;
 interface IEngine
 {
     Settings Settings { get; }
+
+    void ClearLayers();
 
     void SetLayers(IReadOnlyList<ILayer> layers);
 
@@ -54,23 +55,66 @@ internal class EntityLayer : ILayer
 
 interface IGameMode
 {
-
+    void Enable();
+    void Disable();
+    void Update(float deltaTime);
 }
 
 internal class StartMenuMode : IGameMode
 {
+    private readonly IEngine _engine;
 
+    public StartMenuMode(IEngine engine)
+    {
+        _engine = engine;
+    }
+
+    public void Enable()
+    {
+        Console.WriteLine("Starting Start Menu Mode...");
+
+        ILayer[] layers = {
+            new BackgroundLayer(_engine),
+            new UiLayer(_engine),
+        };
+
+        _engine.SetLayers(layers);
+    }
+
+    public void Disable()
+    {
+        Console.WriteLine("Disabling Start Menu Mode...");
+        _engine.ClearLayers();
+    }
+
+    public void Update(float deltaTime)
+    {
+        // Update logic for start menu
+    }
 }
 
 internal class PlayMode : IGameMode
 {
+    public void Enable()
+    {
+        Console.WriteLine("Starting Play Mode...");
+    }
 
+    public void Disable()
+    {
+        Console.WriteLine("Disabling Play Mode...");
+    }
+
+    public void Update(float deltaTime)
+    {
+        // Update logic for gameplay
+    }
 }
 
 interface IGame
 {
-    // Displays the start menu
-    void StartMenu();
+    void Update(float deltaTime);
+
 
     // Starts a new game
     void StartGame();
@@ -82,38 +126,34 @@ interface IGame
 internal class SneakySnakeGame : IGame
 {
     private readonly IEngine _engine;
-    private bool _started;
+    private IGameMode? _gameMode;
 
     public SneakySnakeGame(IEngine engine)
     {
         _engine = engine;
-        _started = false;
+        SwitchMode(new StartMenuMode(engine));
     }
 
-    public void StartMenu()
+    public void Update(float deltaTime)
     {
-        Debug.Assert(!_started, "Game is already started.");
+        _gameMode?.Update(deltaTime);
+    }
 
-        Console.WriteLine("Displaying Start Menu...");
-
-        ILayer[] layers = {
-            new BackgroundLayer(_engine),
-            new UiLayer(_engine),
-        };
-
-        _engine.SetLayers(layers);
+    private void SwitchMode(IGameMode newMode)
+    {
+        _gameMode?.Disable();
+        _gameMode = newMode;
+        _gameMode.Enable();
     }
 
     public void StartGame()
     {
-        Debug.Assert(!_started, "Game is already started.");
-        _started = true;
+        SwitchMode(new PlayMode());
     }
 
     public void EndGame()
     {
-        Debug.Assert(_started, "Game is not started.");
-        _started = false;
+        SwitchMode(new StartMenuMode(_engine));
     }
 }
 
@@ -160,7 +200,6 @@ internal class GameSystem : ISystem
         Console.WriteLine("GameSystem attached to engine.");
         _engine = engine;
         _game = new SneakySnakeGame(_engine);
-        _game.StartMenu();
     }
 
     public void Detached()
@@ -186,6 +225,11 @@ internal class Engine : IEngine
     }
 
     public Settings Settings => _settings;
+
+    public void ClearLayers()
+    {
+        _layers.Clear();
+    }
 
     public void SetLayers(IReadOnlyList<ILayer> layers)
     {
