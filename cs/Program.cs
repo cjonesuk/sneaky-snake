@@ -17,10 +17,11 @@ internal static class Program
         while (!Raylib.WindowShouldClose())
         {
             Vector2 textSize = Raylib.MeasureTextEx(font, "Welcome to Sneaky Snake!", 20, 1);
+            Vector2 textPosition = new Vector2((screenWidth - textSize.X) / 2, (screenHeight - textSize.Y) / 2);
 
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.SkyBlue);
-            Raylib.DrawText("Welcome to Sneaky Snake!", (screenWidth / 2) - ((int)textSize.X / 2), (screenHeight / 2) - ((int)textSize.Y / 2), 20, Color.Black);
+            Raylib.DrawTextEx(font, "Welcome to Sneaky Snake!", textPosition, 20, 1, Color.Black);
 
             Raylib.EndDrawing();
         }
