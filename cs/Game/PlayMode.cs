@@ -21,6 +21,10 @@ internal class PlayMode : IGameMode
             new BackgroundLayer(_engine, Color.Lime),
         };
         _engine.SetLayers(layers);
+
+        SpawnFood(2, 3, Color.Orange);
+        SpawnFood(5, 7, Color.Red);
+        SpawnFood(10, 12, Color.Yellow);
     }
 
     public void Disable()
@@ -36,5 +40,10 @@ internal class PlayMode : IGameMode
             Console.WriteLine("Enter key pressed, ending game...");
             _game.EndGame();
         }
+    }
+
+    private void SpawnFood(int x, int y, Color color)
+    {
+        _engine.Entities.AddEntity(new Engine.Transform(x, y), new BasicShape(ShapeType.Circle, color), new FoodTag());
     }
 }

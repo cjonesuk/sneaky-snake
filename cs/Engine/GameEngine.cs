@@ -2,17 +2,25 @@ using Raylib_cs;
 
 namespace Engine;
 
+public struct EntityQueryResult<TComponent>
+{
+
+}
+
 public class GameEngine : IGameEngine
 {
     private readonly Settings _settings;
     private readonly List<ILayer> _layers = new();
+    private readonly IEntityComponentManager _entities;
 
     public GameEngine(Settings settings)
     {
         _settings = settings;
+        _entities = new EntityComponentManager();
     }
 
     public Settings Settings => _settings;
+    public IEntityComponentManager Entities => _entities;
 
     public void ClearLayers()
     {

@@ -4,6 +4,8 @@ public interface IGameEngine
 {
     Settings Settings { get; }
 
+    IEntityComponentManager Entities { get; }
+
     void ClearLayers();
 
     void SetLayers(IReadOnlyList<ILayer> layers);
