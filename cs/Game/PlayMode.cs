@@ -17,28 +17,17 @@ internal class PlayMode : IGameMode
     public void Enable()
     {
         Console.WriteLine("Starting Play Mode...");
-        ISystem[] systems =
-        {
-            new LevelRenderSystem()
-        };
-        _engine.SetSystems(systems);
 
-        SpawnFood(2, 3, Color.Orange);
-        SpawnFood(5, 7, Color.Red);
-        SpawnFood(10, 12, Color.Yellow);
+        _engine.SpawnFood(2, 3, Color.Orange);
+        _engine.SpawnFood(5, 7, Color.Red);
+        _engine.SpawnFood(10, 12, Color.Yellow);
 
-        _engine.Entities.AddEntity(new Transform2d(400, 200), new Text2d(
-            "Press Enter to End Game",
-            24,
-            Color.Black,
-            TextAlignment.Center
-        ));
+        _engine.SpawnText(400, 50, "Game in Progress - Press Enter to End Game", 24, Color.Black, TextAlignment.Center);
     }
 
     public void Disable()
     {
         Console.WriteLine("Disabling Play Mode...");
-        _engine.SetSystems(Array.Empty<ISystem>());
         _engine.Entities.RemoveAllEntities();
     }
 
@@ -51,8 +40,4 @@ internal class PlayMode : IGameMode
         }
     }
 
-    private void SpawnFood(int x, int y, Color color)
-    {
-        _engine.Entities.AddEntity(new GridTransform(x, y), new BasicShape(ShapeType.Circle, color), new FoodTag());
-    }
 }

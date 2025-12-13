@@ -8,6 +8,12 @@ public abstract class RenderSystem : ISystem
 {
     protected IGameEngine? _engine;
     protected readonly List<ILayer> _layers = new();
+    protected Color _clearColor;
+
+    protected RenderSystem(Color clearColor)
+    {
+        _clearColor = clearColor;
+    }
 
     public virtual void Attached(IGameEngine engine)
     {
@@ -31,28 +37,11 @@ public abstract class RenderSystem : ISystem
     {
         Debug.Assert(_engine != null, "Engine should be attached before updating the system.");
 
+        Raylib.ClearBackground(_clearColor);
+
         foreach (var layer in _layers)
         {
             layer.Render();
         }
-    }
-}
-
-public class MenuRenderSystem : RenderSystem
-{
-    protected override IEnumerable<ILayer> CreateLayers(IGameEngine engine)
-    {
-        yield return new BackgroundLayer(engine, Color.SkyBlue);
-        yield return new UiLayer(engine);
-    }
-}
-
-public class LevelRenderSystem : RenderSystem
-{
-    protected override IEnumerable<ILayer> CreateLayers(IGameEngine engine)
-    {
-        yield return new BackgroundLayer(engine, Color.Lime);
-        yield return new EntityLayer(engine);
-        yield return new UiLayer(engine);
     }
 }

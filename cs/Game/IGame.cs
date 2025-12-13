@@ -2,6 +2,8 @@ namespace SneakySnake;
 
 interface IGame
 {
+    void Initialise();
+
     void Update(float deltaTime);
 
 

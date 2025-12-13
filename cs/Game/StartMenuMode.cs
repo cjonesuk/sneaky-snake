@@ -18,24 +18,13 @@ internal class StartMenuMode : IGameMode
     {
         Console.WriteLine("Starting Start Menu Mode...");
 
-        ISystem[] systems = {
-             new MenuRenderSystem()
-        };
-
-        _engine.SetSystems(systems);
-
-        _engine.Entities.AddEntity(new Transform2d(400, 200), new Text2d(
-            "Press Enter to Start Game",
-            24,
-            Color.Purple,
-            TextAlignment.Center
-        ));
+        _engine.SpawnText(400, 100, "Welcome to Sneaky Snake!", 32, Color.Black, TextAlignment.Center);
+        _engine.SpawnText(400, 150, "Press Enter to Start Game", 24, Color.DarkGray, TextAlignment.Center);
     }
 
     public void Disable()
     {
         Console.WriteLine("Disabling Start Menu Mode...");
-        _engine.SetSystems(Array.Empty<ISystem>());
         _engine.Entities.RemoveAllEntities();
     }
 

@@ -1,4 +1,5 @@
 using Engine;
+using Raylib_cs;
 
 namespace SneakySnake;
 
@@ -10,7 +11,15 @@ internal class SneakySnakeGame : IGame
     public SneakySnakeGame(IGameEngine engine)
     {
         _engine = engine;
-        SwitchMode(new StartMenuMode(this, engine));
+    }
+
+    public void Initialise()
+    {
+        _engine.SetSystems([
+            new BasicRenderSystem(Color.SkyBlue)
+        ]);
+
+        SwitchMode(new StartMenuMode(this, _engine));
     }
 
     public void Update(float deltaTime)

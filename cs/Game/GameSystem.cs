@@ -16,6 +16,7 @@ internal class GameManager : IGameEngineObserver
         Console.WriteLine("Game Engine Started");
         _engine = engine;
         _game = new SneakySnakeGame(_engine);
+        _game.Initialise();
     }
 
     public void OnEngineStop(IGameEngine engine)
