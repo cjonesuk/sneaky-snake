@@ -5,11 +5,12 @@ namespace SneakySnake;
 internal class BackgroundLayer : ILayer
 {
     private readonly IEngine _engine;
-    private readonly Color _backgroundColor = Color.SkyBlue;
+    private readonly Color _backgroundColor;
 
-    public BackgroundLayer(IEngine engine)
+    public BackgroundLayer(IEngine engine, Color backgroundColor)
     {
         _engine = engine;
+        _backgroundColor = backgroundColor;
     }
 
     public void Render()

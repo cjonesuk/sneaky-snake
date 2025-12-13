@@ -1,11 +1,15 @@
+using Raylib_cs;
+
 namespace SneakySnake;
 
 internal class StartMenuMode : IGameMode
 {
+    private readonly IGame _game;
     private readonly IEngine _engine;
 
-    public StartMenuMode(IEngine engine)
+    public StartMenuMode(IGame game, IEngine engine)
     {
+        _game = game;
         _engine = engine;
     }
 
@@ -14,7 +18,7 @@ internal class StartMenuMode : IGameMode
         Console.WriteLine("Starting Start Menu Mode...");
 
         ILayer[] layers = {
-            new BackgroundLayer(_engine),
+            new BackgroundLayer(_engine, Color.SkyBlue),
             new UiLayer(_engine),
         };
 
@@ -30,5 +34,10 @@ internal class StartMenuMode : IGameMode
     public void Update(float deltaTime)
     {
         // Update logic for start menu
+        if (Raylib.IsKeyPressed(KeyboardKey.Enter))
+        {
+            Console.WriteLine("Enter key pressed, starting game...");
+            _game.StartGame();
+        }
     }
 }

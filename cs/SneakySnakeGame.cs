@@ -8,7 +8,7 @@ internal class SneakySnakeGame : IGame
     public SneakySnakeGame(IEngine engine)
     {
         _engine = engine;
-        SwitchMode(new StartMenuMode(engine));
+        SwitchMode(new StartMenuMode(this, engine));
     }
 
     public void Update(float deltaTime)
@@ -25,11 +25,11 @@ internal class SneakySnakeGame : IGame
 
     public void StartGame()
     {
-        SwitchMode(new PlayMode());
+        SwitchMode(new PlayMode(this, _engine));
     }
 
     public void EndGame()
     {
-        SwitchMode(new StartMenuMode(_engine));
+        SwitchMode(new StartMenuMode(this, _engine));
     }
 }

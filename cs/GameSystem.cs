@@ -24,6 +24,6 @@ internal class GameSystem : ISystem
 
     public void Update(float deltaTime)
     {
-        // Game logic update
+        _game?.Update(deltaTime);
     }
 }
