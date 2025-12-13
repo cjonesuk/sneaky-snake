@@ -40,6 +40,11 @@ internal class EntityComponentManager : IEntityComponentManager
         return entityId;
     }
 
+    public void RemoveAllEntities()
+    {
+        _archetypes.Clear();
+    }
+
     public EntityQueryResult<T1, T2> QueryAll<T1, T2>()
     {
         var componentTypes = new Type[] { typeof(T1), typeof(T2) };

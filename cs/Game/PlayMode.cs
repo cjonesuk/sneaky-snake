@@ -39,6 +39,7 @@ internal class PlayMode : IGameMode
     {
         Console.WriteLine("Disabling Play Mode...");
         _engine.SetSystems(Array.Empty<ISystem>());
+        _engine.Entities.RemoveAllEntities();
     }
 
     public void Update(float deltaTime)

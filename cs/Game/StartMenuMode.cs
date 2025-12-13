@@ -36,6 +36,7 @@ internal class StartMenuMode : IGameMode
     {
         Console.WriteLine("Disabling Start Menu Mode...");
         _engine.SetSystems(Array.Empty<ISystem>());
+        _engine.Entities.RemoveAllEntities();
     }
 
     public void Update(float deltaTime)
