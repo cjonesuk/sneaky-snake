@@ -21,6 +21,21 @@ internal class Archetype
         _rows.Add(row);
     }
 
+    public IReadOnlyList<T> GetComponents<T>()
+    {
+        var components = new List<T>();
+
+        foreach (var row in _rows)
+        {
+            if (row.Components.TryGetValue(typeof(T), out var component))
+            {
+                components.Add((T)component);
+            }
+        }
+
+        return components;
+    }
+
     private string GetDebuggerDisplay()
     {
         return $"Archetype: {_signature}, Entities: {_rows.Count}";

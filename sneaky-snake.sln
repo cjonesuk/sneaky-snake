@@ -1,8 +1,12 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sneaky-snake", "cs\sneaky-snake.csproj", "{C2B9A492-D5E2-4F2E-6856-CE8104140E99}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{910C9397-1A78-4A8B-B2FD-883B03927110}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Engine.Tests", "tests\Engine.Tests\Engine.Tests.csproj", "{47DB0DCB-BC69-466B-ADF9-57C4CAA3C03D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,11 +18,18 @@ Global
 		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47DB0DCB-BC69-466B-ADF9-57C4CAA3C03D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47DB0DCB-BC69-466B-ADF9-57C4CAA3C03D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47DB0DCB-BC69-466B-ADF9-57C4CAA3C03D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47DB0DCB-BC69-466B-ADF9-57C4CAA3C03D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6025212C-DC75-44AC-96EB-F80D7DCB1FCC}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{47DB0DCB-BC69-466B-ADF9-57C4CAA3C03D} = {910C9397-1A78-4A8B-B2FD-883B03927110}
 	EndGlobalSection
 EndGlobal

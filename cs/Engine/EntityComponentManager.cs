@@ -40,13 +40,14 @@ internal class EntityComponentManager : IEntityComponentManager
         return entityId;
     }
 
-    public IReadOnlyList<TComponent> QueryAll<TComponent>()
+    public EntityQueryResult<T1, T2> QueryAll<T1, T2>()
     {
-        throw new NotImplementedException();
-    }
+        var componentTypes = new Type[] { typeof(T1), typeof(T2) };
 
-    public Tuple<IReadOnlyList<TComponent1>, IReadOnlyList<TComponent2>> QueryAll<TComponent1, TComponent2>()
-    {
-        throw new NotImplementedException();
+        var archetypes = _archetypes.Where(x => x.Key.ContainsAll(componentTypes))
+                                    .Select(x => x.Value)
+                                    .ToList();
+
+        return new EntityQueryResult<T1, T2>(archetypes);
     }
 }

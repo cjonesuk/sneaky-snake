@@ -12,6 +12,19 @@ readonly struct ArchetypeSignature : IEquatable<ArchetypeSignature>
         _componentTypes = componentTypes.OrderBy(t => t.FullName).ToArray();
     }
 
+    public bool ContainsAll(IReadOnlyList<Type> componentTypes)
+    {
+        foreach (var type in componentTypes)
+        {
+            if (!_componentTypes.Contains(type))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public bool Equals(ArchetypeSignature other) => _componentTypes.SequenceEqual(other._componentTypes);
 
     public override int GetHashCode()
