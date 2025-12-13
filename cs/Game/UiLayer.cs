@@ -7,7 +7,7 @@ namespace SneakySnake;
 internal class UiLayer : ILayer
 {
     private readonly IGameEngine _engine;
-    private Font _font;
+    private readonly Font _font;
 
     public UiLayer(IGameEngine engine)
     {

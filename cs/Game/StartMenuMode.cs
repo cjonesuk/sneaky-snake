@@ -18,18 +18,17 @@ internal class StartMenuMode : IGameMode
     {
         Console.WriteLine("Starting Start Menu Mode...");
 
-        ILayer[] layers = {
-            new BackgroundLayer(_engine, Color.SkyBlue),
-            new UiLayer(_engine),
+        ISystem[] systems = {
+             new MenuRenderSystem()
         };
 
-        _engine.SetLayers(layers);
+        _engine.SetSystems(systems);
     }
 
     public void Disable()
     {
         Console.WriteLine("Disabling Start Menu Mode...");
-        _engine.ClearLayers();
+        _engine.SetSystems(Array.Empty<ISystem>());
     }
 
     public void Update(float deltaTime)

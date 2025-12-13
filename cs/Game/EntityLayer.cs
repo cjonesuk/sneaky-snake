@@ -14,6 +14,23 @@ internal class EntityLayer : ILayer
 
     public void Render()
     {
-        Raylib.DrawRectangle(50, 50, 100, 100, Color.Yellow);
+        var result = _engine.Entities.QueryAll<Engine.Transform, BasicShape>();
+
+        int gridSize = 50;
+
+        foreach (var (transform, shape) in result)
+        {
+            switch (shape.Type)
+            {
+                case ShapeType.Rectangle:
+                    Raylib.DrawRectangle(transform.X * gridSize, transform.Y * gridSize, gridSize, gridSize, shape.Color);
+                    break;
+
+                case ShapeType.Circle:
+                    Raylib.DrawCircle((transform.X * gridSize) + (gridSize / 2), (transform.Y * gridSize) + (gridSize / 2), gridSize / 2, shape.Color);
+                    break;
+            }
+
+        }
     }
 }

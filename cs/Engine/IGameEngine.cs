@@ -6,9 +6,7 @@ public interface IGameEngine
 
     IEntityComponentManager Entities { get; }
 
-    void ClearLayers();
-
-    void SetLayers(IReadOnlyList<ILayer> layers);
+    void SetSystems(IReadOnlyList<ISystem> systems);
 
     void Run(IReadOnlyList<IGameEngineObserver> observers);
 }

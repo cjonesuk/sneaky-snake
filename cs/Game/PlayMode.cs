@@ -17,10 +17,11 @@ internal class PlayMode : IGameMode
     public void Enable()
     {
         Console.WriteLine("Starting Play Mode...");
-        ILayer[] layers = {
-            new BackgroundLayer(_engine, Color.Lime),
+        ISystem[] systems =
+        {
+            new LevelRenderSystem()
         };
-        _engine.SetLayers(layers);
+        _engine.SetSystems(systems);
 
         SpawnFood(2, 3, Color.Orange);
         SpawnFood(5, 7, Color.Red);
@@ -30,7 +31,7 @@ internal class PlayMode : IGameMode
     public void Disable()
     {
         Console.WriteLine("Disabling Play Mode...");
-        _engine.ClearLayers();
+        _engine.SetSystems(Array.Empty<ISystem>());
     }
 
     public void Update(float deltaTime)

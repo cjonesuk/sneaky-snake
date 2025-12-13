@@ -10,8 +10,8 @@ public struct EntityQueryResult<TComponent>
 public class GameEngine : IGameEngine
 {
     private readonly Settings _settings;
-    private readonly List<ILayer> _layers = new();
     private readonly IEntityComponentManager _entities;
+    private readonly List<ISystem> _systems = new();
 
     public GameEngine(Settings settings)
     {
@@ -22,15 +22,15 @@ public class GameEngine : IGameEngine
     public Settings Settings => _settings;
     public IEntityComponentManager Entities => _entities;
 
-    public void ClearLayers()
+    public void SetSystems(IReadOnlyList<ISystem> systems)
     {
-        _layers.Clear();
-    }
+        _systems.Clear();
+        _systems.AddRange(systems);
 
-    public void SetLayers(IReadOnlyList<ILayer> layers)
-    {
-        _layers.Clear();
-        _layers.AddRange(layers);
+        foreach (var system in _systems)
+        {
+            system.Attached(this);
+        }
     }
 
     public void Run(IReadOnlyList<IGameEngineObserver> observers)
@@ -53,9 +53,9 @@ public class GameEngine : IGameEngine
 
             Raylib.BeginDrawing();
 
-            foreach (var layer in _layers)
+            foreach (var system in _systems)
             {
-                layer.Render();
+                system.Update(deltaTime);
             }
 
             Raylib.EndDrawing();
