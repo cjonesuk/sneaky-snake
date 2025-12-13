@@ -1,6 +1,6 @@
-namespace SneakySnake;
+namespace Engine;
 
-interface IEngine
+public interface IGameEngine
 {
     Settings Settings { get; }
 

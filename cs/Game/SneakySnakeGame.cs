@@ -1,11 +1,13 @@
+using Engine;
+
 namespace SneakySnake;
 
 internal class SneakySnakeGame : IGame
 {
-    private readonly IEngine _engine;
+    private readonly IGameEngine _engine;
     private IGameMode? _gameMode;
 
-    public SneakySnakeGame(IEngine engine)
+    public SneakySnakeGame(IGameEngine engine)
     {
         _engine = engine;
         SwitchMode(new StartMenuMode(this, engine));

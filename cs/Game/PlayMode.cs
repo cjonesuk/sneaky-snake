@@ -1,3 +1,4 @@
+using Engine;
 using Raylib_cs;
 
 namespace SneakySnake;
@@ -5,9 +6,9 @@ namespace SneakySnake;
 internal class PlayMode : IGameMode
 {
     private readonly IGame _game;
-    private readonly IEngine _engine;
+    private readonly IGameEngine _engine;
 
-    public PlayMode(IGame game, IEngine engine)
+    public PlayMode(IGame game, IGameEngine engine)
     {
         _game = game;
         _engine = engine;

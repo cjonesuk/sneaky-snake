@@ -1,14 +1,15 @@
 using System.Numerics;
+using Engine;
 using Raylib_cs;
 
 namespace SneakySnake;
 
 internal class UiLayer : ILayer
 {
-    private readonly IEngine _engine;
+    private readonly IGameEngine _engine;
     private Font _font;
 
-    public UiLayer(IEngine engine)
+    public UiLayer(IGameEngine engine)
     {
         _engine = engine;
         _font = Raylib.GetFontDefault();

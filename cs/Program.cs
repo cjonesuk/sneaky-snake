@@ -1,4 +1,6 @@
-﻿namespace SneakySnake;
+﻿using Engine;
+
+namespace SneakySnake;
 
 internal static class Program
 {
@@ -6,7 +8,7 @@ internal static class Program
     public static void Main()
     {
         Settings settings = new Settings(800, 600, "Sneaky Snake");
-        IEngine engine = new Engine(settings);
+        IGameEngine engine = new GameEngine(settings);
 
         ISystem[] systems = {
             new GameSystem(),

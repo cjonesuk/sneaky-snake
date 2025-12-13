@@ -1,12 +1,13 @@
+using Engine;
 using Raylib_cs;
 
 namespace SneakySnake;
 
 internal class EntityLayer : ILayer
 {
-    private readonly IEngine _engine;
+    private readonly IGameEngine _engine;
 
-    public EntityLayer(IEngine engine)
+    public EntityLayer(IGameEngine engine)
     {
         _engine = engine;
     }

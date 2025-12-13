@@ -1,15 +1,17 @@
+using Engine;
+
 namespace SneakySnake;
 
 internal class GameSystem : ISystem
 {
-    private IEngine? _engine;
+    private IGameEngine? _engine;
     private IGame? _game;
 
     public GameSystem()
     {
     }
 
-    public void Attached(IEngine engine)
+    public void Attached(IGameEngine engine)
     {
         Console.WriteLine("GameSystem attached to engine.");
         _engine = engine;

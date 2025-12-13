@@ -1,13 +1,13 @@
 using Raylib_cs;
 
-namespace SneakySnake;
+namespace Engine;
 
-internal class Engine : IEngine
+public class GameEngine : IGameEngine
 {
     private readonly Settings _settings;
     private readonly List<ILayer> _layers = new();
 
-    public Engine(Settings settings)
+    public GameEngine(Settings settings)
     {
         _settings = settings;
     }
