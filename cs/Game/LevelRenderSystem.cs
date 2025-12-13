@@ -53,5 +53,6 @@ public class LevelRenderSystem : RenderSystem
     {
         yield return new BackgroundLayer(engine, Color.Lime);
         yield return new EntityLayer(engine);
+        yield return new UiLayer(engine);
     }
 }

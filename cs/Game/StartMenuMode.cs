@@ -23,6 +23,13 @@ internal class StartMenuMode : IGameMode
         };
 
         _engine.SetSystems(systems);
+
+        _engine.Entities.AddEntity(new Transform2d(400, 200), new Text2d(
+            "Press Enter to Start Game",
+            24,
+            Color.Purple,
+            TextAlignment.Center
+        ));
     }
 
     public void Disable()

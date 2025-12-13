@@ -14,7 +14,7 @@ internal class EntityLayer : ILayer
 
     public void Render()
     {
-        var result = _engine.Entities.QueryAll<Engine.Transform, BasicShape>();
+        var result = _engine.Entities.QueryAll<Engine.GridTransform, BasicShape>();
 
         int gridSize = 50;
 

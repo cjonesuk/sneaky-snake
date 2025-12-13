@@ -26,6 +26,13 @@ internal class PlayMode : IGameMode
         SpawnFood(2, 3, Color.Orange);
         SpawnFood(5, 7, Color.Red);
         SpawnFood(10, 12, Color.Yellow);
+
+        _engine.Entities.AddEntity(new Transform2d(400, 200), new Text2d(
+            "Press Enter to End Game",
+            24,
+            Color.Black,
+            TextAlignment.Center
+        ));
     }
 
     public void Disable()
@@ -45,6 +52,6 @@ internal class PlayMode : IGameMode
 
     private void SpawnFood(int x, int y, Color color)
     {
-        _engine.Entities.AddEntity(new Engine.Transform(x, y), new BasicShape(ShapeType.Circle, color), new FoodTag());
+        _engine.Entities.AddEntity(new GridTransform(x, y), new BasicShape(ShapeType.Circle, color), new FoodTag());
     }
 }

@@ -2,17 +2,19 @@ using Raylib_cs;
 
 namespace Engine;
 
-public struct Transform
+public struct GridTransform
 {
     public int X;
     public int Y;
 
-    public Transform(int x, int y)
+    public GridTransform(int x, int y)
     {
         X = x;
         Y = y;
     }
 }
+
+
 
 public enum ShapeType
 {
