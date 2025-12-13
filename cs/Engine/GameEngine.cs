@@ -25,22 +25,22 @@ public class GameEngine : IGameEngine
         _layers.AddRange(layers);
     }
 
-    public void Run(IReadOnlyList<ISystem> systems)
+    public void Run(IReadOnlyList<IGameEngineObserver> observers)
     {
         Raylib.InitWindow(_settings.ScreenWidth, _settings.ScreenHeight, _settings.Title);
 
-        foreach (var system in systems)
+        foreach (var observer in observers)
         {
-            system.Attached(this);
+            observer.OnEngineStart(this);
         }
 
         while (!Raylib.WindowShouldClose())
         {
             float deltaTime = Raylib.GetFrameTime();
 
-            foreach (var system in systems)
+            foreach (var observer in observers)
             {
-                system.Update(deltaTime);
+                observer.Update(this, deltaTime);
             }
 
             Raylib.BeginDrawing();
@@ -53,9 +53,9 @@ public class GameEngine : IGameEngine
             Raylib.EndDrawing();
         }
 
-        foreach (var system in systems)
+        foreach (var observer in observers)
         {
-            system.Detached();
+            observer.OnEngineStop(this);
         }
 
         Raylib.CloseWindow();

@@ -10,10 +10,10 @@ internal static class Program
         Settings settings = new Settings(800, 600, "Sneaky Snake");
         IGameEngine engine = new GameEngine(settings);
 
-        ISystem[] systems = {
-            new GameSystem(),
+        IGameEngineObserver[] observers = {
+            new GameManager(),
         };
 
-        engine.Run(systems);
+        engine.Run(observers);
     }
 }

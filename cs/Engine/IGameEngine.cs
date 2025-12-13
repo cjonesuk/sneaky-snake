@@ -8,5 +8,5 @@ public interface IGameEngine
 
     void SetLayers(IReadOnlyList<ILayer> layers);
 
-    void Run(IReadOnlyList<ISystem> systems);
+    void Run(IReadOnlyList<IGameEngineObserver> observers);
 }

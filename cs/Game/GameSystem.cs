@@ -2,29 +2,29 @@ using Engine;
 
 namespace SneakySnake;
 
-internal class GameSystem : ISystem
+internal class GameManager : IGameEngineObserver
 {
     private IGameEngine? _engine;
     private IGame? _game;
 
-    public GameSystem()
+    public GameManager()
     {
     }
 
-    public void Attached(IGameEngine engine)
+    public void OnEngineStart(IGameEngine engine)
     {
-        Console.WriteLine("GameSystem attached to engine.");
+        Console.WriteLine("Game Engine Started");
         _engine = engine;
         _game = new SneakySnakeGame(_engine);
     }
 
-    public void Detached()
+    public void OnEngineStop(IGameEngine engine)
     {
         _engine = null;
         _game = null;
     }
 
-    public void Update(float deltaTime)
+    public void Update(IGameEngine engine, float deltaTime)
     {
         _game?.Update(deltaTime);
     }
