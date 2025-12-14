@@ -7,6 +7,8 @@ public interface IEntityComponentManager
 
     void RemoveAllEntities();
 
-    EntityQueryResult<T1, T2> QueryAll<T1, T2>();
+    EntityQueryResult<T1, T2> QueryById<T1, T2>(EntityId entityId);
+
+    EntityQueryAllResult<T1, T2> QueryAll<T1, T2>();
 
 }

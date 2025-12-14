@@ -43,6 +43,12 @@ internal class PlayMode : IGameMode
             Console.WriteLine("Enter key pressed, ending game...");
             _game.EndGame();
         }
-    }
 
+        int fps = Raylib.GetFPS();
+        var (fpsTextAccessor, fpsTransform) = _engine.Entities.QueryById<Text2d, Transform2d>(_fpsTextEntity);
+
+        var fpsText = fpsTextAccessor.Value;
+        fpsText.Text = $"FPS: {fps}";
+        fpsTextAccessor.Value = fpsText;
+    }
 }

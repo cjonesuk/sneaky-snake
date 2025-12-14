@@ -1,8 +1,27 @@
+using SneakySnake;
+
 namespace Engine;
+
+internal struct EntityLocation
+{
+    public Archetype Archetype;
+
+    /// <summary>
+    /// Index of the entity within the archetype's component lists
+    /// </summary>
+    public int Index;
+
+    internal EntityLocation(Archetype archetype, int index)
+    {
+        Archetype = archetype;
+        Index = index;
+    }
+}
 
 internal class EntityComponentManager : IEntityComponentManager
 {
     private readonly Dictionary<ArchetypeSignature, Archetype> _archetypes = new();
+    private readonly Dictionary<EntityId, EntityLocation> _entityLocations = new();
     private int _nextEntityId = 1;
 
     private EntityId GetNextEntityId()
@@ -35,17 +54,21 @@ internal class EntityComponentManager : IEntityComponentManager
 
         Archetype archetype = GetOrCreateArchetype(signature);
 
-        archetype.AddEntity(entityId, components);
+        EntityLocation location = archetype.AddEntity(entityId, components);
+
+        _entityLocations[entityId] = location;
 
         return entityId;
     }
 
+
     public void RemoveAllEntities()
     {
         _archetypes.Clear();
+        _entityLocations.Clear();
     }
 
-    public EntityQueryResult<T1, T2> QueryAll<T1, T2>()
+    public EntityQueryAllResult<T1, T2> QueryAll<T1, T2>()
     {
         var componentTypes = new Type[] { typeof(T1), typeof(T2) };
 
@@ -53,6 +76,12 @@ internal class EntityComponentManager : IEntityComponentManager
             .Where(x => x.Signature.ContainsAll(componentTypes))
             .ToList();
 
-        return new EntityQueryResult<T1, T2>(archetypes);
+        return new EntityQueryAllResult<T1, T2>(archetypes);
+    }
+
+    public EntityQueryResult<T1, T2> QueryById<T1, T2>(EntityId entityId)
+    {
+        var location = _entityLocations[entityId];
+        return new EntityQueryResult<T1, T2>(location);
     }
 }

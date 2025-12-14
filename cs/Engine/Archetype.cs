@@ -32,9 +32,11 @@ internal class Archetype
         return result;
     }
 
-    public void AddEntity(EntityId entityId, params object[] components)
+    public EntityLocation AddEntity(EntityId entityId, params object[] components)
     {
         var componentsByType = components.ToDictionary(c => c.GetType(), c => c);
+
+        int index = _entityIds.Count;
 
         _entityIds.Add(entityId);
 
@@ -44,6 +46,8 @@ internal class Archetype
             var list = _componentListByType[type];
             list.Add(component);
         }
+
+        return new EntityLocation(this, index);
     }
 
     public void RemoveEntity(EntityId entityId)
