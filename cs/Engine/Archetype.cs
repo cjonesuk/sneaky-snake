@@ -16,6 +16,8 @@ internal class Archetype
         _componentListByType = CreateComponentListsByTypeDictionary(signature);
     }
 
+    public ArchetypeSignature Signature => _signature;
+
     private static Dictionary<Type, IList> CreateComponentListsByTypeDictionary(ArchetypeSignature signature)
     {
         var result = new Dictionary<Type, IList>();
@@ -44,7 +46,18 @@ internal class Archetype
         }
     }
 
-    public IReadOnlyList<T> GetComponents<T>()
+    public void RemoveEntity(EntityId entityId)
+    {
+        int index = _entityIds.IndexOf(entityId);
+        if (index == -1)
+        {
+            return;
+        }
+
+        throw new NotImplementedException();
+    }
+
+    public List<T> GetComponents<T>()
     {
         Type type = typeof(T);
         var list = (List<T>)_componentListByType[type];

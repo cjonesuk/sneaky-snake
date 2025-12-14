@@ -1,5 +1,6 @@
 using Engine;
 using Raylib_cs;
+using SneakySnake.Game;
 
 namespace SneakySnake;
 
@@ -16,6 +17,7 @@ internal class SneakySnakeGame : IGame
     public void Initialise()
     {
         _engine.SetSystems([
+            new GridMovementSystem(),
             new BasicRenderSystem(Color.SkyBlue)
         ]);
 

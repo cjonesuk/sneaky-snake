@@ -14,6 +14,17 @@ public struct GridTransform
     }
 }
 
+public struct GridAnimation
+{
+    public int SpeedX;
+    public int SpeedY;
+
+    public GridAnimation(int speedX = 0, int speedY = 0)
+    {
+        SpeedX = speedX;
+        SpeedY = speedY;
+    }
+}
 
 
 public enum ShapeType

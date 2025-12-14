@@ -49,9 +49,9 @@ internal class EntityComponentManager : IEntityComponentManager
     {
         var componentTypes = new Type[] { typeof(T1), typeof(T2) };
 
-        var archetypes = _archetypes.Where(x => x.Key.ContainsAll(componentTypes))
-                                    .Select(x => x.Value)
-                                    .ToList();
+        var archetypes = _archetypes.Values
+            .Where(x => x.Signature.ContainsAll(componentTypes))
+            .ToList();
 
         return new EntityQueryResult<T1, T2>(archetypes);
     }

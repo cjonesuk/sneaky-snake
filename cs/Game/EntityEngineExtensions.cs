@@ -10,8 +10,13 @@ public static class EntityEngineExtensions
         engine.Entities.AddEntity(new GridTransform(x, y), new BasicShape(ShapeType.Circle, color), new FoodTag());
     }
 
-    public static void SpawnText(this IGameEngine engine, float x, float y, string text, float fontSize, Color color, TextAlignment alignment)
+    public static EntityId SpawnMovingFood(this IGameEngine engine, int x, int y, Color color)
     {
-        engine.Entities.AddEntity(new Transform2d(x, y), new Text2d(text, fontSize, color, alignment));
+        return engine.Entities.AddEntity(new GridTransform(x, y), new GridAnimation(1, 0), new BasicShape(ShapeType.Rectangle, color), new FoodTag());
+    }
+
+    public static EntityId SpawnText(this IGameEngine engine, float x, float y, string text, float fontSize, Color color, TextAlignment alignment)
+    {
+        return engine.Entities.AddEntity(new Transform2d(x, y), new Text2d(text, fontSize, color, alignment));
     }
 }

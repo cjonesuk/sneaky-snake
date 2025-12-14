@@ -53,24 +53,30 @@ internal class UiLayer : ILayer
     {
         var result = _engine.Entities.QueryAll<Transform2d, Text2d>();
 
-        foreach (var (transform, text2d) in result)
+        foreach (var (transforms, textList) in result)
         {
-            Vector2 textSize = Raylib.MeasureTextEx(_font, text2d.Text, text2d.FontSize, 1);
-
-            Vector2 textPosition = text2d.Alignment switch
+            for (int index = 0; index < transforms.Count; index++)
             {
-                TextAlignment.Left => new Vector2(
-                    transform.X,
-                    transform.Y
-                ),
-                TextAlignment.Center => new Vector2(
-                    transform.X - (textSize.X / 2),
-                    transform.Y - (textSize.Y / 2)
-                ),
-                _ => new Vector2(0, 0)
-            };
+                var text2d = textList[index];
+                var transform = transforms[index];
 
-            Raylib.DrawTextEx(_font, text2d.Text, textPosition, text2d.FontSize, 1, text2d.Color);
+                Vector2 textSize = Raylib.MeasureTextEx(_font, text2d.Text, text2d.FontSize, 1);
+
+                Vector2 textPosition = text2d.Alignment switch
+                {
+                    TextAlignment.Left => new Vector2(
+                        transform.X,
+                        transform.Y
+                    ),
+                    TextAlignment.Center => new Vector2(
+                        transform.X - (textSize.X / 2),
+                        transform.Y - (textSize.Y / 2)
+                    ),
+                    _ => new Vector2(0, 0)
+                };
+
+                Raylib.DrawTextEx(_font, text2d.Text, textPosition, text2d.FontSize, 1, text2d.Color);
+            }
         }
     }
 }
