@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 
 namespace Engine;
@@ -11,6 +12,9 @@ readonly struct ArchetypeSignature : IEquatable<ArchetypeSignature>
     {
         _componentTypes = componentTypes.OrderBy(t => t.FullName).ToArray();
     }
+
+    public IReadOnlyList<Type> ComponentTypes => _componentTypes;
+
 
     public bool ContainsAll(IReadOnlyList<Type> componentTypes)
     {
