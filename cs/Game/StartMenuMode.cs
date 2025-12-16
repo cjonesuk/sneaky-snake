@@ -25,7 +25,7 @@ internal class StartMenuMode : IGameMode
     public void Disable()
     {
         Console.WriteLine("Disabling Start Menu Mode...");
-        _engine.Entities.RemoveAllEntities();
+        _engine.Entities.NewWorld();
     }
 
     public void Update(float deltaTime)

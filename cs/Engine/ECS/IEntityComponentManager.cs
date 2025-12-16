@@ -1,0 +1,33 @@
+
+namespace Engine;
+
+
+public interface IEntityComponentManager
+{
+    /// <summary>
+    /// Queues the creation of a new entity with the specified components.
+    /// The entity will be created when ProcessPendingCommands is called.
+    /// </summary>
+    EntityId AddEntity(params object[] components);
+
+    /// <summary>
+    /// Queues the removal of the specified entity.
+    /// The entity will be removed when ProcessPendingCommands is called.
+    /// </summary>
+    void RemoveEntity(EntityId entityId);
+
+    /// <summary>
+    /// Queues a request to create a new world, clearing all existing entities.
+    /// </summary>
+    void NewWorld();
+
+    /// <summary>
+    /// Processes all pending entity creation and removal commands.
+    /// </summary>
+    void ProcessPendingCommands();
+
+    EntityQueryResult QueryById(EntityId entityId);
+
+    EntityQueryAllResult<T1, T2> QueryAll<T1, T2>();
+
+}

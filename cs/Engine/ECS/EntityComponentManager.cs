@@ -2,26 +2,11 @@ using SneakySnake;
 
 namespace Engine;
 
-internal struct EntityLocation
-{
-    public Archetype Archetype;
-
-    /// <summary>
-    /// Index of the entity within the archetype's component lists
-    /// </summary>
-    public int Index;
-
-    internal EntityLocation(Archetype archetype, int index)
-    {
-        Archetype = archetype;
-        Index = index;
-    }
-}
-
 internal class EntityComponentManager : IEntityComponentManager
 {
     private readonly Dictionary<ArchetypeSignature, Archetype> _archetypes = new();
     private readonly Dictionary<EntityId, EntityLocation> _entityLocations = new();
+    private readonly EntityCommandBuffer _commandBuffer = new();
     private int _nextEntityId = 1;
 
     private EntityId GetNextEntityId()
@@ -50,22 +35,60 @@ internal class EntityComponentManager : IEntityComponentManager
     public EntityId AddEntity(params object[] components)
     {
         EntityId entityId = GetNextEntityId();
-        ArchetypeSignature signature = GetArchetypeSignature(components);
-
-        Archetype archetype = GetOrCreateArchetype(signature);
-
-        EntityLocation location = archetype.AddEntity(entityId, components);
-
-        _entityLocations[entityId] = location;
+        _commandBuffer.AddEntity(entityId, components);
 
         return entityId;
     }
 
-
-    public void RemoveAllEntities()
+    private EntityId AddEntity(EntityCreationRequest request)
     {
-        _archetypes.Clear();
-        _entityLocations.Clear();
+        ArchetypeSignature signature = GetArchetypeSignature(request.Components);
+
+        Archetype archetype = GetOrCreateArchetype(signature);
+
+        EntityLocation location = archetype.AddEntity(request.EntityId, request.Components);
+        _entityLocations[request.EntityId] = location;
+
+        return request.EntityId;
+    }
+
+    public void ProcessPendingCommands()
+    {
+        var (removals, creations, worldReset) = _commandBuffer.GetPendingCommands();
+
+        foreach (var request in removals)
+        {
+            RemoveEntity(request);
+        }
+
+        foreach (var request in creations)
+        {
+            AddEntity(request);
+        }
+
+        if (worldReset.HasValue)
+        {
+            Console.WriteLine("Resetting world");
+            _archetypes.Clear();
+            _entityLocations.Clear();
+        }
+
+        _commandBuffer.ClearPendingCommands();
+    }
+
+    public void RemoveEntity(EntityId entityId)
+    {
+        _commandBuffer.RemoveEntity(entityId);
+    }
+
+    private void RemoveEntity(EntityRemovalRequest request)
+    {
+        Console.WriteLine($"Removing entity {request.EntityId}: Not yet implemented");
+    }
+
+    public void NewWorld()
+    {
+        _commandBuffer.NewWorld();
     }
 
     public EntityQueryAllResult<T1, T2> QueryAll<T1, T2>()
@@ -79,9 +102,9 @@ internal class EntityComponentManager : IEntityComponentManager
         return new EntityQueryAllResult<T1, T2>(archetypes);
     }
 
-    public EntityQueryResult<T1, T2> QueryById<T1, T2>(EntityId entityId)
+    public EntityQueryResult QueryById(EntityId entityId)
     {
         var location = _entityLocations[entityId];
-        return new EntityQueryResult<T1, T2>(location);
+        return new EntityQueryResult(location);
     }
 }

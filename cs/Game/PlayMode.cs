@@ -27,13 +27,13 @@ internal class PlayMode : IGameMode
 
         _engine.SpawnText(400, 50, "Game in Progress - Press Enter to End Game", 24, Color.Black, TextAlignment.Center);
 
-        _fpsTextEntity = _engine.SpawnText(10, 10, "FPS: 0", 16, Color.Black, TextAlignment.Left);
+        _fpsTextEntity = _engine.SpawnText(10, 10, "FPS: -", 16, Color.Black, TextAlignment.Left);
     }
 
     public void Disable()
     {
         Console.WriteLine("Disabling Play Mode...");
-        _engine.Entities.RemoveAllEntities();
+        _engine.Entities.NewWorld();
     }
 
     public void Update(float deltaTime)
@@ -45,10 +45,7 @@ internal class PlayMode : IGameMode
         }
 
         int fps = Raylib.GetFPS();
-        var (fpsTextAccessor, fpsTransform) = _engine.Entities.QueryById<Text2d, Transform2d>(_fpsTextEntity);
-
-        var fpsText = fpsTextAccessor.Value;
+        ref var fpsText = ref _engine.Entities.QueryById(_fpsTextEntity).GetRef<Text2d>();
         fpsText.Text = $"FPS: {fps}";
-        fpsTextAccessor.Value = fpsText;
     }
 }

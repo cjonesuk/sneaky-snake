@@ -46,6 +46,8 @@ public class GameEngine : IGameEngine
         {
             float deltaTime = Raylib.GetFrameTime();
 
+            _entities.ProcessPendingCommands();
+
             foreach (var observer in observers)
             {
                 observer.Update(this, deltaTime);

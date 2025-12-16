@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Engine;
 
 public readonly struct EntityQueryAllResult<T1, T2> : IEnumerable<(EntityListView<T1>, EntityListView<T2>)>
@@ -27,7 +29,7 @@ public readonly struct EntityQueryAllResult<T1, T2> : IEnumerable<(EntityListVie
 }
 
 
-public readonly struct EntityQueryResult<T1, T2>
+public readonly struct EntityQueryResult
 {
     private readonly EntityLocation _location;
 
@@ -36,9 +38,15 @@ public readonly struct EntityQueryResult<T1, T2>
         _location = location;
     }
 
-    public void Deconstruct(out EntityAccessor<T1> one, out EntityAccessor<T2> two)
+    public EntityAccessor<T1> Get<T1>()
     {
-        one = new EntityAccessor<T1>(_location.Archetype.GetComponents<T1>(), _location.Index);
-        two = new EntityAccessor<T2>(_location.Archetype.GetComponents<T2>(), _location.Index);
+        return new EntityAccessor<T1>(_location.Archetype.GetComponents<T1>(), _location.Index);
+    }
+
+    public ref T GetRef<T>()
+    {
+        var components = _location.Archetype.GetComponents<T>();
+        var span = CollectionsMarshal.AsSpan(components);
+        return ref span[_location.Index];
     }
 }
