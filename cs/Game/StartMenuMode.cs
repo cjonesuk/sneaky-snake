@@ -14,7 +14,7 @@ internal class StartMenuMode : IGameMode
         _engine = engine;
     }
 
-    public void Enable()
+    public void OnActivate()
     {
         Console.WriteLine("Starting Start Menu Mode...");
 
@@ -22,7 +22,7 @@ internal class StartMenuMode : IGameMode
         _engine.SpawnText(400, 150, "Press Enter to Start Game", 24, Color.DarkGray, TextAlignment.Center);
     }
 
-    public void Disable()
+    public void OnDeactivate()
     {
         Console.WriteLine("Disabling Start Menu Mode...");
     }

@@ -16,7 +16,7 @@ internal class PlayMode : IGameMode
         _engine = engine;
     }
 
-    public void Enable()
+    public void OnActivate()
     {
         Console.WriteLine("Starting Play Mode...");
 
@@ -30,7 +30,7 @@ internal class PlayMode : IGameMode
         _fpsTextEntity = _engine.SpawnText(10, 10, "FPS: -", 16, Color.Black, TextAlignment.Left);
     }
 
-    public void Disable()
+    public void OnDeactivate()
     {
         Console.WriteLine("Disabling Play Mode...");
     }

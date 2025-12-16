@@ -41,7 +41,7 @@ internal class SneakySnakeGame : IGame
             if (_currentState.HasValue)
             {
                 Console.WriteLine("Disabling current game mode...");
-                _gameMode?.Disable();
+                _gameMode?.OnDeactivate();
                 _gameMode = null;
                 _currentState = null;
                 _engine.Entities.NewWorld();
@@ -63,7 +63,7 @@ internal class SneakySnakeGame : IGame
                 }
 
                 Console.WriteLine("Enabling new game mode...");
-                _gameMode?.Enable();
+                _gameMode?.OnActivate();
             }
 
             return;

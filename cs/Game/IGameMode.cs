@@ -2,7 +2,7 @@ namespace SneakySnake;
 
 interface IGameMode
 {
-    void Enable();
-    void Disable();
+    void OnActivate();
+    void OnDeactivate();
     void Update(float deltaTime);
 }
