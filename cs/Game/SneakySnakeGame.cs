@@ -4,14 +4,24 @@ using SneakySnake.Game;
 
 namespace SneakySnake;
 
+internal enum GameState
+{
+    StartMenu,
+    Playing,
+}
+
 internal class SneakySnakeGame : IGame
 {
     private readonly IGameEngine _engine;
     private IGameMode? _gameMode;
+    private GameState? _currentState;
+    private GameState? _nextState;
 
     public SneakySnakeGame(IGameEngine engine)
     {
         _engine = engine;
+        _currentState = null;
+        _nextState = null;
     }
 
     public void Initialise()
@@ -21,28 +31,59 @@ internal class SneakySnakeGame : IGame
             new BasicRenderSystem(Color.SkyBlue)
         ]);
 
-        SwitchMode(new StartMenuMode(this, _engine));
+        SetNextState(GameState.StartMenu);
     }
 
     public void Update(float deltaTime)
     {
+        if (_nextState.HasValue)
+        {
+            if (_currentState.HasValue)
+            {
+                Console.WriteLine("Disabling current game mode...");
+                _gameMode?.Disable();
+                _gameMode = null;
+                _currentState = null;
+                _engine.Entities.NewWorld();
+            }
+            else
+            {
+                Console.WriteLine($"Switching to new game state: {_nextState.Value}");
+                _currentState = _nextState;
+                _nextState = null;
+
+                switch (_currentState)
+                {
+                    case GameState.StartMenu:
+                        _gameMode = new StartMenuMode(this, _engine);
+                        break;
+                    case GameState.Playing:
+                        _gameMode = new PlayMode(this, _engine);
+                        break;
+                }
+
+                Console.WriteLine("Enabling new game mode...");
+                _gameMode?.Enable();
+            }
+
+            return;
+        }
+
         _gameMode?.Update(deltaTime);
     }
 
-    private void SwitchMode(IGameMode newMode)
+    private void SetNextState(GameState state)
     {
-        _gameMode?.Disable();
-        _gameMode = newMode;
-        _gameMode.Enable();
+        _nextState = state;
     }
 
     public void StartGame()
     {
-        SwitchMode(new PlayMode(this, _engine));
+        SetNextState(GameState.Playing);
     }
 
     public void EndGame()
     {
-        SwitchMode(new StartMenuMode(this, _engine));
+        SetNextState(GameState.StartMenu);
     }
 }

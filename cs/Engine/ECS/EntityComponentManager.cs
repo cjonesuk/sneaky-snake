@@ -42,6 +42,7 @@ internal class EntityComponentManager : IEntityComponentManager
 
     private EntityId AddEntity(EntityCreationRequest request)
     {
+        Console.WriteLine($"Adding entity {request.EntityId}");
         ArchetypeSignature signature = GetArchetypeSignature(request.Components);
 
         Archetype archetype = GetOrCreateArchetype(signature);

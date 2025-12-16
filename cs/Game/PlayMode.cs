@@ -33,7 +33,6 @@ internal class PlayMode : IGameMode
     public void Disable()
     {
         Console.WriteLine("Disabling Play Mode...");
-        _engine.Entities.NewWorld();
     }
 
     public void Update(float deltaTime)
