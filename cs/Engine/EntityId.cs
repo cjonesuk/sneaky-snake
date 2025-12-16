@@ -16,4 +16,9 @@ public readonly struct EntityId
     {
         return $"EntityId: {Id}";
     }
+
+    public override string ToString()
+    {
+        return Id.ToString();
+    }
 }
