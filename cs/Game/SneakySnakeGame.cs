@@ -1,4 +1,5 @@
 using Engine;
+using Engine.Rendering;
 using Raylib_cs;
 using SneakySnake.Game;
 
@@ -10,7 +11,7 @@ internal enum GameState
     Playing,
 }
 
-internal class SneakySnakeGame : IGame
+internal class SneakySnakeGame : IGameInstance
 {
     private readonly IGameEngine _engine;
     private IGameMode? _gameMode;
@@ -26,11 +27,6 @@ internal class SneakySnakeGame : IGame
 
     public void Initialise()
     {
-        _engine.SetSystems([
-            new GridMovementSystem(),
-            new BasicRenderSystem(Color.SkyBlue)
-        ]);
-
         SetNextState(GameState.StartMenu);
     }
 
@@ -44,26 +40,17 @@ internal class SneakySnakeGame : IGame
                 _gameMode?.OnDeactivate();
                 _gameMode = null;
                 _currentState = null;
-                _engine.Entities.NewWorld();
             }
             else
             {
                 Console.WriteLine($"Switching to new game state: {_nextState.Value}");
+
                 _currentState = _nextState;
                 _nextState = null;
-
-                switch (_currentState)
-                {
-                    case GameState.StartMenu:
-                        _gameMode = new StartMenuMode(this, _engine);
-                        break;
-                    case GameState.Playing:
-                        _gameMode = new PlayMode(this, _engine);
-                        break;
-                }
+                _gameMode = CreateGameMode(_currentState.Value);
 
                 Console.WriteLine("Enabling new game mode...");
-                _gameMode?.OnActivate();
+                _gameMode.OnActivate();
             }
 
             return;
@@ -85,5 +72,15 @@ internal class SneakySnakeGame : IGame
     public void EndGame()
     {
         SetNextState(GameState.StartMenu);
+    }
+
+    private IGameMode CreateGameMode(GameState state)
+    {
+        return state switch
+        {
+            GameState.StartMenu => new StartMenuMode(this, _engine),
+            GameState.Playing => new PlayMode(this, _engine),
+            _ => throw new ArgumentOutOfRangeException(nameof(state), $"Unsupported game state: {state}"),
+        };
     }
 }

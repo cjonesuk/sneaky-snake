@@ -2,6 +2,7 @@ namespace SneakySnake.Game;
 
 using System.Diagnostics;
 using Engine;
+using global::Engine;
 
 public class GridMovementSystem : ISystem
 {
