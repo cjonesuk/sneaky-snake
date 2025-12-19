@@ -22,6 +22,7 @@ public interface IEntityComponentManager
     void ProcessPendingCommands();
 
     EntityQueryResult QueryById(EntityId entityId);
+    bool TryQueryById(EntityId entityId, out EntityQueryResult result);
 
     EntityQueryAllResult<T1, T2> QueryAll<T1, T2>();
 

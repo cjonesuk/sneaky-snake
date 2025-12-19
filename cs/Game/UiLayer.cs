@@ -1,6 +1,6 @@
 using System.Numerics;
-using Engine;
 using Raylib_cs;
+using SneakySnake.Engine.Rendering;
 
 namespace SneakySnake;
 
@@ -26,57 +26,35 @@ public struct Text2d
     }
 }
 
-public struct Transform2d
-{
-    public float X;
-    public float Y;
 
-    public Transform2d(float x, float y)
+public readonly struct TextRenderCommand
+{
+    public readonly Vector2 Position;
+    public readonly float FontSize;
+    public readonly float Spacing;
+    public readonly Color Color;
+    public readonly string Text;
+
+    public TextRenderCommand(Vector2 position, float fontSize, float spacing, Color color, string text)
     {
-        X = x;
-        Y = y;
+        Position = position;
+        FontSize = fontSize;
+        Spacing = spacing;
+        Color = color;
+        Text = text;
     }
 }
 
-internal class UiLayer : ILayer
+public sealed class TextRenderer : RenderQueue<TextRenderCommand>
 {
-    private readonly IGameEngine _engine;
-    private readonly Font _font;
-
-    public UiLayer(IGameEngine engine)
+    public override void Render()
     {
-        _engine = engine;
-        _font = Raylib.GetFontDefault();
-    }
+        var font = Raylib.GetFontDefault();
 
-    public void Render()
-    {
-        var result = _engine.Entities.QueryAll<Transform2d, Text2d>();
-
-        foreach (var (transforms, textList) in result)
+        for (int index = 0; index < _commands.Count; ++index)
         {
-            for (int index = 0; index < transforms.Count; index++)
-            {
-                var text2d = textList[index];
-                var transform = transforms[index];
-
-                Vector2 textSize = Raylib.MeasureTextEx(_font, text2d.Text, text2d.FontSize, 1);
-
-                Vector2 textPosition = text2d.Alignment switch
-                {
-                    TextAlignment.Left => new Vector2(
-                        transform.X,
-                        transform.Y
-                    ),
-                    TextAlignment.Center => new Vector2(
-                        transform.X - (textSize.X / 2),
-                        transform.Y - (textSize.Y / 2)
-                    ),
-                    _ => new Vector2(0, 0)
-                };
-
-                Raylib.DrawTextEx(_font, text2d.Text, textPosition, text2d.FontSize, 1, text2d.Color);
-            }
+            var cmd = _commands[index];
+            Raylib.DrawTextEx(font, cmd.Text, cmd.Position, cmd.FontSize, cmd.Spacing, cmd.Color);
         }
     }
 }

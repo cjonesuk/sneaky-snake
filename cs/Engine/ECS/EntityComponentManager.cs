@@ -94,4 +94,16 @@ internal class EntityComponentManager : IEntityComponentManager
         var location = _entityLocations[entityId];
         return new EntityQueryResult(location);
     }
+
+    public bool TryQueryById(EntityId entityId, out EntityQueryResult result)
+    {
+        if (_entityLocations.TryGetValue(entityId, out var location))
+        {
+            result = new EntityQueryResult(location);
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
 }

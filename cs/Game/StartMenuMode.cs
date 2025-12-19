@@ -1,3 +1,4 @@
+using System.Numerics;
 using Engine;
 using Engine.Rendering;
 using Raylib_cs;
@@ -16,7 +17,7 @@ internal class StartMenuMode : IGameMode
         _game = game;
         _engine = engine;
         _world = Builders.CreateWorld();
-        _cameraId = _world.SpawnCamera2d();
+        _cameraId = _world.SpawnCamera2d(position: new Vector2(000, 000), rotation: 0.0f, zoom: 1.0f, debug: true);
     }
 
     public void OnActivate()
@@ -26,12 +27,12 @@ internal class StartMenuMode : IGameMode
         _engine.AddWorld(_world);
         _engine.SetViewports(
         [
-            new Viewport(0, 0, 1.0f, 1.0f, _world, _cameraId, Color.Red)
+            Viewport.Fullscreen(_world, _cameraId)
         ]);
 
         // Spawn entities
-        _world.SpawnText(400, 100, "Welcome to Sneaky Snake!", 32, Color.Black, TextAlignment.Center);
-        _world.SpawnText(400, 150, "Press Enter to Start Game", 24, Color.DarkGray, TextAlignment.Center);
+        _world.SpawnText(new Vector2(400, 100), "Welcome to Sneaky Snake!", 32, Color.Black, TextAlignment.Center);
+        _world.SpawnText(new Vector2(400, 150), "Press Enter to Start Game", 24, Color.DarkGray, TextAlignment.Center);
     }
 
     public void OnDeactivate()

@@ -8,7 +8,7 @@ public class GameEngine : IGameEngine
     private readonly Settings _settings;
     private readonly List<ISystem> _systems = new();
     private readonly List<IWorld> _worlds = new();
-    private readonly WindowRenderTarget _window = new(Color.Black);
+    private readonly WindowRenderTarget _window = new(Color.SkyBlue);
 
     public GameEngine(Settings settings)
     {
@@ -62,7 +62,6 @@ public class GameEngine : IGameEngine
             }
 
             _window.Render();
-
         }
 
         foreach (var observer in observers)

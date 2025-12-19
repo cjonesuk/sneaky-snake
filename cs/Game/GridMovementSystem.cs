@@ -35,19 +35,19 @@ public class GridMovementSystem : ISystem
 
         _accumulator -= MoveInterval;
 
-        var archetypeList = _engine.Entities.QueryAll<GridTransform, GridAnimation>();
+        // var archetypeList = _engine.Entities.QueryAll<GridTransform, GridAnimation>();
 
-        foreach (var (transforms, animations) in archetypeList)
-        {
-            for (int index = 0; index < transforms.Count; index++)
-            {
-                var transform = transforms[index];
+        // foreach (var (transforms, animations) in archetypeList)
+        // {
+        //     for (int index = 0; index < transforms.Count; index++)
+        //     {
+        //         var transform = transforms[index];
 
-                transform.X += animations[index].SpeedX;
-                transform.Y += animations[index].SpeedY;
+        //         transform.X += animations[index].SpeedX;
+        //         transform.Y += animations[index].SpeedY;
 
-                transforms[index] = transform;
-            }
-        }
+        //         transforms[index] = transform;
+        //     }
+        // }
     }
 }

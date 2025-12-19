@@ -6,8 +6,6 @@ namespace Engine.Rendering;
 
 internal struct ViewportInternal
 {
-    public bool Initialized;
-    public Camera2D Camera2D;
     public RenderPass? RenderPass;
 }
 
@@ -65,25 +63,30 @@ internal sealed class WindowRenderTarget
             ref var viewport = ref _viewports[index];
             ref var viewportInternal = ref _viewportInternals[index];
 
-            if (!viewportInternal.Initialized)
+            RenderPass? renderPass = viewportInternal.RenderPass;
+
+            if (renderPass == null)
             {
-                viewportInternal.Camera2D = new Camera2D();
-                viewportInternal.Initialized = true;
+                continue;
             }
+
+            Camera2dRenderView cameraView = renderPass.GetCamera();
 
             int x = (int)(viewport.X * renderWidth);
             int y = (int)(viewport.Y * renderHeight);
             int width = (int)(viewport.Width * renderWidth);
             int height = (int)(viewport.Height * renderHeight);
-            float centerX = x + (width / 2.0f);
-            float centerY = y + (height / 2.0f);
+            int centerX = x + (width / 2);
+            int centerY = y + (height / 2);
 
-            viewportInternal.Camera2D.Offset = new Vector2(centerX, centerY);
+            Vector2 viewportOffset = new Vector2(0, 0);
 
-            Raylib.BeginMode2D(viewportInternal.Camera2D);
+            Camera2D camera2d = new Camera2D(viewportOffset, cameraView.Target, cameraView.Rotation, cameraView.Zoom);
+
+            Raylib.BeginMode2D(camera2d);
             Raylib.BeginScissorMode(x, y, width, height);
 
-            viewport.RenderPass.Render();
+            renderPass.Render();
 
             Raylib.EndScissorMode();
             Raylib.EndMode2D();

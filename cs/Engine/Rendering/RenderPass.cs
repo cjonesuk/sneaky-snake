@@ -1,7 +1,25 @@
 
+using System.Numerics;
+
 public interface IRenderPass
 {
+    void SetCamera(Camera2dRenderView cameraView);
     IRenderQueue<TCommand> GetQueue<TCommand>() where TCommand : struct;
+}
+
+public readonly struct Camera2dRenderView
+{
+    public readonly Vector2 Target;
+    public readonly float Zoom;
+    public readonly float Rotation;
+
+    public Camera2dRenderView(Vector2 target, float zoom, float rotation)
+    {
+        Target = target;
+        Zoom = zoom;
+        Rotation = rotation;
+    }
+
 }
 
 /// <summary>
@@ -11,6 +29,7 @@ public sealed class RenderPass : IRenderPass
 {
     private readonly IRenderer[] _renderers;
     private readonly Dictionary<Type, IRenderQueue> _renderQueueByType;
+    private Camera2dRenderView _camera2dView;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RenderPass"/> struct.
@@ -20,6 +39,16 @@ public sealed class RenderPass : IRenderPass
     {
         _renderers = renderers;
         _renderQueueByType = new Dictionary<Type, IRenderQueue>(_renderers.Length);
+    }
+
+    public void SetCamera(Camera2dRenderView cameraView)
+    {
+        _camera2dView = cameraView;
+    }
+
+    public Camera2dRenderView GetCamera()
+    {
+        return _camera2dView;
     }
 
     public IRenderQueue<TCommand> GetQueue<TCommand>() where TCommand : struct

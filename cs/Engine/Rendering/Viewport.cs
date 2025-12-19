@@ -11,7 +11,6 @@ public readonly struct Viewport
     public readonly float Height;
     public readonly IWorld World;
     public readonly EntityId Camera;
-    public readonly Color ClearColor;
 
     public Viewport(
         float x,
@@ -19,8 +18,7 @@ public readonly struct Viewport
         float width,
         float height,
         IWorld world,
-        EntityId camera,
-        Color clearColor)
+        EntityId camera)
     {
         X = x;
         Y = y;
@@ -28,7 +26,21 @@ public readonly struct Viewport
         Height = height;
         World = world;
         Camera = camera;
-        ClearColor = clearColor;
     }
+
+    public static Viewport Fullscreen(IWorld world, EntityId camera)
+    {
+        return new Viewport(0.0f, 0.0f, 1.0f, 1.0f, world, camera);
+    }
+
+    public static Viewport[] SplitColumns(IWorld world, EntityId cameraLeft, EntityId cameraRight)
+    {
+        return
+        [
+            new Viewport(0.0f, 0.0f, 0.5f, 1.0f, world, cameraLeft),
+            new Viewport(0.5f, 0.0f, 0.5f, 1.0f, world, cameraRight)
+        ];
+    }
+
 
 }
