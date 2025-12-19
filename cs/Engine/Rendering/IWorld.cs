@@ -7,5 +7,5 @@ public interface IWorld
 
     void Tick(float deltaTime);
 
-    void UpdateRenderPass(IRenderPass renderPass, EntityId camera);
+    void GenerateRenderCommandsForCamera(IRenderPass renderPass, EntityId camera);
 }

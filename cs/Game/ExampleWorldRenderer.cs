@@ -7,7 +7,7 @@ using Raylib_cs;
 
 namespace SneakySnake;
 
-internal class ExampleRenderQueueWorldTransformer : IRenderQueueWorldTransformer
+internal class ExampleWorldRenderer : IWorldRenderer
 {
     private readonly int _gridSize = 50;
 

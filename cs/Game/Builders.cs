@@ -11,6 +11,6 @@ internal static class Builders
         IRenderer[] renderers = [new BasicShapeRenderer(), new TextRenderer()];
         ISystem[] systems = [];
 
-        return new World(new EntityComponentManager(), systems, renderers, new ExampleRenderQueueWorldTransformer());
+        return new World(new EntityComponentManager(), systems, renderers, new ExampleWorldRenderer());
     }
 }

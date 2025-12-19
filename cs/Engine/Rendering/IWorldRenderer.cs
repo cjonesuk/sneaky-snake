@@ -1,6 +1,6 @@
 namespace Engine.Rendering;
 
-public interface IRenderQueueWorldTransformer
+public interface IWorldRenderer
 {
     void Generate(IWorld world, EntityId camera, IRenderPass renderPass);
 }

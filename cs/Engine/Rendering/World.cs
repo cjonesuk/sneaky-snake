@@ -5,9 +5,13 @@ internal sealed class World : IWorld
     private readonly IEntityComponentManager _entities;
     private readonly ISystem[] _systems;
     private readonly IRenderer[] _renderers;
-    private readonly IRenderQueueWorldTransformer _worldToRenderPass;
+    private readonly IWorldRenderer _worldToRenderPass;
 
-    public World(IEntityComponentManager entities, ISystem[] systems, IRenderer[] renderers, IRenderQueueWorldTransformer worldToRenderPass)
+    public World(
+        IEntityComponentManager entities,
+        ISystem[] systems,
+        IRenderer[] renderers,
+        IWorldRenderer worldToRenderPass)
     {
         _entities = entities;
         _systems = systems;
@@ -32,7 +36,7 @@ internal sealed class World : IWorld
         }
     }
 
-    public void UpdateRenderPass(IRenderPass renderPass, EntityId camera)
+    public void GenerateRenderCommandsForCamera(IRenderPass renderPass, EntityId camera)
     {
         _worldToRenderPass.Generate(this, camera, renderPass);
     }

@@ -29,6 +29,7 @@ internal sealed class WindowRenderTarget
             throw new ArgumentException("At least one viewport must be provided.", nameof(viewports));
         }
 
+        // todo: Pooling for render passes
         Array.Resize(ref _viewports, viewports.Length);
         Array.Resize(ref _viewportInternals, viewports.Length);
         Array.Copy(viewports, _viewports, viewports.Length);
@@ -48,7 +49,7 @@ internal sealed class WindowRenderTarget
                 viewportInternal.RenderPass = viewport.World.CreateRenderPass();
             }
 
-            viewport.World.UpdateRenderPass(viewportInternal.RenderPass, viewport.Camera);
+            viewport.World.GenerateRenderCommandsForCamera(viewportInternal.RenderPass, viewport.Camera);
         }
 
         Raylib.BeginDrawing();
