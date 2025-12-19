@@ -17,7 +17,7 @@ internal class StartMenuMode : IGameMode
         _game = game;
         _engine = engine;
         _world = Builders.CreateWorld();
-        _cameraId = _world.SpawnCamera2d(position: new Vector2(000, 000), rotation: 0.0f, zoom: 1.0f, debug: true);
+        _cameraId = _world.SpawnCamera2d(position: new Vector2(400, 300), rotation: 0.0f, zoom: 1.0f, debug: true);
     }
 
     public void OnActivate()

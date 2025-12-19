@@ -79,7 +79,7 @@ internal sealed class WindowRenderTarget
             int centerX = x + (width / 2);
             int centerY = y + (height / 2);
 
-            Vector2 viewportOffset = new Vector2(0, 0);
+            Vector2 viewportOffset = new Vector2(centerX, centerY);
 
             Camera2D camera2d = new Camera2D(viewportOffset, cameraView.Target, cameraView.Rotation, cameraView.Zoom);
 
