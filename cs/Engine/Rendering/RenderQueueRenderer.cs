@@ -1,12 +1,12 @@
 namespace SneakySnake.Engine.Rendering;
 
-public abstract class RenderQueue<TCommand>
+public abstract class RenderQueueRenderer<TCommand>
     : IRenderQueue<TCommand>, IRenderer
     where TCommand : struct
 {
     protected readonly List<TCommand> _commands;
 
-    public RenderQueue()
+    public RenderQueueRenderer()
     {
         _commands = new List<TCommand>();
     }
@@ -20,5 +20,11 @@ public abstract class RenderQueue<TCommand>
 
     IReadOnlyList<TCommand> IRenderQueue<TCommand>.Commands => _commands;
 
-    public abstract void Render();
+    public void Render()
+    {
+        RenderCommands();
+        _commands.Clear();
+    }
+
+    public abstract void RenderCommands();
 }

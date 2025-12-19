@@ -4,9 +4,9 @@ using SneakySnake.Engine.Rendering;
 
 namespace SneakySnake;
 
-internal class BasicShapeRenderer : RenderQueue<BasicShapeRenderCommand>
+internal class BasicShapeRenderer : RenderQueueRenderer<BasicShapeRenderCommand>
 {
-    public override void Render()
+    public override void RenderCommands()
     {
         for (int index = 0; index < _commands.Count; ++index)
         {

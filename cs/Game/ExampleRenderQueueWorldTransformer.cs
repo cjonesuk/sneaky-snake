@@ -1,6 +1,7 @@
 using System.Numerics;
 using Engine;
 using Engine.Components;
+using Engine.Renderers;
 using Engine.Rendering;
 using Raylib_cs;
 
@@ -26,15 +27,6 @@ internal class ExampleRenderQueueWorldTransformer : IRenderQueueWorldTransformer
             cameraTransform.Rotation);
 
         renderPass.SetCamera(cameraView);
-
-        renderPass.GetQueue<BasicShapeRenderCommand>().Enqueue(new BasicShapeRenderCommand(
-            cameraTransform.Position.X,
-            cameraTransform.Position.Y,
-            10,
-            10,
-            Color.Magenta,
-            ShapeType.Circle
-        ));
 
         ProcessBasicShapes(world, renderPass);
         ProcessText2d(world, renderPass);
