@@ -26,6 +26,18 @@ dotnet run
 
 - Add a debug view to display fps and allow toggling it on and off
 - Pooling for RenderPass's
+- Resizable windows
+
+### Input
+
+#### Input Todo
+
+- Device abstraction and KeyboardDevice implementation
+- GameEngine provides list of available devices
+- InputContext concept that can have devices attached
+- InputContext can be enabled causing the engine to trigger processing at the start of each frame
+- InputContext has mappings from a device input to an InputAction which is emitted (for now logging the action)
+- GamePadDevice implementation
 
 ## General Todo
 
