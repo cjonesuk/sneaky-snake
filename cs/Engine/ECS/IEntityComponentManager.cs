@@ -17,16 +17,12 @@ public interface IEntityComponentManager
     void RemoveEntity(EntityId entityId);
 
     /// <summary>
-    /// Queues a request to create a new world, clearing all existing entities.
-    /// </summary>
-    void NewWorld();
-
-    /// <summary>
     /// Processes all pending entity creation and removal commands.
     /// </summary>
     void ProcessPendingCommands();
 
     EntityQueryResult QueryById(EntityId entityId);
+    bool TryQueryById(EntityId entityId, out EntityQueryResult result);
 
     EntityQueryAllResult<T1, T2> QueryAll<T1, T2>();
 

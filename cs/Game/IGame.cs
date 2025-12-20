@@ -1,6 +1,9 @@
 namespace SneakySnake;
 
-interface IGame
+/// <summary>
+/// Interface for the single game instance which is the orchestration point for the game.
+/// </summary> 
+interface IGameInstance
 {
     void Initialise();
 

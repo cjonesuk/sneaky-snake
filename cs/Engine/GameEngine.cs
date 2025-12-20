@@ -1,26 +1,21 @@
+using Engine.Rendering;
 using Raylib_cs;
 
 namespace Engine;
 
-public struct EntityQueryResult<TComponent>
-{
-
-}
-
 public class GameEngine : IGameEngine
 {
     private readonly Settings _settings;
-    private readonly IEntityComponentManager _entities;
     private readonly List<ISystem> _systems = new();
+    private readonly List<IWorld> _worlds = new();
+    private readonly WindowRenderTarget _window = new(Color.SkyBlue);
 
     public GameEngine(Settings settings)
     {
         _settings = settings;
-        _entities = new EntityComponentManager();
     }
 
     public Settings Settings => _settings;
-    public IEntityComponentManager Entities => _entities;
 
     public void SetSystems(IReadOnlyList<ISystem> systems)
     {
@@ -31,6 +26,16 @@ public class GameEngine : IGameEngine
         {
             system.Attached(this);
         }
+    }
+
+    public void AddWorld(IWorld world)
+    {
+        _worlds.Add(world);
+    }
+
+    public void SetViewports(Viewport[] viewports)
+    {
+        _window.SetViewports(viewports);
     }
 
     public void Run(IReadOnlyList<IGameEngineObserver> observers)
@@ -46,21 +51,17 @@ public class GameEngine : IGameEngine
         {
             float deltaTime = Raylib.GetFrameTime();
 
-            _entities.ProcessPendingCommands();
+            foreach (var world in _worlds)
+            {
+                world.Tick(deltaTime);
+            }
 
             foreach (var observer in observers)
             {
                 observer.Update(this, deltaTime);
             }
 
-            Raylib.BeginDrawing();
-
-            foreach (var system in _systems)
-            {
-                system.Update(deltaTime);
-            }
-
-            Raylib.EndDrawing();
+            _window.Render();
         }
 
         foreach (var observer in observers)

@@ -1,5 +1,3 @@
-using SneakySnake;
-
 namespace Engine;
 
 internal class EntityComponentManager : IEntityComponentManager
@@ -55,7 +53,7 @@ internal class EntityComponentManager : IEntityComponentManager
 
     public void ProcessPendingCommands()
     {
-        var (removals, creations, worldReset) = _commandBuffer.GetPendingCommands();
+        var (removals, creations) = _commandBuffer.GetPendingCommands();
 
         foreach (var request in removals)
         {
@@ -65,13 +63,6 @@ internal class EntityComponentManager : IEntityComponentManager
         foreach (var request in creations)
         {
             AddEntity(request);
-        }
-
-        if (worldReset.HasValue)
-        {
-            Console.WriteLine("Resetting world");
-            _archetypes.Clear();
-            _entityLocations.Clear();
         }
 
         _commandBuffer.ClearPendingCommands();
@@ -85,11 +76,6 @@ internal class EntityComponentManager : IEntityComponentManager
     private void RemoveEntity(EntityRemovalRequest request)
     {
         Console.WriteLine($"Removing entity {request.EntityId}: Not yet implemented");
-    }
-
-    public void NewWorld()
-    {
-        _commandBuffer.NewWorld();
     }
 
     public EntityQueryAllResult<T1, T2> QueryAll<T1, T2>()
@@ -107,5 +93,17 @@ internal class EntityComponentManager : IEntityComponentManager
     {
         var location = _entityLocations[entityId];
         return new EntityQueryResult(location);
+    }
+
+    public bool TryQueryById(EntityId entityId, out EntityQueryResult result)
+    {
+        if (_entityLocations.TryGetValue(entityId, out var location))
+        {
+            result = new EntityQueryResult(location);
+            return true;
+        }
+
+        result = default;
+        return false;
     }
 }

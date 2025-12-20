@@ -5,7 +5,7 @@ namespace SneakySnake;
 internal class GameManager : IGameEngineObserver
 {
     private IGameEngine? _engine;
-    private IGame? _game;
+    private IGameInstance? _game;
 
     public GameManager()
     {
