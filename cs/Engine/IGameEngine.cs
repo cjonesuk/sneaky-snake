@@ -6,6 +6,8 @@ public interface IGameEngine
 {
     Settings Settings { get; }
 
+    IDeviceManager DeviceManager { get; }
+
     void AddWorld(IWorld world);
 
     void SetViewports(Viewport[] viewports);

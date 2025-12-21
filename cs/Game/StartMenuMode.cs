@@ -1,10 +1,21 @@
 using System.Numerics;
 using Engine;
 using Engine.Components;
+using Engine.Input;
 using Engine.Rendering;
 using Raylib_cs;
 
 namespace SneakySnake;
+
+public static class StartMenuActions
+{
+    public sealed class StartGameAction : InputAction
+    {
+        public override string Name => "StartGame";
+        public static readonly StartGameAction Instance = new();
+    }
+
+}
 
 internal class StartMenuMode : IGameMode
 {
@@ -25,6 +36,15 @@ internal class StartMenuMode : IGameMode
     {
         Console.WriteLine("Starting Start Menu Mode...");
 
+        _engine.DeviceManager.KeyboardAndMouseDevice.BindContext([
+            new KeyboardInputContext(
+                isDownMappings: [],
+                isPressedMappings: [
+                    new KeyboardInputMapping(KeyboardKey.Enter, StartMenuActions.StartGameAction.Instance)
+                ]
+            )
+        ]);
+
         _engine.AddWorld(_world);
         _engine.SetViewports(
         [
@@ -43,11 +63,11 @@ internal class StartMenuMode : IGameMode
 
     public void Update(float deltaTime)
     {
-        // Update logic for start menu
-        if (Raylib.IsKeyPressed(KeyboardKey.Enter))
-        {
-            Console.WriteLine("Enter key pressed, starting game...");
-            _game.StartGame();
-        }
+        // // Update logic for start menu
+        // if (Raylib.IsKeyPressed(KeyboardKey.Enter))
+        // {
+        //     Console.WriteLine("Enter key pressed, starting game...");
+        //     _game.StartGame();
+        // }
     }
 }

@@ -1,28 +1,76 @@
-using System.Numerics;
 using Raylib_cs;
 
 namespace Engine.Input;
 
-public interface IDevice
+public interface IInputDevice
 {
-
+    void Poll();
 }
 
-internal sealed class KeyboardDevice : IDevice
+public interface IKeyboardAndMouseDevice : IInputDevice
 {
-    public KeyboardDevice()
+    void BindContext(params KeyboardInputContext[] contexts);
+}
+
+public abstract class InputDevice<TContext> : IInputDevice
+{
+    protected TContext[] _contexts;
+
+    protected InputDevice()
     {
+        _contexts = Array.Empty<TContext>();
+    }
+
+    public virtual void BindContext(params TContext[] contexts)
+    {
+        _contexts = contexts;
+    }
+
+    public virtual void Poll()
+    {
+        // Default implementation does nothing.
     }
 }
 
-public sealed class MouseDevice : IDevice
+/// <summary>
+/// Represents a keyboard and mouse as a single input device.
+/// </summary>
+internal sealed class KeyboardAndMouseDevice : InputDevice<KeyboardInputContext>, IKeyboardAndMouseDevice
 {
-    public MouseDevice()
+    public KeyboardAndMouseDevice()
     {
+    }
+
+    public override void Poll()
+    {
+        foreach (var context in _contexts)
+        {
+            foreach (var mapping in context.IsPressedMappings)
+            {
+                if (Raylib.IsKeyPressed(mapping.Primary))
+                {
+                    Emit(mapping.Action, 1);
+                }
+            }
+
+            foreach (var mapping in context.IsDownMappings)
+            {
+                if (Raylib.IsKeyDown(mapping.Primary))
+                {
+                    Emit(mapping.Action, 1);
+                }
+            }
+        }
+    }
+
+    private void Emit(InputAction action, float value)
+    {
+        var inputEvent = new InputEvent(action, value);
+        Console.WriteLine($"Input Event: {inputEvent.Action.Name}, Value: {inputEvent.Value}");
     }
 }
 
-// public sealed class GamepadDevice : IDevice
+// public sealed class GamepadDevice : InputDevice
 // {
 //     public GamepadDevice()
 //     {
@@ -32,23 +80,21 @@ public sealed class MouseDevice : IDevice
 /// <summary>
 /// Maps from input device state to game actions.
 /// </summary>
-public sealed class InputContext
+public readonly struct KeyboardInputContext
 {
-    private readonly IDevice[] _devices;
+    public readonly KeyboardInputMapping[] IsDownMappings;
+    public readonly KeyboardInputMapping[] IsPressedMappings;
 
-
-    public InputContext(IDevice[] devices)
+    public KeyboardInputContext(
+        KeyboardInputMapping[] isDownMappings,
+        KeyboardInputMapping[] isPressedMappings)
     {
-        _devices = devices;
-    }
-
-    public void Process()
-    {
-
+        IsDownMappings = isDownMappings;
+        IsPressedMappings = isPressedMappings;
     }
 }
 
-public record struct InputMapping(InputAction Action);
+public record struct KeyboardInputMapping(KeyboardKey Primary, InputAction Action);
 
 
 public abstract class InputAction
@@ -56,18 +102,13 @@ public abstract class InputAction
     public abstract string Name { get; }
 }
 
-public sealed class MoveForwardAction : InputAction
-{
-    public override string Name => "MoveForward";
-    public static readonly MoveForwardAction Instance = new();
-}
 
 public readonly struct InputEvent
 {
     public InputAction Action { get; }
-    public Vector2 Value { get; }
+    public float Value { get; }
 
-    public InputEvent(InputAction action, Vector2 value)
+    public InputEvent(InputAction action, float value)
     {
         Action = action;
         Value = value;
