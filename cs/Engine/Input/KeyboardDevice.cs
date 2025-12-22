@@ -5,6 +5,7 @@ namespace Engine.Input;
 public interface IInputDevice
 {
     void Poll();
+    void ClearContext();
 }
 
 public interface IKeyboardAndMouseDevice : IInputDevice
@@ -17,6 +18,11 @@ public abstract class InputDevice<TContext> : IInputDevice
     protected TContext[] _contexts;
 
     protected InputDevice()
+    {
+        _contexts = Array.Empty<TContext>();
+    }
+
+    public virtual void ClearContext()
     {
         _contexts = Array.Empty<TContext>();
     }

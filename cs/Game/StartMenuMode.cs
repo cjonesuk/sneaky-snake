@@ -60,6 +60,7 @@ internal class StartMenuMode : IGameMode, IInputReceiver
     public void OnDeactivate()
     {
         Console.WriteLine("Disabling Start Menu Mode...");
+        _engine.DeviceManager.KeyboardAndMouse.ClearContext();
     }
 
     public void Update(float deltaTime)
