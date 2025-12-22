@@ -6,23 +6,23 @@ namespace Engine;
 
 public interface IDeviceManager
 {
-    IKeyboardAndMouseDevice KeyboardAndMouseDevice { get; }
+    IKeyboardAndMouseDevice KeyboardAndMouse { get; }
 
     void Poll();
 }
 
 internal sealed class DeviceManager : IDeviceManager
 {
-    public IKeyboardAndMouseDevice KeyboardAndMouseDevice { get; }
+    public IKeyboardAndMouseDevice KeyboardAndMouse { get; }
 
     public DeviceManager()
     {
-        KeyboardAndMouseDevice = new KeyboardAndMouseDevice();
+        KeyboardAndMouse = new KeyboardAndMouseDevice();
     }
 
     public void Poll()
     {
-        KeyboardAndMouseDevice.Poll();
+        KeyboardAndMouse.Poll();
     }
 }
 

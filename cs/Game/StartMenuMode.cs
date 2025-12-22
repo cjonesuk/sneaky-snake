@@ -17,7 +17,7 @@ public static class StartMenuActions
 
 }
 
-internal class StartMenuMode : IGameMode
+internal class StartMenuMode : IGameMode, IInputReceiver
 {
     private readonly IGameInstance _game;
     private readonly IGameEngine _engine;
@@ -36,10 +36,11 @@ internal class StartMenuMode : IGameMode
     {
         Console.WriteLine("Starting Start Menu Mode...");
 
-        _engine.DeviceManager.KeyboardAndMouseDevice.BindContext([
+        _engine.DeviceManager.KeyboardAndMouse.BindContext([
             new KeyboardInputContext(
-                isDownMappings: [],
-                isPressedMappings: [
+                this,
+                keyDown: [],
+                keyPressed: [
                     new KeyboardInputMapping(KeyboardKey.Enter, StartMenuActions.StartGameAction.Instance)
                 ]
             )
@@ -63,11 +64,15 @@ internal class StartMenuMode : IGameMode
 
     public void Update(float deltaTime)
     {
-        // // Update logic for start menu
-        // if (Raylib.IsKeyPressed(KeyboardKey.Enter))
-        // {
-        //     Console.WriteLine("Enter key pressed, starting game...");
-        //     _game.StartGame();
-        // }
+
+    }
+
+    public void ReceiveInput(InputEvent inputEvent)
+    {
+        if (inputEvent.Action is StartMenuActions.StartGameAction)
+        {
+            Console.WriteLine("StartGame action received, starting game...");
+            _game.StartGame();
+        }
     }
 }

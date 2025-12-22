@@ -37,36 +37,57 @@ public abstract class InputDevice<TContext> : IInputDevice
 /// </summary>
 internal sealed class KeyboardAndMouseDevice : InputDevice<KeyboardInputContext>, IKeyboardAndMouseDevice
 {
+    private readonly HashSet<KeyboardKey> _blockedKeys = new();
+
     public KeyboardAndMouseDevice()
     {
     }
 
     public override void Poll()
     {
+        _blockedKeys.Clear();
+
         foreach (var context in _contexts)
         {
-            foreach (var mapping in context.IsPressedMappings)
+            foreach (var mapping in context.KeyPressed)
             {
+                if (_blockedKeys.Contains(mapping.Primary))
+                {
+                    continue;
+                }
+
                 if (Raylib.IsKeyPressed(mapping.Primary))
                 {
-                    Emit(mapping.Action, 1);
+                    Console.WriteLine($"Key Pressed: {mapping.Primary} -> {mapping.Action.Name}");
+                    var inputEvent = new InputEvent(mapping.Action, 1);
+                    context.Receiver.ReceiveInput(inputEvent);
+
+                    if (mapping.IsBlocking)
+                    {
+                        _blockedKeys.Add(mapping.Primary);
+                    }
                 }
             }
 
-            foreach (var mapping in context.IsDownMappings)
+            foreach (var mapping in context.KeyDown)
             {
+                if (_blockedKeys.Contains(mapping.Primary))
+                {
+                    continue;
+                }
+
                 if (Raylib.IsKeyDown(mapping.Primary))
                 {
-                    Emit(mapping.Action, 1);
+                    Console.WriteLine($"Key Down: {mapping.Primary} -> {mapping.Action.Name}");
+                    context.Receiver.ReceiveInput(new InputEvent(mapping.Action, 1));
+
+                    if (mapping.IsBlocking)
+                    {
+                        _blockedKeys.Add(mapping.Primary);
+                    }
                 }
             }
         }
-    }
-
-    private void Emit(InputAction action, float value)
-    {
-        var inputEvent = new InputEvent(action, value);
-        Console.WriteLine($"Input Event: {inputEvent.Action.Name}, Value: {inputEvent.Value}");
     }
 }
 
@@ -82,20 +103,45 @@ internal sealed class KeyboardAndMouseDevice : InputDevice<KeyboardInputContext>
 /// </summary>
 public readonly struct KeyboardInputContext
 {
-    public readonly KeyboardInputMapping[] IsDownMappings;
-    public readonly KeyboardInputMapping[] IsPressedMappings;
+    public readonly IInputReceiver Receiver;
+    public readonly KeyboardInputMapping[] KeyDown;
+    public readonly KeyboardInputMapping[] KeyPressed;
 
     public KeyboardInputContext(
-        KeyboardInputMapping[] isDownMappings,
-        KeyboardInputMapping[] isPressedMappings)
+        IInputReceiver receiver,
+        KeyboardInputMapping[] keyDown,
+        KeyboardInputMapping[] keyPressed)
     {
-        IsDownMappings = isDownMappings;
-        IsPressedMappings = isPressedMappings;
+        Receiver = receiver;
+        KeyDown = keyDown;
+        KeyPressed = keyPressed;
     }
 }
 
-public record struct KeyboardInputMapping(KeyboardKey Primary, InputAction Action);
+public readonly struct KeyboardInputMapping
+{
+    /// <summary>
+    /// The primary keyboard key that triggers the action.
+    /// </summary>
+    public readonly KeyboardKey Primary;
 
+    /// <summary>
+    /// Whether this mapping blocks further mappings from being processed.
+    /// </summary>
+    public readonly bool IsBlocking;
+
+    /// <summary>
+    /// The action to trigger when the input condition is met.
+    /// </summary>
+    public readonly InputAction Action;
+
+    public KeyboardInputMapping(KeyboardKey primary, InputAction action, bool isBlocking = false)
+    {
+        Primary = primary;
+        Action = action;
+        IsBlocking = isBlocking;
+    }
+}
 
 public abstract class InputAction
 {
@@ -113,4 +159,9 @@ public readonly struct InputEvent
         Action = action;
         Value = value;
     }
+}
+
+public interface IInputReceiver
+{
+    void ReceiveInput(InputEvent inputEvent);
 }

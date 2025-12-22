@@ -66,3 +66,7 @@ dotnet run
 ### World
 
 GameEngine -> Game Instance
+
+## References & Articles
+
+- [The 5 Golden Rules of Input](https://www.gamedeveloper.com/design/the-5-golden-rules-of-input)
