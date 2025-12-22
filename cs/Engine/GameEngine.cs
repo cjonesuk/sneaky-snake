@@ -1,32 +1,48 @@
+using Engine.Input;
 using Engine.Rendering;
 using Raylib_cs;
 
 namespace Engine;
 
+public interface IDeviceManager
+{
+    IKeyboardAndMouseDevice KeyboardAndMouse { get; }
+
+    void Poll();
+}
+
+internal sealed class DeviceManager : IDeviceManager
+{
+    public IKeyboardAndMouseDevice KeyboardAndMouse { get; }
+
+    public DeviceManager()
+    {
+        KeyboardAndMouse = new KeyboardAndMouseDevice();
+    }
+
+    public void Poll()
+    {
+        KeyboardAndMouse.Poll();
+    }
+}
+
 public class GameEngine : IGameEngine
 {
     private readonly Settings _settings;
-    private readonly List<ISystem> _systems = new();
     private readonly List<IWorld> _worlds = new();
     private readonly WindowRenderTarget _window = new(Color.SkyBlue);
+    private readonly IDeviceManager _deviceManager;
 
     public GameEngine(Settings settings)
     {
         _settings = settings;
+        _deviceManager = new DeviceManager();
     }
 
     public Settings Settings => _settings;
 
-    public void SetSystems(IReadOnlyList<ISystem> systems)
-    {
-        _systems.Clear();
-        _systems.AddRange(systems);
+    public IDeviceManager DeviceManager => _deviceManager;
 
-        foreach (var system in _systems)
-        {
-            system.Attached(this);
-        }
-    }
 
     public void AddWorld(IWorld world)
     {
@@ -50,6 +66,8 @@ public class GameEngine : IGameEngine
         while (!Raylib.WindowShouldClose())
         {
             float deltaTime = Raylib.GetFrameTime();
+
+            _deviceManager.Poll();
 
             foreach (var world in _worlds)
             {

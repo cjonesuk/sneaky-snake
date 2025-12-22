@@ -6,19 +6,17 @@ namespace SneakySnake;
 
 public struct BasicShapeRenderCommand
 {
-    public float X;
-    public float Y;
-    public float SizeX;
-    public float SizeY;
+    public Vector2 Position;
+    public Vector2 Size;
+    public float Rotation;
     public Color Color;
     public ShapeType Type;
 
-    public BasicShapeRenderCommand(float x, float y, float sizeX, float sizeY, Color color, ShapeType type)
+    public BasicShapeRenderCommand(Vector2 position, Vector2 size, float rotation, Color color, ShapeType type)
     {
-        X = x;
-        Y = y;
-        SizeX = sizeX;
-        SizeY = sizeY;
+        Position = position;
+        Size = size;
+        Rotation = rotation;
         Color = color;
         Type = type;
     }
