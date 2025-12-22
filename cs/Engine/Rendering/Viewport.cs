@@ -1,5 +1,6 @@
 
 using Engine.WorldManagement;
+using Engine.WorldManagement.Entities;
 
 namespace Engine.Rendering;
 

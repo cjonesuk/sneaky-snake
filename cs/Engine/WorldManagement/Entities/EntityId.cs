@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Engine;
+namespace Engine.WorldManagement.Entities;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public readonly struct EntityId

@@ -1,3 +1,5 @@
+using Engine.WorldManagement.Entities;
+
 namespace Engine.WorldManagement;
 
 public interface IWorldRenderer
