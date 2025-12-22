@@ -2,7 +2,7 @@ using System.Numerics;
 using Engine;
 using Engine.Components;
 using Engine.Renderers;
-using Engine.Rendering;
+using Engine.WorldManagement;
 using Raylib_cs;
 
 namespace SneakySnake;

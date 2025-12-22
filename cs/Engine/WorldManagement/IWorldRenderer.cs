@@ -1,4 +1,4 @@
-namespace Engine.Rendering;
+namespace Engine.WorldManagement;
 
 public interface IWorldRenderer
 {

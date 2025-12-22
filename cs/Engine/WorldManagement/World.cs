@@ -1,25 +1,30 @@
-namespace Engine.Rendering;
+using Engine.WorldManagement.Actors;
+using Engine.WorldManagement.Entities;
+
+namespace Engine.WorldManagement;
 
 internal sealed class World : IWorld
 {
     private readonly IEntityComponentManager _entities;
+    private readonly IActorManager _actors;
     private readonly IWorldSystem[] _systems;
     private readonly IRenderer[] _renderers;
     private readonly IWorldRenderer _worldToRenderPass;
 
     public World(
-        IEntityComponentManager entities,
         IWorldSystem[] systems,
         IRenderer[] renderers,
         IWorldRenderer worldToRenderPass)
     {
-        _entities = entities;
+        _entities = new EntityComponentManager();
+        _actors = new ActorManager(this);
         _systems = systems;
         _renderers = renderers;
         _worldToRenderPass = worldToRenderPass;
     }
 
     public IEntityComponentManager Entities => _entities;
+    public IActorManager Actors => _actors;
 
     public RenderPass CreateRenderPass()
     {
@@ -28,6 +33,10 @@ internal sealed class World : IWorld
 
     public void Tick(float deltaTime)
     {
+        _entities.ProcessPendingCommands();
+
+        _actors.Tick(deltaTime);
+
         _entities.ProcessPendingCommands();
 
         foreach (var system in _systems)

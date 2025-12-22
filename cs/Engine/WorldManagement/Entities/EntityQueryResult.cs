@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 
-namespace Engine;
+namespace Engine.WorldManagement.Entities;
+
 
 public readonly struct EntityQueryAllResult<T1, T2> : IEnumerable<(EntityListView<T1>, EntityListView<T2>)>
 {

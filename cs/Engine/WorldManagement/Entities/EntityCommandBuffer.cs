@@ -1,4 +1,4 @@
-namespace Engine;
+namespace Engine.WorldManagement.Entities;
 
 internal interface IEntityCommandBuffer
 {

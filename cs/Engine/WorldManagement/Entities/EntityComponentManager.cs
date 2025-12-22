@@ -1,6 +1,6 @@
-namespace Engine;
+namespace Engine.WorldManagement.Entities;
 
-internal class EntityComponentManager : IEntityComponentManager
+internal sealed class EntityComponentManager : IEntityComponentManager
 {
     private readonly Dictionary<ArchetypeSignature, Archetype> _archetypes = new();
     private readonly Dictionary<EntityId, EntityLocation> _entityLocations = new();
