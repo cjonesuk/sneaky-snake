@@ -1,6 +1,7 @@
 using System.Numerics;
 using Engine;
 using Engine.Components;
+using Engine.Input;
 using Engine.Rendering;
 using Raylib_cs;
 
@@ -8,19 +9,23 @@ namespace SneakySnake;
 
 public static class EntityEngineExtensions
 {
-    public static void SpawnFood(this IWorld world, int x, int y, Color color)
+    public static void SpawnFood(this IWorld world, Vector2 position, Color color)
     {
-        world.Entities.AddEntity(new GridTransform(x, y), new BasicShape(ShapeType.Circle, color), new FoodTag());
-    }
-
-    public static EntityId SpawnMovingFood(this IWorld world, int x, int y, Color color)
-    {
-        return world.Entities.AddEntity(new GridTransform(x, y), new GridAnimation(1, 0), new BasicShape(ShapeType.Rectangle, color), new FoodTag());
+        world.Entities.AddEntity(new Transform2d(position), new BasicShape(ShapeType.Circle, color), new FoodTag());
     }
 
     public static EntityId SpawnText(this IWorld world, Vector2 position, string text, float fontSize, Color color, TextAlignment alignment)
     {
         return world.Entities.AddEntity(new Transform2d(position), new Text2d(text, fontSize, color, alignment));
+    }
+
+    public static EntityId SpawnSnake(this IWorld world, Vector2 position)
+    {
+        return world.Entities.AddEntity(
+            new Transform2d(position),
+            new SnakeControl(50f, 90f),
+            new BasicShape(ShapeType.Rectangle, Color.Green)
+        );
     }
 
     public static EntityId SpawnCamera2d(

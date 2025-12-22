@@ -29,7 +29,6 @@ internal sealed class DeviceManager : IDeviceManager
 public class GameEngine : IGameEngine
 {
     private readonly Settings _settings;
-    private readonly List<ISystem> _systems = new();
     private readonly List<IWorld> _worlds = new();
     private readonly WindowRenderTarget _window = new(Color.SkyBlue);
     private readonly IDeviceManager _deviceManager;
@@ -44,16 +43,6 @@ public class GameEngine : IGameEngine
 
     public IDeviceManager DeviceManager => _deviceManager;
 
-    public void SetSystems(IReadOnlyList<ISystem> systems)
-    {
-        _systems.Clear();
-        _systems.AddRange(systems);
-
-        foreach (var system in _systems)
-        {
-            system.Attached(this);
-        }
-    }
 
     public void AddWorld(IWorld world)
     {

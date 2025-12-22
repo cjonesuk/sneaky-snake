@@ -9,12 +9,11 @@ namespace SneakySnake;
 
 public static class StartMenuActions
 {
-    public sealed class StartGameAction : InputAction
+    public sealed class StartGame : InputAction
     {
         public override string Name => "StartGame";
-        public static readonly StartGameAction Instance = new();
+        public static readonly StartGame Instance = new();
     }
-
 }
 
 internal class StartMenuMode : IGameMode, IInputReceiver
@@ -41,7 +40,7 @@ internal class StartMenuMode : IGameMode, IInputReceiver
                 this,
                 keyDown: [],
                 keyPressed: [
-                    new KeyboardInputMapping(KeyboardKey.Enter, StartMenuActions.StartGameAction.Instance)
+                    new KeyboardInputMapping(KeyboardKey.Enter, StartMenuActions.StartGame.Instance)
                 ]
             )
         ]);
@@ -70,7 +69,7 @@ internal class StartMenuMode : IGameMode, IInputReceiver
 
     public void ReceiveInput(InputEvent inputEvent)
     {
-        if (inputEvent.Action is StartMenuActions.StartGameAction)
+        if (inputEvent.Action is StartMenuActions.StartGame)
         {
             Console.WriteLine("StartGame action received, starting game...");
             _game.StartGame();

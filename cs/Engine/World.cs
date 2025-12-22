@@ -3,13 +3,13 @@ namespace Engine.Rendering;
 internal sealed class World : IWorld
 {
     private readonly IEntityComponentManager _entities;
-    private readonly ISystem[] _systems;
+    private readonly IWorldSystem[] _systems;
     private readonly IRenderer[] _renderers;
     private readonly IWorldRenderer _worldToRenderPass;
 
     public World(
         IEntityComponentManager entities,
-        ISystem[] systems,
+        IWorldSystem[] systems,
         IRenderer[] renderers,
         IWorldRenderer worldToRenderPass)
     {
@@ -32,7 +32,7 @@ internal sealed class World : IWorld
 
         foreach (var system in _systems)
         {
-            system.Update(deltaTime);
+            system.Update(this, deltaTime);
         }
     }
 

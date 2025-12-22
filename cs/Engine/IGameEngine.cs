@@ -12,7 +12,5 @@ public interface IGameEngine
 
     void SetViewports(Viewport[] viewports);
 
-    void SetSystems(IReadOnlyList<ISystem> systems);
-
     void Run(IReadOnlyList<IGameEngineObserver> observers);
 }

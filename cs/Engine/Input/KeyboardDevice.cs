@@ -64,7 +64,7 @@ internal sealed class KeyboardAndMouseDevice : InputDevice<KeyboardInputContext>
 
                 if (Raylib.IsKeyPressed(mapping.Primary))
                 {
-                    Console.WriteLine($"Key Pressed: {mapping.Primary} -> {mapping.Action.Name}");
+                    // Console.WriteLine($"Key Pressed: {mapping.Primary} -> {mapping.Action.Name}");
                     var inputEvent = new InputEvent(mapping.Action, 1);
                     context.Receiver.ReceiveInput(inputEvent);
 
@@ -84,7 +84,7 @@ internal sealed class KeyboardAndMouseDevice : InputDevice<KeyboardInputContext>
 
                 if (Raylib.IsKeyDown(mapping.Primary))
                 {
-                    Console.WriteLine($"Key Down: {mapping.Primary} -> {mapping.Action.Name}");
+                    // Console.WriteLine($"Key Down: {mapping.Primary} -> {mapping.Action.Name}");
                     context.Receiver.ReceiveInput(new InputEvent(mapping.Action, 1));
 
                     if (mapping.IsBlocking)

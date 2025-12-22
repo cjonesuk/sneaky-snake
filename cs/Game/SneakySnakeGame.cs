@@ -1,7 +1,4 @@
 using Engine;
-using Engine.Rendering;
-using Raylib_cs;
-using SneakySnake.Game;
 
 namespace SneakySnake;
 
