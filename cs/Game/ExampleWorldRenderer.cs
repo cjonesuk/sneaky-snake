@@ -1,5 +1,4 @@
 using System.Numerics;
-using Engine;
 using Engine.Components;
 using Engine.Renderers;
 using Engine.WorldManagement;
@@ -10,7 +9,6 @@ namespace SneakySnake;
 
 internal class ExampleWorldRenderer : IWorldRenderer
 {
-
     public void Generate(IWorld world, EntityId cameraId, IRenderPass renderPass)
     {
         if (!world.Entities.TryQueryById(cameraId, out var cameraEntity))

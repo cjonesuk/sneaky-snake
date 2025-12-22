@@ -1,5 +1,5 @@
 using System.Numerics;
-using Engine;
+using Engine.Components;
 using Raylib_cs;
 
 namespace SneakySnake;

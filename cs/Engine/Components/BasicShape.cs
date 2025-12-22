@@ -1,6 +1,6 @@
 using Raylib_cs;
 
-namespace Engine;
+namespace Engine.Components;
 
 public enum ShapeType
 {
@@ -18,9 +18,4 @@ public struct BasicShape
         Type = type;
         Color = color;
     }
-}
-
-public struct FoodTag
-{
-
 }
