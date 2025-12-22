@@ -1,3 +1,4 @@
+using System.Numerics;
 using Engine;
 using Raylib_cs;
 using SneakySnake.Engine.Rendering;
@@ -15,11 +16,14 @@ internal class BasicShapeRenderer : RenderQueueRenderer<BasicShapeRenderCommand>
             switch (shape.Type)
             {
                 case ShapeType.Rectangle:
-                    Raylib.DrawRectangle((int)shape.X, (int)shape.Y, (int)shape.SizeX, (int)shape.SizeY, shape.Color);
+                    Vector2 center = shape.Position;
+                    Vector2 origin = new Vector2(shape.Size.X / 2, shape.Size.Y / 2);
+                    Rectangle rect = new Rectangle(center.X - shape.Size.X / 2, center.Y - shape.Size.Y / 2, shape.Size.X, shape.Size.Y);
+                    Raylib.DrawRectanglePro(rect, origin, shape.Rotation, shape.Color);
                     break;
 
                 case ShapeType.Circle:
-                    Raylib.DrawCircle((int)shape.X, (int)shape.Y, shape.SizeX, shape.Color);
+                    Raylib.DrawCircle((int)shape.Position.X, (int)shape.Position.Y, shape.Size.X, shape.Color);
                     break;
             }
         }

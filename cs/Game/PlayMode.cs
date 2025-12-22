@@ -48,13 +48,21 @@ internal struct SnakeControl
 {
     public readonly List<InputAction> PendingActions;
     public float MaxSpeed;
+    public float Acceleration;
+    public float Deceleration;
     public float MaxTurnRate;
     public float Speed;
 
-    public SnakeControl(float maxSpeed = 50f, float maxTurnRate = 90f)
+    public SnakeControl(
+        float maxSpeed,
+        float acceleration,
+        float deceleration,
+        float maxTurnRate)
     {
         PendingActions = new List<InputAction>();
         MaxSpeed = maxSpeed;
+        Acceleration = acceleration;
+        Deceleration = deceleration;
         MaxTurnRate = maxTurnRate;
         Speed = 0f;
     }
@@ -81,6 +89,8 @@ internal sealed class SnakeControlInputReceiver : IInputReceiver
 
 internal sealed class SnakeControlSystem : IWorldSystem
 {
+    private readonly float _friction = 5f;
+
     public void Update(IWorld world, float deltaTime)
     {
         var result = world.Entities.QueryAll<Transform2d, SnakeControl>();
@@ -92,16 +102,17 @@ internal sealed class SnakeControlSystem : IWorldSystem
                 var transform = transforms[index];
                 var control = controls[index];
 
+                control.Speed = MathF.Max(0, control.Speed - _friction * deltaTime);
+
                 foreach (var action in control.PendingActions)
                 {
-                    Console.WriteLine($"Processing Snake Action: {action.Name}");
                     if (action is SnakeActions.MoveForward)
                     {
-                        control.Speed = control.MaxSpeed;
+                        control.Speed = MathF.Min(control.MaxSpeed, control.Speed + control.Acceleration * deltaTime);
                     }
                     else if (action is SnakeActions.SlowDown)
                     {
-                        control.Speed = MathF.Max(0, control.Speed - 50f * deltaTime);
+                        control.Speed = MathF.Max(0, control.Speed - control.Deceleration * deltaTime);
                     }
                     else if (action is SnakeActions.TurnLeft)
                     {
@@ -116,8 +127,6 @@ internal sealed class SnakeControlSystem : IWorldSystem
                 // Update position based on speed and rotation
                 float radians = MathF.PI / 180f * transform.Rotation;
                 transform.Position += new Vector2(MathF.Cos(radians), MathF.Sin(radians)) * control.Speed * deltaTime;
-
-                Console.WriteLine($"Snake: {transform.Position}, Rotation: {transform.Rotation}, Speed: {control.Speed}");
 
                 // Clear pending actions after processing
                 control.PendingActions.Clear();

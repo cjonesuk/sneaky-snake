@@ -23,7 +23,11 @@ public static class EntityEngineExtensions
     {
         return world.Entities.AddEntity(
             new Transform2d(position),
-            new SnakeControl(50f, 90f),
+            new SnakeControl(
+                maxSpeed: 100f,
+                acceleration: 100f,
+                deceleration: 200f,
+                maxTurnRate: 90f),
             new BasicShape(ShapeType.Rectangle, Color.Green)
         );
     }
