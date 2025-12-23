@@ -1,15 +1,14 @@
 using System.Numerics;
-using Engine;
 using Engine.Components;
 using Engine.Renderers;
-using Engine.Rendering;
+using Engine.WorldManagement;
+using Engine.WorldManagement.Entities;
 using Raylib_cs;
 
 namespace SneakySnake;
 
 internal class ExampleWorldRenderer : IWorldRenderer
 {
-
     public void Generate(IWorld world, EntityId cameraId, IRenderPass renderPass)
     {
         if (!world.Entities.TryQueryById(cameraId, out var cameraEntity))

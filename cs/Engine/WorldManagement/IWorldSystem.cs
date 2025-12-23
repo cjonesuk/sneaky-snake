@@ -1,6 +1,4 @@
-using Engine.Rendering;
-
-namespace Engine;
+namespace Engine.WorldManagement;
 
 public interface IWorldSystem
 {

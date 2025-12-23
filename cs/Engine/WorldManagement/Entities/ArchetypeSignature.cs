@@ -1,7 +1,6 @@
-using System.Collections;
 using System.Diagnostics;
 
-namespace Engine;
+namespace Engine.WorldManagement.Entities;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 readonly struct ArchetypeSignature : IEquatable<ArchetypeSignature>

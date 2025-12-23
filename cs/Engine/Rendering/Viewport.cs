@@ -1,5 +1,6 @@
 
-using Raylib_cs;
+using Engine.WorldManagement;
+using Engine.WorldManagement.Entities;
 
 namespace Engine.Rendering;
 

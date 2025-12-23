@@ -1,5 +1,4 @@
-
-namespace Engine;
+namespace Engine.WorldManagement.Entities;
 
 
 public interface IEntityComponentManager

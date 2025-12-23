@@ -1,17 +1,19 @@
 using System.Numerics;
-using Engine;
 using Engine.Components;
-using Engine.Input;
-using Engine.Rendering;
+using Engine.WorldManagement;
+using Engine.WorldManagement.Entities;
 using Raylib_cs;
 
 namespace SneakySnake;
 
-public static class EntityEngineExtensions
+internal static class WorldExtensions
 {
     public static void SpawnFood(this IWorld world, Vector2 position, Color color)
     {
-        world.Entities.AddEntity(new Transform2d(position), new BasicShape(ShapeType.Circle, color), new FoodTag());
+        world.Entities.AddEntity(
+            new Transform2d(position),
+            new BasicShape(ShapeType.Circle, new Vector2(20f, 20f), color),
+            new FoodTag());
     }
 
     public static EntityId SpawnText(this IWorld world, Vector2 position, string text, float fontSize, Color color, TextAlignment alignment)
@@ -19,17 +21,18 @@ public static class EntityEngineExtensions
         return world.Entities.AddEntity(new Transform2d(position), new Text2d(text, fontSize, color, alignment));
     }
 
-    public static EntityId SpawnSnake(this IWorld world, Vector2 position)
+    public static SnakeActor SpawnSnake(this IWorld world, Vector2 position)
     {
-        return world.Entities.AddEntity(
-            new Transform2d(position),
+        var defaults = new SnakeActor.Defaults(
+            new Transform2d(position, 0.0f),
             new SnakeControl(
-                maxSpeed: 100f,
-                acceleration: 100f,
-                deceleration: 200f,
-                maxTurnRate: 90f),
-            new BasicShape(ShapeType.Rectangle, Color.Green)
+                maxSpeed: 300f,
+                acceleration: 200f,
+                deceleration: 300f,
+                maxTurnRate: 180f)
         );
+
+        return world.Actors.SpawnActor<SnakeActor, SnakeActor.Defaults>(defaults);
     }
 
     public static EntityId SpawnCamera2d(

@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 
-namespace Engine;
+namespace Engine.WorldManagement.Entities;
+
 
 public readonly struct EntityQueryAllResult<T1, T2> : IEnumerable<(EntityListView<T1>, EntityListView<T2>)>
 {
@@ -38,9 +39,9 @@ public readonly struct EntityQueryResult
         _location = location;
     }
 
-    public EntityAccessor<T1> Get<T1>()
+    public T1 GetCopy<T1>()
     {
-        return new EntityAccessor<T1>(_location.Archetype.GetComponents<T1>(), _location.Index);
+        return _location.Archetype.GetComponents<T1>()[_location.Index];
     }
 
     public ref T GetRef<T>()

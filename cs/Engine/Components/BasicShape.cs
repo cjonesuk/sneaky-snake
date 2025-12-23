@@ -1,6 +1,7 @@
+using System.Numerics;
 using Raylib_cs;
 
-namespace Engine;
+namespace Engine.Components;
 
 public enum ShapeType
 {
@@ -11,16 +12,13 @@ public enum ShapeType
 public struct BasicShape
 {
     public ShapeType Type;
+    public Vector2 Size;
     public Color Color;
 
-    public BasicShape(ShapeType type, Color color)
+    public BasicShape(ShapeType type, Vector2 size, Color color)
     {
         Type = type;
+        Size = size;
         Color = color;
     }
-}
-
-public struct FoodTag
-{
-
 }

@@ -1,30 +1,9 @@
 using Engine.Input;
 using Engine.Rendering;
+using Engine.WorldManagement;
 using Raylib_cs;
 
 namespace Engine;
-
-public interface IDeviceManager
-{
-    IKeyboardAndMouseDevice KeyboardAndMouse { get; }
-
-    void Poll();
-}
-
-internal sealed class DeviceManager : IDeviceManager
-{
-    public IKeyboardAndMouseDevice KeyboardAndMouse { get; }
-
-    public DeviceManager()
-    {
-        KeyboardAndMouse = new KeyboardAndMouseDevice();
-    }
-
-    public void Poll()
-    {
-        KeyboardAndMouse.Poll();
-    }
-}
 
 public class GameEngine : IGameEngine
 {

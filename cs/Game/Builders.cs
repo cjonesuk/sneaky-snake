@@ -1,6 +1,5 @@
-using Engine;
 using Engine.Renderers;
-using Engine.Rendering;
+using Engine.WorldManagement;
 
 namespace SneakySnake;
 
@@ -10,11 +9,11 @@ internal static class Builders
     {
         IRenderer[] renderers = [new BasicShapeRenderer(), new TextRenderer()];
         IWorldSystem[] systems = [new SnakeControlSystem()];
+        IWorldRenderer worldRenderer = new ExampleWorldRenderer();
 
         return new World(
-            new EntityComponentManager(),
             systems,
             renderers,
-            new ExampleWorldRenderer());
+            worldRenderer);
     }
 }
