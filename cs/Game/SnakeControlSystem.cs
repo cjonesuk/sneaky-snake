@@ -18,7 +18,7 @@ internal sealed class SnakeControlSystem : IWorldSystem
     {
         var result = world.Entities.QueryAll<Transform2d, SnakeSegments>();
 
-        foreach (var (transforms, segmentsList) in result)
+        foreach (var (_, transforms, segmentsList) in result)
         {
             for (int index = 0; index < transforms.Count; index++)
             {
@@ -54,7 +54,7 @@ internal sealed class SnakeControlSystem : IWorldSystem
     {
         var result = world.Entities.QueryAll<Transform2d, SnakeControl>();
 
-        foreach (var (transforms, controls) in result)
+        foreach (var (_, transforms, controls) in result)
         {
             for (int index = 0; index < transforms.Count; index++)
             {

@@ -60,7 +60,9 @@ internal class PlayMode : IGameMode, IInputReceiver
         _engine.SetViewports([Viewport.Fullscreen(_world, _cameraId)]);
 
         // Spawn entities
-        _world.SpawnFood(new Vector2(100, 75), Color.Orange);
+        //_world.SpawnFood(new Vector2(100, 75), Color.Orange);
+
+        _world.SpawnFood(new Vector2(500, 300), Color.Orange);
 
         _world.SpawnText(new Vector2(400, 50), "Game in Progress - Press Q to End Game", 24, Color.Black, TextAlignment.Center);
 

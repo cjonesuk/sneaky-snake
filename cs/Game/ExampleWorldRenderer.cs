@@ -36,7 +36,7 @@ internal class ExampleWorldRenderer : IWorldRenderer
 
         var result = world.Entities.QueryAll<Transform2d, BasicShape>();
 
-        foreach (var (transforms, shapes) in result)
+        foreach (var (_, transforms, shapes) in result)
         {
             for (int index = 0; index < transforms.Count; ++index)
             {
@@ -76,7 +76,7 @@ internal class ExampleWorldRenderer : IWorldRenderer
 
         var result = world.Entities.QueryAll<Transform2d, Text2d>();
 
-        foreach (var (transforms, textList) in result)
+        foreach (var (_, transforms, textList) in result)
         {
             for (int index = 0; index < transforms.Count; index++)
             {

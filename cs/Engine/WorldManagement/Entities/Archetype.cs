@@ -61,6 +61,11 @@ internal class Archetype
         throw new NotImplementedException();
     }
 
+    public List<EntityId> GetEntityIds()
+    {
+        return _entityIds;
+    }
+
     public List<T> GetComponents<T>()
     {
         Type type = typeof(T);

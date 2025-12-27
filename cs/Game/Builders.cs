@@ -1,3 +1,4 @@
+using Engine.Collision;
 using Engine.Renderers;
 using Engine.WorldManagement;
 
@@ -8,7 +9,7 @@ internal static class Builders
     public static IWorld CreateWorld()
     {
         IRenderer[] renderers = [new BasicShapeRenderer(), new TextRenderer()];
-        IWorldSystem[] systems = [new SnakeControlSystem()];
+        IWorldSystem[] systems = [new CollisionSystem(), new SnakeControlSystem()];
         IWorldRenderer worldRenderer = new ExampleWorldRenderer();
 
         return new World(

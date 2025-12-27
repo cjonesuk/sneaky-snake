@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using Engine.Collision;
 using Engine.Components;
 using Engine.Input;
 using Engine.WorldManagement;
@@ -36,6 +37,7 @@ internal sealed class SnakeActor : IActor<SnakeActor.Defaults>, IInputReceiver
             properties.Transform,
             properties.Control,
             new SnakeSegments(_spacing),
+            new CollisionBody(CollisionShape.Circle, _segmentSize / 2, Vector2.Zero),
             new BasicShape(ShapeType.Rectangle, _segmentSize, Color.Green)
         );
     }
