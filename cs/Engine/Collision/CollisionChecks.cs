@@ -5,7 +5,7 @@ internal static class CollisionChecks
 {
     public static bool CircleVsCircle(in WorldCircle a, in WorldCircle b)
     {
-        Console.WriteLine($"Checking CircleVsCircle between Circle A at {a.Center} with radius {a.Radius} and Circle B at {b.Center} with radius {b.Radius}");
+        Console.WriteLine($"CvC: A({a.Center}, r={a.Radius}) B({b.Center}, r={b.Radius})");
 
         Vector2 delta = b.Center - a.Center;
 
@@ -13,5 +13,10 @@ internal static class CollisionChecks
         float radiusSum = a.Radius + b.Radius;
 
         return distanceSq <= radiusSum * radiusSum;
+    }
+
+    internal static bool AabbVsAabb(in WorldAabb aabbA, in WorldAabb aabbB)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -25,4 +25,6 @@ public interface IEntityComponentManager
 
     EntityQueryAllResult<T1, T2> QueryAll<T1, T2>();
 
+    EntityQueryAllResultV2<T1, T2> QueryAllV2<T1, T2>();
+
 }

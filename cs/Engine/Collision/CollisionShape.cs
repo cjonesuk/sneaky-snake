@@ -2,7 +2,7 @@ namespace Engine.Collision;
 
 public enum CollisionShape
 {
-    AABB,
-    OBB,
+    Aabb,
+    Obb,
     Circle
 }

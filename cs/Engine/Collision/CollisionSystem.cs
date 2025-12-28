@@ -5,61 +5,105 @@ namespace Engine.Collision;
 
 internal sealed class CollisionSystem : IWorldSystem
 {
+    private readonly WorldSpaceLists _worldSpace;
     private readonly HashSet<CollisionPair> _collisions;
 
     public CollisionSystem()
     {
+        _worldSpace = WorldSpaceLists.Create();
         _collisions = new HashSet<CollisionPair>();
     }
 
     public void Update(IWorld world, float deltaTime)
     {
-        _collisions.Clear();
+        ComputeWorldspace(world);
 
-        var pages = world.Entities.QueryAll<Transform2d, CollisionBody>();
-
-        var collisionEvents = world.Events.GetEventList<CollisionEvent>();
-
-        // todo: Need to make lists from each page into one cohesive list of entities to check
+        ComputeCollisions(world);
 
 
+    }
 
+    private void ComputeWorldspace(IWorld world)
+    {
+        _worldSpace.Clear();
 
-        foreach (var (entityIds, transforms, bodies) in pages)
+        var result = world.Entities.QueryAllV2<Transform2d, CollisionBody>();
+
+        for (int pageIndex = 0; pageIndex < result.PageCount; pageIndex++)
         {
-            for (int indexA = 0; indexA < entityIds.Count; indexA++)
+            var (entityIds, transforms, bodies) = result.GetPage(pageIndex);
+
+            for (int entityIndex = 0; entityIndex < entityIds.Length; entityIndex++)
             {
-                EntityId entityA = entityIds[indexA];
-                Transform2d transformA = transforms[indexA];
-                CollisionBody bodyA = bodies[indexA];
+                ref var entityId = ref entityIds[entityIndex];
+                ref var body = ref bodies[entityIndex];
+                ref var transform = ref transforms[entityIndex];
 
-                for (int indexB = indexA + 1; indexB < entityIds.Count; indexB++)
+                switch (body.Shape)
                 {
-                    EntityId entityB = entityIds[indexB];
-                    Transform2d transformB = transforms[indexB];
-                    CollisionBody bodyB = bodies[indexB];
-
-                    Console.WriteLine($"Checking collision between Entity {entityA.Id} and Entity {entityB.Id}");
-
-                    if (bodyA.Shape == CollisionShape.Circle)
-                    {
-                        var worldCircleA = LocalToWorldMath.WorldCircle(transformA, bodyA);
-
-                        if (bodyB.Shape == CollisionShape.Circle)
-                        {
-                            var worldCircleB = LocalToWorldMath.WorldCircle(transformB, bodyB);
-
-                            bool collision = CollisionChecks.CircleVsCircle(worldCircleA, worldCircleB);
-
-                            if (collision)
-                            {
-                                CollisionFound(collisionEvents, entityA, entityB);
-                            }
-                        }
-                    }
+                    case CollisionShape.Aabb:
+                        var worldAabb = LocalToWorldMath.WorldAabb(entityId, transform, body);
+                        _worldSpace.Aabbs.Add(worldAabb);
+                        break;
+                    case CollisionShape.Obb:
+                        var worldObb = LocalToWorldMath.WorldObb(entityId, transform, body);
+                        _worldSpace.Obbs.Add(worldObb);
+                        break;
+                    case CollisionShape.Circle:
+                        var worldCircle = LocalToWorldMath.WorldCircle(entityId, transform, body);
+                        _worldSpace.Circles.Add(worldCircle);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Unknown collision shape: {body.Shape}");
                 }
             }
         }
+    }
+
+
+    private void ComputeCollisions(IWorld world)
+    {
+        _collisions.Clear();
+
+        var collisionEvents = world.Events.GetEventList<CollisionEvent>();
+
+        var aabbs = _worldSpace.GetAabbsSpan();
+        var obbs = _worldSpace.GetObbsSpan();
+        var circles = _worldSpace.GetCirclesSpan();
+
+        // for (int indexA = 0; indexA < aabbs.Length; indexA++)
+        // {
+        //     ref var aabbA = ref aabbs[indexA];
+
+        //     for (int indexB = indexA + 1; indexB < aabbs.Length; indexB++)
+        //     {
+        //         ref var aabbB = ref aabbs[indexB];
+
+        //         if (CollisionChecks.AabbVsAabb(in aabbA, in aabbB))
+        //         {
+        //             CollisionFound(collisionEvents, aabbA.EntityId, aabbB.EntityId);
+        //         }
+        //     }
+        // }
+
+        // Circle vs Circle
+        for (int indexA = 0; indexA < circles.Length; indexA++)
+        {
+            ref var circleA = ref circles[indexA];
+
+            for (int indexB = indexA + 1; indexB < circles.Length; indexB++)
+            {
+                ref var circleB = ref circles[indexB];
+
+
+                if (CollisionChecks.CircleVsCircle(in circleA, in circleB))
+                {
+                    CollisionFound(collisionEvents, circleA.EntityId, circleB.EntityId);
+                }
+            }
+        }
+
+
     }
 
     private void CollisionFound(List<CollisionEvent> collisionEvents, EntityId entityA, EntityId entityB)
@@ -72,4 +116,6 @@ internal sealed class CollisionSystem : IWorldSystem
             collisionEvents.Add(new CollisionEvent(entityA, entityB));
         }
     }
+
+
 }
