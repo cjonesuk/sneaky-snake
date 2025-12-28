@@ -14,7 +14,7 @@ internal static class WorldExtensions
         world.Entities.AddEntity(
             new Transform2d(position),
             new CollisionBody(CollisionShape.Circle, new Vector2(10f, 10f), Vector2.Zero),
-            new BasicShape(ShapeType.Circle, new Vector2(20f, 20f), color),
+            new BasicShape(ShapeType.Circle, new Vector2(10f, 10f), color),
             new FoodTag());
     }
 

@@ -5,7 +5,7 @@ internal static class CollisionChecks
 {
     public static bool CircleVsCircle(in WorldCircle a, in WorldCircle b)
     {
-        Console.WriteLine($"CvC: A({a.Center}, r={a.Radius}) B({b.Center}, r={b.Radius})");
+        //Console.WriteLine($"CvC: A({a.Center}, r={a.Radius}) B({b.Center}, r={b.Radius})");
 
         Vector2 delta = b.Center - a.Center;
 

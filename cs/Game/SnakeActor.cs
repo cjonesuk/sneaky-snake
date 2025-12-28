@@ -16,7 +16,7 @@ internal sealed class SnakeActor : IActor<SnakeActor.Defaults>, IInputReceiver
     private IWorld? _world;
     private EntityId _headId;
     private static readonly float _spacing = 25f;
-    private static readonly Vector2 _segmentSize = new Vector2(20f, 20f);
+    private static readonly Vector2 _segmentHalfSize = new Vector2(10f, 10f);
 
 
     public record struct Defaults(Transform2d Transform, SnakeControl Control);
@@ -37,8 +37,8 @@ internal sealed class SnakeActor : IActor<SnakeActor.Defaults>, IInputReceiver
             properties.Transform,
             properties.Control,
             new SnakeSegments(_spacing),
-            new CollisionBody(CollisionShape.Circle, _segmentSize / 2, Vector2.Zero),
-            new BasicShape(ShapeType.Rectangle, _segmentSize, Color.Green)
+            new CollisionBody(CollisionShape.Circle, _segmentHalfSize, Vector2.Zero),
+            new BasicShape(ShapeType.Circle, _segmentHalfSize, Color.Green)
         );
     }
 
@@ -87,7 +87,7 @@ internal sealed class SnakeActor : IActor<SnakeActor.Defaults>, IInputReceiver
 
         EntityId segmentId = _world.Entities.AddEntity(
             transform,
-            new BasicShape(ShapeType.Rectangle, _segmentSize, Color.DarkGreen)
+            new BasicShape(ShapeType.Circle, _segmentHalfSize, Color.DarkGreen)
         );
 
         segments.Add(segmentId);

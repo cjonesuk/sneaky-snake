@@ -48,7 +48,7 @@ internal class ExampleWorldRenderer : IWorldRenderer
                     case ShapeType.Rectangle:
                         renderQueue.Enqueue(new BasicShapeRenderCommand(
                             transform.Position,
-                            new Vector2(50, 50),
+                            shape.HalfExtents,
                             transform.Rotation,
                             shape.Color,
                             shape.Type));
@@ -57,7 +57,7 @@ internal class ExampleWorldRenderer : IWorldRenderer
                     case ShapeType.Circle:
                         renderQueue.Enqueue(new BasicShapeRenderCommand(
                             transform.Position,
-                            new Vector2(50, 50),
+                            shape.HalfExtents,
                             transform.Rotation,
                             shape.Color,
                             shape.Type));

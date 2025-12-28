@@ -12,13 +12,13 @@ public enum ShapeType
 public struct BasicShape
 {
     public ShapeType Type;
-    public Vector2 Size;
+    public Vector2 HalfExtents;
     public Color Color;
 
-    public BasicShape(ShapeType type, Vector2 size, Color color)
+    public BasicShape(ShapeType type, Vector2 halfExtents, Color color)
     {
         Type = type;
-        Size = size;
+        HalfExtents = halfExtents;
         Color = color;
     }
 }
