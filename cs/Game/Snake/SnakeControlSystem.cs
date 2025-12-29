@@ -22,7 +22,6 @@ internal sealed class SnakeControlSystem : IWorldSystem
     public void Update(IWorld world, float deltaTime)
     {
         ProcessSnakeHead(world, deltaTime);
-        ProcessSnakeBody(world, deltaTime);
 
         foreach (var command in _pendingAddSegmentCommands)
         {
@@ -85,44 +84,34 @@ internal sealed class SnakeControlSystem : IWorldSystem
 
                 transforms[index] = transform;
                 controls[index] = control;
+
+                ProcessSnakeBody(world, ref control, ref transform, deltaTime);
             }
         }
     }
 
-    private void ProcessSnakeBody(IWorld world, float deltaTime)
+    private void ProcessSnakeBody(IWorld world, ref SnakeControl control, ref Transform2d transform, float deltaTime)
     {
-        // Todo: integrate with head processing?
-        var result = world.Entities.QueryAll<Transform2d, SnakeControl>();
+        // Start with the head
+        Transform2d previousTransform = transform;
 
-        foreach (var (_, transforms, segmentsList) in result)
+        // Iterate over each segment and update its position based on the previous segment
+        for (int segmentIndex = 0; segmentIndex < control.BodySegments.Count; segmentIndex++)
         {
-            for (int index = 0; index < transforms.Length; index++)
+            var currentEntity = world.Entities.QueryById(control.BodySegments[segmentIndex]);
+            ref var currentTransform = ref currentEntity.GetRef<Transform2d>();
+            var diff = previousTransform.Position - currentTransform.Position;
+            float distance = diff.Length();
+
+            if (distance > control.SegmentSpacing)
             {
-                ref var segments = ref segmentsList[index];
-                ref var transform = ref transforms[index];
-
-                // Start with the head
-                Transform2d previousTransform = transform;
-
-                // Iterate over each segment and update its position based on the previous segment
-                for (int segmentIndex = 0; segmentIndex < segments.BodySegments.Count; segmentIndex++)
-                {
-                    var currentEntity = world.Entities.QueryById(segments.BodySegments[segmentIndex]);
-                    ref var currentTransform = ref currentEntity.GetRef<Transform2d>();
-                    var diff = previousTransform.Position - currentTransform.Position;
-                    float distance = diff.Length();
-
-                    if (distance > segments.SegmentSpacing)
-                    {
-                        var direction = Vector2.Normalize(diff);
-                        var newPosition = previousTransform.Position - direction * segments.SegmentSpacing;
-                        currentTransform.Position = Vector2.Lerp(currentTransform.Position, newPosition, 10f * deltaTime);
-                        currentTransform.Rotation = MathF.Atan2(direction.Y, direction.X) * 180f / MathF.PI;
-                    }
-
-                    previousTransform = currentTransform;
-                }
+                var direction = Vector2.Normalize(diff);
+                var newPosition = previousTransform.Position - direction * control.SegmentSpacing;
+                currentTransform.Position = Vector2.Lerp(currentTransform.Position, newPosition, 10f * deltaTime);
+                currentTransform.Rotation = MathF.Atan2(direction.Y, direction.X) * 180f / MathF.PI;
             }
+
+            previousTransform = currentTransform;
         }
     }
 
