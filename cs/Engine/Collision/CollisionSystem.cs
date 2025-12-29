@@ -6,21 +6,28 @@ namespace Engine.Collision;
 internal sealed class CollisionSystem : IWorldSystem
 {
     private readonly WorldSpaceLists _worldSpace;
-    private readonly HashSet<CollisionPair> _collisions;
+
+    private HashSet<CollisionPair> _currentCollisions = new();
+    private HashSet<CollisionPair> _previousCollisions = new();
 
     public CollisionSystem()
     {
         _worldSpace = WorldSpaceLists.Create();
-        _collisions = new HashSet<CollisionPair>();
     }
 
     public void Update(IWorld world, float deltaTime)
     {
         ComputeWorldspace(world);
 
-        ComputeCollisions(world);
+        ComputeCollisions();
 
+        EmitCollisionEvents(world);
 
+        // Prepare previous for reuse before we swap
+        _previousCollisions.Clear();
+
+        // Swap sets, but don't clear current afterward — we’ll reuse the now-empty one next frame
+        (_previousCollisions, _currentCollisions) = (_currentCollisions, _previousCollisions);
     }
 
     private void ComputeWorldspace(IWorld world)
@@ -58,33 +65,10 @@ internal sealed class CollisionSystem : IWorldSystem
         }
     }
 
-
-    private void ComputeCollisions(IWorld world)
+    private void ComputeCollisions()
     {
-        _collisions.Clear();
-
-        var collisionEvents = world.Events.GetEventList<CollisionEvent>();
-
-        var aabbs = _worldSpace.GetAabbsSpan();
-        var obbs = _worldSpace.GetObbsSpan();
         var circles = _worldSpace.GetCirclesSpan();
 
-        // for (int indexA = 0; indexA < aabbs.Length; indexA++)
-        // {
-        //     ref var aabbA = ref aabbs[indexA];
-
-        //     for (int indexB = indexA + 1; indexB < aabbs.Length; indexB++)
-        //     {
-        //         ref var aabbB = ref aabbs[indexB];
-
-        //         if (CollisionChecks.AabbVsAabb(in aabbA, in aabbB))
-        //         {
-        //             CollisionFound(collisionEvents, aabbA.EntityId, aabbB.EntityId);
-        //         }
-        //     }
-        // }
-
-        // Circle vs Circle
         for (int indexA = 0; indexA < circles.Length; indexA++)
         {
             ref var circleA = ref circles[indexA];
@@ -93,27 +77,41 @@ internal sealed class CollisionSystem : IWorldSystem
             {
                 ref var circleB = ref circles[indexB];
 
-
                 if (CollisionChecks.CircleVsCircle(in circleA, in circleB))
                 {
-                    CollisionFound(collisionEvents, circleA.EntityId, circleB.EntityId);
+                    var pair = CreateOrderedPair(circleA.EntityId, circleB.EntityId);
+                    //var pair = new CollisionPair(circleA.EntityId, circleB.EntityId);
+                    _currentCollisions.Add(pair);
                 }
             }
         }
-
-
     }
 
-    private void CollisionFound(List<CollisionEvent> collisionEvents, EntityId entityA, EntityId entityB)
+    private void EmitCollisionEvents(IWorld world)
     {
-        var pair = new CollisionPair(entityA, entityB);
-        bool added = _collisions.Add(pair);
+        var startedEvents = world.Events.GetEventList<CollisionStartedEvent>();
+        var endedEvents = world.Events.GetEventList<CollisionEndedEvent>();
+        var ongoingEvents = world.Events.GetEventList<CollisionEvent>();
 
-        if (added)
+        foreach (var pair in _currentCollisions)
         {
-            collisionEvents.Add(new CollisionEvent(entityA, entityB));
+            if (!_previousCollisions.Contains(pair))
+            {
+                startedEvents.Add(new CollisionStartedEvent(pair.EntityA, pair.EntityB));
+            }
+
+            ongoingEvents.Add(new CollisionEvent(pair.EntityA, pair.EntityB));
+        }
+
+        foreach (var pair in _previousCollisions)
+        {
+            if (!_currentCollisions.Contains(pair))
+            {
+                endedEvents.Add(new CollisionEndedEvent(pair.EntityA, pair.EntityB));
+            }
         }
     }
 
-
+    private static CollisionPair CreateOrderedPair(EntityId a, EntityId b)
+        => a < b ? new CollisionPair(a, b) : new CollisionPair(b, a);
 }
