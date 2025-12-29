@@ -30,6 +30,26 @@ public readonly struct EntityId
         return new EntityId(id, version + 1);
     }
 
+    public static bool operator ==(EntityId left, EntityId right)
+    {
+        return left.Id == right.Id;
+    }
+
+    public static bool operator !=(EntityId left, EntityId right)
+    {
+        return left.Id != right.Id;
+    }
+
+    public static bool operator <(EntityId left, EntityId right)
+    {
+        return left.Id < right.Id;
+    }
+
+    public static bool operator >(EntityId left, EntityId right)
+    {
+        return left.Id > right.Id;
+    }
+
     private string GetDebuggerDisplay()
     {
         return $"EntityId: {Id}";
