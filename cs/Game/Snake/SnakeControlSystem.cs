@@ -97,7 +97,7 @@ internal sealed class SnakeControlSystem : IWorldSystem
             {
                 var direction = Vector2.Normalize(diff);
                 var newPosition = previousTransform.Position - direction * control.SegmentSpacing;
-                currentTransform.Position = Vector2.Lerp(currentTransform.Position, newPosition, 10f * deltaTime);
+                currentTransform.Position = Vector2.Lerp(currentTransform.Position, newPosition, control.FollowStrength * deltaTime);
                 currentTransform.Rotation = MathF.Atan2(direction.Y, direction.X) * 180f / MathF.PI;
             }
 

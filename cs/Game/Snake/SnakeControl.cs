@@ -11,6 +11,7 @@ internal struct SnakeControl
     public float Speed;
     public List<EntityId> BodySegments;
     public float SegmentSpacing;
+    public float FollowStrength;
 
     private SnakeControl(
         float maxSpeed,
@@ -18,6 +19,7 @@ internal struct SnakeControl
         float deceleration,
         float maxTurnRate,
         float segmentSpacing,
+        float followStrength,
         List<EntityId> bodySegments)
     {
         MaxSpeed = maxSpeed;
@@ -25,6 +27,7 @@ internal struct SnakeControl
         Deceleration = deceleration;
         MaxTurnRate = maxTurnRate;
         SegmentSpacing = segmentSpacing;
+        FollowStrength = followStrength;
         BodySegments = bodySegments;
         Speed = 0f;
     }
@@ -34,7 +37,8 @@ internal struct SnakeControl
         float acceleration,
         float deceleration,
         float maxTurnRate,
-        float segmentSpacing)
+        float segmentSpacing,
+        float followStrength)
     {
         return new SnakeControl(
             maxSpeed,
@@ -42,6 +46,7 @@ internal struct SnakeControl
             deceleration,
             maxTurnRate,
             segmentSpacing,
+            followStrength,
             new List<EntityId>());
     }
 
