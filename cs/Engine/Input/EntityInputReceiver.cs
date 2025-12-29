@@ -17,7 +17,11 @@ internal sealed class EntityInputReceiver : IInputReceiver
 
     public void ReceiveInput(InputEvent inputEvent)
     {
-        var entity = _world.Entities.QueryById(_entityId);
+        if (!_world.Entities.TryQueryById(_entityId, out var entity))
+        {
+            return;
+        }
+
         entity.GetRef<InputActionReceiver>().PendingActions.Add(inputEvent.Action);
     }
 }
