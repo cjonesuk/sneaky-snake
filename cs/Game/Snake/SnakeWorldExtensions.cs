@@ -17,14 +17,14 @@ internal static class SnakeWorldExtensions
         Vector2 position)
     {
         Transform2d transform = new Transform2d(position, 0.0f);
-        SnakeControl control = new SnakeControl(
+        SnakeControl control = SnakeControl.Create(
             maxSpeed: 300f,
             acceleration: 200f,
             deceleration: 300f,
-            maxTurnRate: 180f);
+            maxTurnRate: 180f,
+            segmentSpacing: _spacing);
 
         InputActionReceiver inputReceiver = InputActionReceiver.Create();
-        SnakeSegments segments = new SnakeSegments(_spacing);
 
         CollisionBody collisionBody = new CollisionBody(CollisionShape.Circle, _segmentHalfSize, Vector2.Zero);
         BasicShape basicShape = new BasicShape(ShapeType.Circle, _segmentHalfSize, Color.Green);
@@ -33,7 +33,6 @@ internal static class SnakeWorldExtensions
             transform,
             control,
             inputReceiver,
-            segments,
             collisionBody,
             basicShape);
     }
