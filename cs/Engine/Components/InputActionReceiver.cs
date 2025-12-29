@@ -1,6 +1,6 @@
 using Engine.Input;
 
-namespace SneakySnake;
+namespace Engine.Components;
 
 internal readonly struct InputActionReceiver
 {

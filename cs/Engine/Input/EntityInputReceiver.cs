@@ -1,8 +1,8 @@
-using Engine.Input;
+using Engine.Components;
 using Engine.WorldManagement;
 using Engine.WorldManagement.Entities;
 
-namespace SneakySnake;
+namespace Engine.Input;
 
 internal sealed class EntityInputReceiver : IInputReceiver
 {
