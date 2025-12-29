@@ -21,21 +21,6 @@ internal sealed class SnakeControlSystem : IWorldSystem
 
     public void Update(IWorld world, float deltaTime)
     {
-        ProcessSnakeHead(world, deltaTime);
-
-        foreach (var command in _pendingAddSegmentCommands)
-        {
-            var entity = world.Entities.QueryById(command.EntityId);
-            ref var control = ref entity.GetRef<SnakeControl>();
-            ref var transform = ref entity.GetRef<Transform2d>();
-            AddBodySegment(world, ref control, ref transform);
-        }
-        _pendingAddSegmentCommands.Clear();
-
-    }
-
-    private void ProcessSnakeHead(IWorld world, float deltaTime)
-    {
         var result = world.Entities.QueryAll<Transform2d, SnakeControl, InputActionReceiver>();
 
         foreach (var (entityIds, transforms, controls, inputReceivers) in result)
@@ -47,50 +32,55 @@ internal sealed class SnakeControlSystem : IWorldSystem
                 ref var control = ref controls[index];
                 ref var inputReceiver = ref inputReceivers[index];
 
-                control.Speed = MathF.Max(0, control.Speed - _friction * deltaTime);
+                ProcessSnakeHead(deltaTime, entityId, ref transform, ref control, inputReceiver);
 
-                foreach (var action in inputReceiver.PendingActions)
-                {
-                    if (action is SnakeActions.MoveForward)
-                    {
-                        control.Speed = MathF.Min(control.MaxSpeed, control.Speed + control.Acceleration * deltaTime);
-                    }
-                    else if (action is SnakeActions.SlowDown)
-                    {
-                        control.Speed = MathF.Max(0, control.Speed - control.Deceleration * deltaTime);
-                    }
-                    else if (action is SnakeActions.TurnLeft)
-                    {
-                        transform.Rotation -= control.MaxTurnRate * deltaTime;
-                    }
-                    else if (action is SnakeActions.TurnRight)
-                    {
-                        transform.Rotation += control.MaxTurnRate * deltaTime;
-                    }
-                    else if (action is SnakeActions.GenericAction)
-                    {
-                        _pendingAddSegmentCommands.Add(new SnakeCommands.AddSnakeSegmentCommand(
-                            entityId
-                        ));
-                    }
-                }
-
-                // Update position based on speed and rotation
-                float radians = MathF.PI / 180f * transform.Rotation;
-                transform.Position += new Vector2(MathF.Cos(radians), MathF.Sin(radians)) * control.Speed * deltaTime;
-
-                // Clear pending actions after processing
-                inputReceiver.PendingActions.Clear();
-
-                transforms[index] = transform;
-                controls[index] = control;
-
-                ProcessSnakeBody(world, ref control, ref transform, deltaTime);
+                ProcessSnakeBody(world, deltaTime, ref control, ref transform);
             }
         }
+
+        SpawnNewSnakeBodySegments(world);
     }
 
-    private void ProcessSnakeBody(IWorld world, ref SnakeControl control, ref Transform2d transform, float deltaTime)
+
+    private void ProcessSnakeHead(float deltaTime, EntityId entityId, ref Transform2d transform, ref SnakeControl control, InputActionReceiver inputReceiver)
+    {
+        control.Speed = MathF.Max(0, control.Speed - _friction * deltaTime);
+
+        foreach (var action in inputReceiver.PendingActions)
+        {
+            if (action is SnakeActions.MoveForward)
+            {
+                control.Speed = MathF.Min(control.MaxSpeed, control.Speed + control.Acceleration * deltaTime);
+            }
+            else if (action is SnakeActions.SlowDown)
+            {
+                control.Speed = MathF.Max(0, control.Speed - control.Deceleration * deltaTime);
+            }
+            else if (action is SnakeActions.TurnLeft)
+            {
+                transform.Rotation -= control.MaxTurnRate * deltaTime;
+            }
+            else if (action is SnakeActions.TurnRight)
+            {
+                transform.Rotation += control.MaxTurnRate * deltaTime;
+            }
+            else if (action is SnakeActions.GenericAction)
+            {
+                _pendingAddSegmentCommands.Add(new SnakeCommands.AddSnakeSegmentCommand(
+                    entityId
+                ));
+            }
+        }
+
+        // Update position based on speed and rotation
+        float radians = MathF.PI / 180f * transform.Rotation;
+        transform.Position += new Vector2(MathF.Cos(radians), MathF.Sin(radians)) * control.Speed * deltaTime;
+
+        // Clear pending actions after processing
+        inputReceiver.PendingActions.Clear();
+    }
+
+    private void ProcessSnakeBody(IWorld world, float deltaTime, ref SnakeControl control, ref Transform2d transform)
     {
         // Start with the head
         Transform2d previousTransform = transform;
@@ -113,6 +103,19 @@ internal sealed class SnakeControlSystem : IWorldSystem
 
             previousTransform = currentTransform;
         }
+    }
+
+    private void SpawnNewSnakeBodySegments(IWorld world)
+    {
+        foreach (var command in _pendingAddSegmentCommands)
+        {
+            var entity = world.Entities.QueryById(command.EntityId);
+            ref var control = ref entity.GetRef<SnakeControl>();
+            ref var transform = ref entity.GetRef<Transform2d>();
+            AddBodySegment(world, ref control, ref transform);
+        }
+
+        _pendingAddSegmentCommands.Clear();
     }
 
     private void AddBodySegment(
