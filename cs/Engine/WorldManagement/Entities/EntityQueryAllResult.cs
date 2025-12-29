@@ -2,44 +2,11 @@ using System.Runtime.InteropServices;
 
 namespace Engine.WorldManagement.Entities;
 
-[Obsolete("Use EntityQueryAllResultV2 instead")]
-public readonly struct EntityQueryAllResult<T1, T2> : IEnumerable<(EntityListView<EntityId>, EntityListView<T1>, EntityListView<T2>)>
-{
-    private readonly List<Archetype> MatchingArchetypes;
-
-    internal EntityQueryAllResult(List<Archetype> matchingArchetypes)
-    {
-        MatchingArchetypes = matchingArchetypes;
-    }
-
-    public IEnumerator<(EntityListView<EntityId>, EntityListView<T1>, EntityListView<T2>)> GetEnumerator()
-    {
-        foreach (var archetype in MatchingArchetypes)
-        {
-            var entityIds = archetype.GetEntityIds();
-            var components1 = archetype.GetComponents<T1>();
-            var components2 = archetype.GetComponents<T2>();
-
-            yield return (
-                new EntityListView<EntityId>(entityIds),
-                new EntityListView<T1>(components1),
-                new EntityListView<T2>(components2)
-            );
-        }
-    }
-
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-}
-
-
-public readonly struct EntityQueryAllResultV2<T1, T2>
+public readonly struct EntityQueryAllResult<T1, T2>
 {
     private readonly List<Archetype> _archetypes;
 
-    internal EntityQueryAllResultV2(List<Archetype> matchingArchetypes)
+    internal EntityQueryAllResult(List<Archetype> matchingArchetypes)
     {
         _archetypes = matchingArchetypes;
     }
@@ -52,6 +19,32 @@ public readonly struct EntityQueryAllResultV2<T1, T2>
         return new Page(archetype);
     }
 
+    public Enumerator GetEnumerator() => new Enumerator(_archetypes);
+
+    public struct Enumerator
+    {
+        private readonly List<Archetype> _archetypes;
+        private int _index;
+
+        internal Enumerator(List<Archetype> archetypes)
+        {
+            _archetypes = archetypes;
+            _index = -1;
+        }
+
+        public Page Current => new Page(_archetypes[_index]);
+
+        public bool MoveNext()
+        {
+            int next = _index + 1;
+            if (_archetypes == null || next >= _archetypes.Count)
+                return false;
+
+            _index = next;
+            return true;
+        }
+    }
+
     public ref struct Page
     {
         public readonly Span<EntityId> EntityIds;
@@ -60,6 +53,7 @@ public readonly struct EntityQueryAllResultV2<T1, T2>
 
         internal Page(Archetype archetype)
         {
+            // todo: Investigate improving this
             EntityIds = CollectionsMarshal.AsSpan(archetype.GetEntityIds());
             Components1 = CollectionsMarshal.AsSpan(archetype.GetComponents<T1>());
             Components2 = CollectionsMarshal.AsSpan(archetype.GetComponents<T2>());
@@ -70,6 +64,80 @@ public readonly struct EntityQueryAllResultV2<T1, T2>
             entityIds = EntityIds;
             components1 = Components1;
             components2 = Components2;
+        }
+    }
+}
+
+
+public readonly struct EntityQueryAllResult<T1, T2, T3>
+{
+    private readonly List<Archetype> _archetypes;
+
+    internal EntityQueryAllResult(List<Archetype> matchingArchetypes)
+    {
+        _archetypes = matchingArchetypes;
+    }
+
+    public int PageCount => _archetypes.Count;
+
+    public Page GetPage(int pageIndex)
+    {
+        var archetype = _archetypes[pageIndex];
+        return new Page(archetype);
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator(_archetypes);
+
+    public struct Enumerator
+    {
+        private readonly List<Archetype> _archetypes;
+        private int _index;
+
+        internal Enumerator(List<Archetype> archetypes)
+        {
+            _archetypes = archetypes;
+            _index = -1;
+        }
+
+        public Page Current => new Page(_archetypes[_index]);
+
+        public bool MoveNext()
+        {
+            int next = _index + 1;
+            if (_archetypes == null || next >= _archetypes.Count)
+                return false;
+
+            _index = next;
+            return true;
+        }
+    }
+
+    public ref struct Page
+    {
+        public readonly Span<EntityId> EntityIds;
+        public readonly Span<T1> Components1;
+        public readonly Span<T2> Components2;
+        public readonly Span<T3> Components3;
+
+        internal Page(Archetype archetype)
+        {
+            // todo: Investigate improving this
+            EntityIds = CollectionsMarshal.AsSpan(archetype.GetEntityIds());
+            Components1 = CollectionsMarshal.AsSpan(archetype.GetComponents<T1>());
+            Components2 = CollectionsMarshal.AsSpan(archetype.GetComponents<T2>());
+            Components3 = CollectionsMarshal.AsSpan(archetype.GetComponents<T3>());
+        }
+
+        public void Deconstruct(
+            out Span<EntityId> entityIds,
+            out Span<T1> components1,
+            out Span<T2> components2,
+            out Span<T3> components3)
+        {
+            entityIds = EntityIds;
+            components1 = Components1;
+            components2 = Components2;
+            components3 = Components3;
         }
     }
 }

@@ -38,10 +38,10 @@ internal class ExampleWorldRenderer : IWorldRenderer
 
         foreach (var (_, transforms, shapes) in result)
         {
-            for (int index = 0; index < transforms.Count; ++index)
+            for (int index = 0; index < transforms.Length; ++index)
             {
-                var shape = shapes[index];
-                var transform = transforms[index];
+                ref var shape = ref shapes[index];
+                ref var transform = ref transforms[index];
 
                 switch (shape.Type)
                 {
@@ -78,10 +78,10 @@ internal class ExampleWorldRenderer : IWorldRenderer
 
         foreach (var (_, transforms, textList) in result)
         {
-            for (int index = 0; index < transforms.Count; index++)
+            for (int index = 0; index < transforms.Length; index++)
             {
-                var text2d = textList[index];
-                var transform = transforms[index];
+                ref var text2d = ref textList[index];
+                ref var transform = ref transforms[index];
 
                 Vector2 textSize = Raylib.MeasureTextEx(font, text2d.Text, text2d.FontSize, 1);
 

@@ -15,7 +15,7 @@ internal class PlayMode : IGameMode, IInputReceiver
     private readonly IGameEngine _engine;
     private readonly IWorld _world;
     private readonly EntityId _cameraId;
-    private readonly SnakeActor _snake;
+    private readonly EntityId _snake;
 
     private EntityId _fpsTextEntity;
 
@@ -42,7 +42,7 @@ internal class PlayMode : IGameMode, IInputReceiver
                 ]
             ),
             new KeyboardInputContext(
-                _snake,
+                new EntityInputReceiver(_world, _snake),
                 keyDown: [
                     new KeyboardInputMapping(KeyboardKey.W, SnakeActions.MoveForward.Instance),
                     new KeyboardInputMapping(KeyboardKey.S, SnakeActions.SlowDown.Instance),

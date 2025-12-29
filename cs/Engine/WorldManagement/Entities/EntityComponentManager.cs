@@ -89,15 +89,15 @@ internal sealed class EntityComponentManager : IEntityComponentManager
         return new EntityQueryAllResult<T1, T2>(archetypes);
     }
 
-    public EntityQueryAllResultV2<T1, T2> QueryAllV2<T1, T2>()
+    public EntityQueryAllResult<T1, T2, T3> QueryAll<T1, T2, T3>()
     {
-        var componentTypes = new Type[] { typeof(T1), typeof(T2) };
+        var componentTypes = new Type[] { typeof(T1), typeof(T2), typeof(T3) };
 
         var archetypes = _archetypes.Values
             .Where(x => x.Signature.ContainsAll(componentTypes))
             .ToList();
 
-        return new EntityQueryAllResultV2<T1, T2>(archetypes);
+        return new EntityQueryAllResult<T1, T2, T3>(archetypes);
     }
 
     public EntityQueryResult QueryById(EntityId entityId)

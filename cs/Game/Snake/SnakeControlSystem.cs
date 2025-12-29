@@ -20,10 +20,10 @@ internal sealed class SnakeControlSystem : IWorldSystem
 
         foreach (var (_, transforms, segmentsList) in result)
         {
-            for (int index = 0; index < transforms.Count; index++)
+            for (int index = 0; index < transforms.Length; index++)
             {
-                var segments = segmentsList[index];
-                var transform = transforms[index];
+                ref var segments = ref segmentsList[index];
+                ref var transform = ref transforms[index];
 
                 // Start with the head
                 Transform2d previousTransform = transform;
@@ -52,18 +52,19 @@ internal sealed class SnakeControlSystem : IWorldSystem
 
     private void ProcessSnakeHead(IWorld world, float deltaTime)
     {
-        var result = world.Entities.QueryAll<Transform2d, SnakeControl>();
+        var result = world.Entities.QueryAll<Transform2d, SnakeControl, InputActionReceiver>();
 
-        foreach (var (_, transforms, controls) in result)
+        foreach (var (_, transforms, controls, inputReceivers) in result)
         {
-            for (int index = 0; index < transforms.Count; index++)
+            for (int index = 0; index < transforms.Length; index++)
             {
-                var transform = transforms[index];
-                var control = controls[index];
+                ref var transform = ref transforms[index];
+                ref var control = ref controls[index];
+                ref var inputReceiver = ref inputReceivers[index];
 
                 control.Speed = MathF.Max(0, control.Speed - _friction * deltaTime);
 
-                foreach (var action in control.PendingActions)
+                foreach (var action in inputReceiver.PendingActions)
                 {
                     if (action is SnakeActions.MoveForward)
                     {
@@ -88,7 +89,7 @@ internal sealed class SnakeControlSystem : IWorldSystem
                 transform.Position += new Vector2(MathF.Cos(radians), MathF.Sin(radians)) * control.Speed * deltaTime;
 
                 // Clear pending actions after processing
-                control.PendingActions.Clear();
+                inputReceiver.PendingActions.Clear();
 
                 transforms[index] = transform;
                 controls[index] = control;

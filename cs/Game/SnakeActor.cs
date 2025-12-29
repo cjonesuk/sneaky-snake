@@ -11,6 +11,7 @@ using Raylib_cs;
 namespace SneakySnake;
 
 
+[Obsolete("Replaing Actor with Entities and Systems")]
 internal sealed class SnakeActor : IActor<SnakeActor.Defaults>, IInputReceiver
 {
     private IWorld? _world;
@@ -23,6 +24,7 @@ internal sealed class SnakeActor : IActor<SnakeActor.Defaults>, IInputReceiver
 
     public SnakeActor()
     {
+        throw new Exception("SnakeActor is obsolete. Use Entities and Systems instead.");
         _headId = EntityId.Invalid;
         _world = null;
     }
@@ -53,7 +55,7 @@ internal sealed class SnakeActor : IActor<SnakeActor.Defaults>, IInputReceiver
             AddBodySegment(entity);
         }
 
-        entity.GetRef<SnakeControl>().PendingActions.Add(inputEvent.Action);
+        entity.GetRef<InputActionReceiver>().PendingActions.Add(inputEvent.Action);
     }
 
     public void Tick(float deltaTime)

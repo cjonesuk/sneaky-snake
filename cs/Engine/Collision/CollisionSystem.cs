@@ -27,12 +27,10 @@ internal sealed class CollisionSystem : IWorldSystem
     {
         _worldSpace.Clear();
 
-        var result = world.Entities.QueryAllV2<Transform2d, CollisionBody>();
+        var result = world.Entities.QueryAll<Transform2d, CollisionBody>();
 
-        for (int pageIndex = 0; pageIndex < result.PageCount; pageIndex++)
+        foreach (var (entityIds, transforms, bodies) in result)
         {
-            var (entityIds, transforms, bodies) = result.GetPage(pageIndex);
-
             for (int entityIndex = 0; entityIndex < entityIds.Length; entityIndex++)
             {
                 ref var entityId = ref entityIds[entityIndex];

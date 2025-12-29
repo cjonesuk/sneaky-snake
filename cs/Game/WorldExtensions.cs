@@ -23,20 +23,6 @@ internal static class WorldExtensions
         return world.Entities.AddEntity(new Transform2d(position), new Text2d(text, fontSize, color, alignment));
     }
 
-    public static SnakeActor SpawnSnake(this IWorld world, Vector2 position)
-    {
-        var defaults = new SnakeActor.Defaults(
-            new Transform2d(position, 0.0f),
-            new SnakeControl(
-                maxSpeed: 300f,
-                acceleration: 200f,
-                deceleration: 300f,
-                maxTurnRate: 180f)
-        );
-
-        return world.Actors.SpawnActor<SnakeActor, SnakeActor.Defaults>(defaults);
-    }
-
     public static EntityId SpawnCamera2d(
         this IWorld world,
         Vector2 position = default,
