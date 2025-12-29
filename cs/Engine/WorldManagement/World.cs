@@ -1,3 +1,4 @@
+using Engine.Collision;
 using Engine.WorldManagement.Actors;
 using Engine.WorldManagement.Entities;
 using Engine.WorldManagement.Events;
@@ -50,7 +51,8 @@ internal sealed class World : IWorld
             system.Update(this, deltaTime);
         }
 
-        _events.Debug();
+        _events.Debug<CollisionStartedEvent>();
+        _events.Debug<CollisionEndedEvent>();
     }
 
     public void GenerateRenderCommandsForCamera(IRenderPass renderPass, EntityId camera)

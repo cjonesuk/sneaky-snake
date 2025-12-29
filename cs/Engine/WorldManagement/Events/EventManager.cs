@@ -32,22 +32,34 @@ internal sealed class EventManager : IEventManager
         }
     }
 
-    public void Debug()
+    public void Debug<T>()
     {
-        foreach (var kvp in _eventQueues)
+        Type eventType = typeof(T);
+        LogEventsForType(eventType);
+    }
+
+    public void DebugAll()
+    {
+        foreach (var keys in _eventQueues.Keys)
         {
-            Type eventType = kvp.Key;
-            IList queue = (IList)kvp.Value;
+            LogEventsForType(keys);
+        }
+    }
+
+    private void LogEventsForType(Type eventType)
+    {
+        if (_eventQueues.TryGetValue(eventType, out var queueObj))
+        {
+            IList queue = (IList)queueObj;
 
             if (queue.Count == 0)
             {
-                continue;
+                return;
             }
 
-            Console.WriteLine($"Event Type: {eventType.Name}, Count: {queue.Count}");
             foreach (var evt in queue)
             {
-                Console.WriteLine($"  Event: {evt}");
+                Console.WriteLine($"Event: {evt}");
             }
         }
     }

@@ -6,5 +6,6 @@ public interface IEventManager
     List<TEvent> GetEventList<TEvent>();
     void ClearAllEvents();
 
-    void Debug();
+    void DebugAll();
+    void Debug<T>();
 }
