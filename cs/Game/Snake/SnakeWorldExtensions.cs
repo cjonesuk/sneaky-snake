@@ -10,6 +10,7 @@ namespace SneakySnake;
 internal static class SnakeWorldExtensions
 {
     private static readonly float _spacing = 20f;
+    private static readonly float _followStrength = 30f;
     private static readonly Vector2 _segmentHalfSize = new Vector2(10f, 10f);
 
     public static EntityId SpawnSnake(
@@ -22,8 +23,8 @@ internal static class SnakeWorldExtensions
             acceleration: 200f,
             deceleration: 300f,
             maxTurnRate: 180f,
-            segmentSpacing: 20f,
-            followStrength: 30f);
+            segmentSpacing: _spacing,
+            followStrength: _followStrength);
 
         InputActionReceiver inputReceiver = InputActionReceiver.Create();
 
