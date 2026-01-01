@@ -15,7 +15,7 @@ internal class PlayMode : IGameMode, IInputReceiver
     private readonly IGameEngine _engine;
     private readonly IWorld _world;
     private readonly EntityId _cameraId;
-    private readonly SnakeActor _snake;
+    private readonly EntityId _snake;
 
     private EntityId _fpsTextEntity;
 
@@ -42,7 +42,7 @@ internal class PlayMode : IGameMode, IInputReceiver
                 ]
             ),
             new KeyboardInputContext(
-                _snake,
+                new EntityInputReceiver(_world, _snake),
                 keyDown: [
                     new KeyboardInputMapping(KeyboardKey.W, SnakeActions.MoveForward.Instance),
                     new KeyboardInputMapping(KeyboardKey.S, SnakeActions.SlowDown.Instance),
@@ -60,7 +60,9 @@ internal class PlayMode : IGameMode, IInputReceiver
         _engine.SetViewports([Viewport.Fullscreen(_world, _cameraId)]);
 
         // Spawn entities
-        _world.SpawnFood(new Vector2(100, 75), Color.Orange);
+        //_world.SpawnFood(new Vector2(100, 75), Color.Orange);
+
+        _world.SpawnFood(new Vector2(500, 300), Color.Orange);
 
         _world.SpawnText(new Vector2(400, 50), "Game in Progress - Press Q to End Game", 24, Color.Black, TextAlignment.Center);
 

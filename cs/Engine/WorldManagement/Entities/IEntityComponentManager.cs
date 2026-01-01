@@ -24,5 +24,5 @@ public interface IEntityComponentManager
     bool TryQueryById(EntityId entityId, out EntityQueryResult result);
 
     EntityQueryAllResult<T1, T2> QueryAll<T1, T2>();
-
+    EntityQueryAllResult<T1, T2, T3> QueryAll<T1, T2, T3>();
 }

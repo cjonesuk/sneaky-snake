@@ -1,13 +1,13 @@
 namespace Engine.WorldManagement.Entities;
 
-internal struct EntityLocation
+internal readonly struct EntityLocation
 {
-    public Archetype Archetype;
+    public readonly Archetype Archetype;
 
     /// <summary>
     /// Index of the entity within the archetype's component lists
     /// </summary>
-    public int Index;
+    public readonly int Index;
 
     internal EntityLocation(Archetype archetype, int index)
     {
