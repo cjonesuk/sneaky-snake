@@ -50,6 +50,23 @@ public static class Constants
     public const ulong IdFlagsMask = 0xF000_0000_0000_0000;
 }
 
+internal static class TypeIdGenerator
+{
+    private static int _nextTypeId = 1;
+
+    public static int NextTypeId()
+    {
+        return Interlocked.Increment(ref _nextTypeId) - 1;
+    }
+}
+
+public static class ComponentTypeInformation<T>
+{
+    public static readonly int Id = TypeIdGenerator.NextTypeId();
+
+    public static readonly string Name = typeof(T).FullName ?? typeof(T).Name;
+}
+
 public readonly struct Id : IEquatable<Id>
 {
     private readonly IWorld _world;
