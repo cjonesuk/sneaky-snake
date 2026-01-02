@@ -13,3 +13,11 @@ public readonly struct Entity
         _id = id;
     }
 }
+
+public static class EntityWorldExtensions
+{
+    public static void AddComponent<T>(this Entity entity, T component) where T : notnull
+    {
+        entity.World.AddComponentToEntity(entity.Id, component);
+    }
+}

@@ -5,6 +5,10 @@ using Shouldly;
 
 class FakeWorld : IWorld
 {
+    public void AddComponentToEntity<T>(Id id, T component) where T : notnull
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class IdTests

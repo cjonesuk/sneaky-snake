@@ -10,6 +10,8 @@ readonly struct SortedArray<T> where T : IComparable<T>
         Array.Sort(_items);
     }
 
+    public Span<T> AsSpan() => _items;
+
     public bool HasSubset(SortedArray<T> other)
     {
         IComparer<T> comparer = Comparer<T>.Default;
