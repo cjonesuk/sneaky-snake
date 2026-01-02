@@ -1,6 +1,16 @@
+using System.Buffers;
+
 namespace AnECS;
 
+public interface IArchetype
+{
 
+}
+
+internal sealed class Archetype : IArchetype
+{
+    private readonly EntityType _entityType;
+}
 
 public interface IWorld
 {
