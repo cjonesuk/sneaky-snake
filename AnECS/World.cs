@@ -11,6 +11,8 @@ public interface IWorld
 {
     void SetComponentOnEntity<T>(Id id, T component) where T : struct;
     void AddComponentToEntity<T>(Id id) where T : struct;
+    bool EntityHasComponent<T>(Id id) where T : struct;
+    void RemoveComponentFromEntity<T>(Id id) where T : struct;
 }
 
 internal sealed class World : IWorld
@@ -50,15 +52,13 @@ internal sealed class World : IWorld
     {
         EntityLocation location = FindEntity(id);
 
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
-
-        if (location.Archetype.SupportsComponentType(componentTypeId))
+        if (location.Archetype.SupportsComponentType<T>())
         {
             location.Archetype.SetComponent(location.Index, component);
             return;
         }
 
-        ExtendEntity(id, component, location, componentTypeId);
+        AddComponentToEntityInternal(id, component, location);
     }
 
     private EntityLocation FindEntity(Id id)
@@ -72,20 +72,45 @@ internal sealed class World : IWorld
         return location;
     }
 
+    public bool EntityHasComponent<T>(Id id) where T : struct
+    {
+        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+
+        EntityLocation location = FindEntity(id);
+
+        return location.Archetype.SupportsComponentType(componentTypeId);
+    }
+
     public void AddComponentToEntity<T>(Id id) where T : struct
     {
         EntityLocation location = FindEntity(id);
 
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
-
-        ExtendEntity(id, default(T), location, componentTypeId);
+        AddComponentToEntityInternal<T>(id, default, location);
     }
 
-    private void ExtendEntity<T>(Id id, T component, EntityLocation location, ComponentTypeId componentTypeId) where T : struct
+    public void RemoveComponentFromEntity<T>(Id id) where T : struct
     {
-        EntityType nextEntityType = location.Archetype.EntityType.WithAddedComponent(componentTypeId);
+        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        EntityLocation location = FindEntity(id);
 
-        if (nextEntityType.Equals(location.Archetype.EntityType))
+        if (!location.Archetype.EntityType.Without(componentTypeId, out var nextEntityType))
+        {
+            // Component not present, nothing to do.
+            return;
+        }
+
+        Archetype nextArchetype = GetArchetype(nextEntityType);
+
+        EntityLocation nextLocation = nextArchetype.MigrateEntity(location);
+
+        _entityIndices[id] = nextLocation;
+    }
+
+    private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : struct
+    {
+        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+
+        if (!location.Archetype.EntityType.With(componentTypeId, out var nextEntityType))
         {
             throw new InvalidOperationException("Failed to extend entity: resulting EntityType is the same as the current one.");
         }

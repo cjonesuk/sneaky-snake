@@ -25,4 +25,14 @@ public static class EntityWorldExtensions
     {
         entity.World.AddComponentToEntity<T>(entity.Id);
     }
+
+    public static bool Has<T>(this Entity entity) where T : struct
+    {
+        return entity.World.EntityHasComponent<T>(entity.Id);
+    }
+
+    public static void Remove<T>(this Entity entity) where T : struct
+    {
+        entity.World.RemoveComponentFromEntity<T>(entity.Id);
+    }
 }

@@ -14,6 +14,16 @@ class FakeWorld : IWorld
     {
         throw new NotImplementedException();
     }
+
+    public bool EntityHasComponent<T>(Id id) where T : struct
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RemoveComponentFromEntity<T>(Id id) where T : struct
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class IdTests

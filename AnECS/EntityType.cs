@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AnECS;
 
@@ -26,10 +27,28 @@ public readonly struct EntityType : IEquatable<EntityType>
         return _componentTypeIds.HasSubset(other._componentTypeIds);
     }
 
-    public EntityType WithAddedComponent(ComponentTypeId componentTypeId)
+    public bool With(ComponentTypeId componentTypeId, [MaybeNullWhen(false)] out EntityType extendedType)
     {
-        var newComponentTypeIds = _componentTypeIds.WithItem(componentTypeId);
-        return new EntityType(newComponentTypeIds);
+        if (_componentTypeIds.With(componentTypeId, out var extendedComponentTypeIds))
+        {
+            extendedType = new EntityType(extendedComponentTypeIds);
+            return true;
+        }
+
+        extendedType = default;
+        return false;
+    }
+
+    public bool Without(ComponentTypeId componentTypeId, [MaybeNullWhen(false)] out EntityType reducedType)
+    {
+        if (_componentTypeIds.Without(componentTypeId, out var reducedComponentTypeIds))
+        {
+            reducedType = new EntityType(reducedComponentTypeIds);
+            return true;
+        }
+
+        reducedType = default;
+        return false;
     }
 
     public bool Equals(EntityType other)

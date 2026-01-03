@@ -97,6 +97,37 @@ internal sealed class Archetype
         }
     }
 
+    /// <summary>
+    /// Remove an entities components by migrating it to a simpler archetype.
+    /// </summary>
+    internal EntityLocation MigrateEntity(EntityLocation source)
+    {
+        int sourceIndex = source.Index;
+
+        int targetIndex = _entityIds.Count;
+
+        // Migrate the entity ID
+        _entityIds.Migrate(source.Archetype._entityIds, sourceIndex);
+
+        // Migrate only components that exist in the target archetype
+        for (int targetComponentTypeIndex = 0; targetComponentTypeIndex < _entityType.ComponentTypeIds.Length; targetComponentTypeIndex++)
+        {
+            ComponentTypeId componentTypeId = _entityType.ComponentTypeIds[targetComponentTypeIndex];
+            int sourceColumnIndex = source.Archetype._componentTypeIdToColumnIndex[componentTypeId];
+            var sourceColumn = source.Archetype._componentColumns[sourceColumnIndex];
+
+            int targetColumnIndex = _componentTypeIdToColumnIndex[componentTypeId];
+            var targetColumn = _componentColumns[targetColumnIndex];
+
+            targetColumn.Migrate(sourceColumn, sourceIndex);
+        }
+
+        return new EntityLocation(this, targetIndex);
+    }
+
+    /// <summary>
+    /// Migrate an entity to a more complex archetype, adding in the new component.
+    /// </summary> 
     internal EntityLocation MigrateEntity(EntityLocation source, EntityComponentValue entityComponentValue)
     {
         int sourceIndex = source.Index;
@@ -128,6 +159,12 @@ internal sealed class Archetype
         }
 
         return new EntityLocation(this, targetIndex);
+    }
+
+    public bool SupportsComponentType<T>() where T : struct
+    {
+        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        return _componentTypeIdToColumnIndex.ContainsKey(componentTypeId);
     }
 
     public bool SupportsComponentType(ComponentTypeId componentTypeId)

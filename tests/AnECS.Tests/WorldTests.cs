@@ -45,6 +45,12 @@ public class WorldTests
         entity2.Set(new Position(3.0f, 4.0f));
         entity2.Set(new Velocity(0.5f, 0.25f));
 
+        entity1.Has<Position>().ShouldBeTrue();
+        entity1.Has<Velocity>().ShouldBeFalse();
+
+        entity2.Has<Position>().ShouldBeTrue();
+        entity2.Has<Velocity>().ShouldBeTrue();
+
         List<(Id, Position)> actualPositions = new();
 
         world.Query((ref Id id, ref Position position) =>
@@ -96,5 +102,28 @@ public class WorldTests
         {
             (entity1.Id, new PlayerTag())
         });
+    }
+
+    [Fact]
+    public void RemoveComponent_ShouldRemoveComponentFromEntity()
+    {
+        var world = World.Create();
+        var entity = world.Entity();
+        entity.Set(new Position(1.0f, 2.0f));
+        entity.Set(new Velocity(0.5f, 0.25f));
+        entity.Has<Position>().ShouldBeTrue();
+        entity.Has<Velocity>().ShouldBeTrue();
+
+        entity.Remove<Position>();
+        entity.Has<Position>().ShouldBeFalse();
+        entity.Has<Velocity>().ShouldBeTrue();
+
+        entity.Add<PlayerTag>();
+        entity.Has<PlayerTag>().ShouldBeTrue();
+
+        entity.Remove<PlayerTag>();
+        entity.Has<PlayerTag>().ShouldBeFalse();
+        entity.Has<Velocity>().ShouldBeTrue();
+        entity.Has<Position>().ShouldBeFalse();
     }
 }

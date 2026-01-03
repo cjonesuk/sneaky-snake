@@ -49,20 +49,36 @@ public class SortedArrayTests
     }
 
     [Fact]
-    public void WithItem_AddsNewItem_WhenItemNotPresent()
+    public void With_AddsNewItem_WhenItemNotPresent()
     {
         var array = SortedArray<int>.Create([1, 3, 5]);
 
-        var newArray = array.WithItem(4);
-
+        array.With(4, out var newArray).ShouldBe(true);
         newArray.AsSpan().ToArray().ShouldBe([1, 3, 4, 5]);
     }
 
     [Fact]
-    public void WithItem_DoesNotAddItem_WhenItemAlreadyPresent()
+    public void With_DoesNotAddItem_WhenItemAlreadyPresent()
     {
         var array = SortedArray<int>.Create([1, 3, 5]);
-        var newArray = array.WithItem(3);
+        array.With(3, out var newArray).ShouldBe(false);
+        newArray.AsSpan().ToArray().ShouldBe([1, 3, 5]);
+    }
+
+    [Fact]
+    public void Without_RemovesItem_WhenItemIsPresent()
+    {
+        var array = SortedArray<int>.Create([1, 3, 5]);
+
+        array.Without(3, out var newArray).ShouldBe(true);
+        newArray.AsSpan().ToArray().ShouldBe([1, 5]);
+    }
+
+    [Fact]
+    public void Without_DoesNotRemoveItem_WhenItemIsNotPresent()
+    {
+        var array = SortedArray<int>.Create([1, 3, 5]);
+        array.Without(4, out var newArray).ShouldBe(false);
         newArray.AsSpan().ToArray().ShouldBe([1, 3, 5]);
     }
 

@@ -48,12 +48,13 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
         return otherIndex == otherSpan.Length;
     }
 
-    public SortedArray<T> WithItem(T item)
+    public bool With(T item, out SortedArray<T> result)
     {
         int index = Array.BinarySearch(_items, item);
         if (index >= 0)
         {
-            return this;
+            result = this;
+            return false;
         }
 
         index = ~index;
@@ -71,7 +72,31 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
             Array.Copy(_items, index, newItems, index + 1, _items.Length - index);
         }
 
-        return new SortedArray<T>(newItems);
+        result = new SortedArray<T>(newItems);
+        return true;
+    }
+
+    public bool Without(T item, out SortedArray<T> result)
+    {
+        int index = Array.BinarySearch(_items, item);
+        if (index < 0)
+        {
+            result = this;
+            return false;
+        }
+
+        var newItems = new T[_items.Length - 1];
+        if (index > 0)
+        {
+            Array.Copy(_items, 0, newItems, 0, index);
+        }
+        if (index < _items.Length - 1)
+        {
+            Array.Copy(_items, index + 1, newItems, index, _items.Length - index - 1);
+        }
+
+        result = new SortedArray<T>(newItems);
+        return true;
     }
 
     public bool Equals(SortedArray<T> other)
