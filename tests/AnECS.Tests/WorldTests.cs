@@ -96,7 +96,4 @@ public class WorldTests
             (entity1.Id, new PlayerTag())
         });
     }
-
-
-
 }

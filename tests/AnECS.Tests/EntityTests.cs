@@ -16,6 +16,10 @@ public class EntityTests
         var entity = world.CreateEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
+
+        entity.Has<Position>().ShouldBeTrue();
+        entity.Has<Velocity>().ShouldBeTrue();
+        entity.Has<PlayerTag>().ShouldBeFalse();
     }
 
     [Fact]
