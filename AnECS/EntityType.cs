@@ -2,13 +2,21 @@ using System.Diagnostics;
 
 namespace AnECS;
 
-readonly struct EntityType
+public readonly struct EntityType : IEquatable<EntityType>
 {
+    public readonly static EntityType Empty = new EntityType(SortedArray<ComponentTypeId>.Empty);
+
     private readonly SortedArray<ComponentTypeId> _componentTypeIds;
 
-    public EntityType(Span<ComponentTypeId> componentTypeIds)
+    private EntityType(SortedArray<ComponentTypeId> componentTypeIds)
     {
-        _componentTypeIds = new SortedArray<ComponentTypeId>(componentTypeIds);
+        _componentTypeIds = componentTypeIds;
+    }
+
+    public static EntityType Create(Span<ComponentTypeId> componentTypeIds)
+    {
+        var sortedArray = SortedArray<ComponentTypeId>.Create(componentTypeIds);
+        return new EntityType(sortedArray);
     }
 
     public Span<ComponentTypeId> ComponentTypeIds => _componentTypeIds.AsSpan();
@@ -17,6 +25,18 @@ readonly struct EntityType
     {
         return _componentTypeIds.HasSubset(other._componentTypeIds);
     }
+
+    public EntityType WithAddedComponent(ComponentTypeId componentTypeId)
+    {
+        var newComponentTypeIds = _componentTypeIds.WithItem(componentTypeId);
+        return new EntityType(newComponentTypeIds);
+    }
+
+    public bool Equals(EntityType other)
+    {
+        return _componentTypeIds.Equals(other._componentTypeIds);
+    }
+
 
     [Conditional("DEBUG")]
     public void Validate(EntityComponentValue[] components)

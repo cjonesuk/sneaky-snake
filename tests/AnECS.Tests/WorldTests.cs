@@ -32,4 +32,28 @@ public class WorldTests
         entity.AddComponent(new Position(1.0f, 2.0f));
         entity.AddComponent(new Velocity(0.5f, 0.25f));
     }
+
+    [Fact]
+    public void QueryEntities_wip()
+    {
+        var world = World.Create();
+        var entity1 = world.Entity();
+        entity1.AddComponent(new Position(1.0f, 2.0f));
+
+        var entity2 = world.Entity();
+        entity2.AddComponent(new Position(3.0f, 4.0f));
+        entity2.AddComponent(new Velocity(0.5f, 0.25f));
+
+        List<(Id, Position)> actual = new();
+
+        world.Query((ref Id id, ref Position position) =>
+        {
+            actual.Add((id, position));
+        });
+
+        actual.Count.ShouldBe(1);
+        actual[0].Item1.ShouldBe(entity1.Id);
+        actual[0].Item2.ShouldBe(new Position(1.0f, 2.0f));
+
+    }
 }
