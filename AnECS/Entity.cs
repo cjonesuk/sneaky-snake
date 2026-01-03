@@ -36,8 +36,19 @@ public static class EntityWorldExtensions
         entity.World.RemoveComponentFromEntity<T>(entity.Id);
     }
 
-    public static ref T Get<T>(this Entity entity) where T : struct
+    /// <summary>
+    /// Get a mutable reference to the component T from the entity.
+    /// </summary>
+    public static ref T GetRef<T>(this Entity entity) where T : struct
     {
         return ref entity.World.GetComponentFromEntity<T>(entity.Id);
+    }
+
+    /// <summary>
+    /// Gets a copy of the component T from the entity.
+    /// </summary>
+    public static T Get<T>(this Entity entity) where T : struct
+    {
+        return entity.World.GetComponentFromEntity<T>(entity.Id);
     }
 }
