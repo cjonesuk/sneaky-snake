@@ -53,8 +53,10 @@ internal sealed class Archetype
 
     public void SetComponent<T>(int entityIndex, T component) where T : notnull
     {
-
-
+        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
+        var column = (ComponentValues<T>)_componentColumns[columnIndex];
+        column.Set(entityIndex, component);
     }
 
     internal void Query<T1>(EntityQueryAction<T1> action) where T1 : notnull
@@ -97,7 +99,7 @@ internal sealed class Archetype
 
     internal EntityLocation MigrateEntity(EntityLocation source, EntityComponentValue entityComponentValue)
     {
-        int sourceIndex = source.ComponentIndex;
+        int sourceIndex = source.Index;
 
         int targetIndex = _entityIds.Count;
 
@@ -126,5 +128,10 @@ internal sealed class Archetype
         }
 
         return new EntityLocation(this, targetIndex);
+    }
+
+    public bool SupportsComponentType(ComponentTypeId componentTypeId)
+    {
+        return _componentTypeIdToColumnIndex.ContainsKey(componentTypeId);
     }
 }

@@ -29,8 +29,8 @@ public class WorldTests
     {
         var world = World.Create();
         var entity = world.Entity();
-        entity.AddComponent(new Position(1.0f, 2.0f));
-        entity.AddComponent(new Velocity(0.5f, 0.25f));
+        entity.Set(new Position(1.0f, 2.0f));
+        entity.Set(new Velocity(0.5f, 0.25f));
     }
 
     [Fact]
@@ -38,11 +38,11 @@ public class WorldTests
     {
         var world = World.Create();
         var entity1 = world.Entity();
-        entity1.AddComponent(new Position(1.0f, 2.0f));
+        entity1.Set(new Position(1.0f, 2.0f));
 
         var entity2 = world.Entity();
-        entity2.AddComponent(new Position(3.0f, 4.0f));
-        entity2.AddComponent(new Velocity(0.5f, 0.25f));
+        entity2.Set(new Position(3.0f, 4.0f));
+        entity2.Set(new Velocity(0.5f, 0.25f));
 
         List<(Id, Position)> actualPositions = new();
 

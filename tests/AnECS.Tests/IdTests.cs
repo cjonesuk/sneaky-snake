@@ -5,7 +5,7 @@ using Shouldly;
 
 class FakeWorld : IWorld
 {
-    public void AddComponentToEntity<T>(Id id, T component) where T : notnull
+    public void SetComponentOnEntity<T>(Id id, T component) where T : notnull
     {
         throw new NotImplementedException();
     }

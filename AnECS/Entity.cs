@@ -16,8 +16,8 @@ public readonly struct Entity
 
 public static class EntityWorldExtensions
 {
-    public static void AddComponent<T>(this Entity entity, T component) where T : notnull
+    public static void Set<T>(this Entity entity, T component) where T : notnull
     {
-        entity.World.AddComponentToEntity(entity.Id, component);
+        entity.World.SetComponentOnEntity(entity.Id, component);
     }
 }

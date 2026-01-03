@@ -34,7 +34,7 @@ public readonly struct EntityType : IEquatable<EntityType>
 
     public bool Equals(EntityType other)
     {
-        return _componentTypeIds.Equals(other._componentTypeIds);
+        return ReferenceEquals(_componentTypeIds, other._componentTypeIds) || _componentTypeIds.Equals(other._componentTypeIds);
     }
 
 

@@ -18,6 +18,11 @@ internal sealed class ComponentValues<T> : IComponentValues
         _values.Add((T)value);
     }
 
+    public void Set(int index, T value)
+    {
+        _values[index] = value;
+    }
+
     public void Migrate(IComponentValues source, int sourceIndex)
     {
         var sourceValues = (ComponentValues<T>)source;

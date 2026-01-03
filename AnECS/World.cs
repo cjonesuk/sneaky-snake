@@ -9,7 +9,7 @@ public delegate void EntityQueryAction<T1, T2>(ref Id id, ref T1 arg1, ref T2 ar
 
 public interface IWorld
 {
-    void AddComponentToEntity<T>(Id id, T component) where T : notnull;
+    void SetComponentOnEntity<T>(Id id, T component) where T : notnull;
 }
 
 internal sealed class World : IWorld
@@ -45,7 +45,22 @@ internal sealed class World : IWorld
         return new Entity(id);
     }
 
-    public void AddComponentToEntity<T>(Id id, T component) where T : notnull
+    public void SetComponentOnEntity<T>(Id id, T component) where T : notnull
+    {
+        EntityLocation location = FindEntity(id);
+
+        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+
+        if (location.Archetype.SupportsComponentType(componentTypeId))
+        {
+            location.Archetype.SetComponent(location.Index, component);
+            return;
+        }
+
+        ExtendEntity(id, component, location, componentTypeId);
+    }
+
+    private EntityLocation FindEntity(Id id)
     {
         if (!_entityIndices.TryGetValue(id, out EntityLocation location))
         {
@@ -53,13 +68,26 @@ internal sealed class World : IWorld
             throw new InvalidOperationException($"Entity with Id {id} does not exist in the world.");
         }
 
+        return location;
+    }
+
+    public void AddComponentToEntity<T>(Id id) where T : notnull
+    {
+        EntityLocation location = FindEntity(id);
+
         ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
 
+        ExtendEntity(id, default(T), location, componentTypeId);
+        
+    }
+
+    private void ExtendEntity<T>(Id id, T component, EntityLocation location, ComponentTypeId componentTypeId) where T : notnull
+    {
         EntityType nextEntityType = location.Archetype.EntityType.WithAddedComponent(componentTypeId);
 
         if (nextEntityType.Equals(location.Archetype.EntityType))
         {
-            return;
+            throw new InvalidOperationException("Failed to extend entity: resulting EntityType is the same as the current one.");
         }
 
         Archetype nextArchetype = GetArchetype(nextEntityType);
@@ -68,7 +96,6 @@ internal sealed class World : IWorld
 
         _entityIndices[id] = nextLocation;
     }
-
 
 
     public void Query<T1>(EntityQueryAction<T1> action) where T1 : notnull
