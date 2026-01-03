@@ -1,6 +1,11 @@
 namespace AnECS;
 
-public delegate void EntityQueryAction<T1>(ref Id id, ref T1 arg1) where T1 : notnull;
+public delegate void EntityQueryAction<T1>(ref Id id, ref T1 arg1)
+    where T1 : notnull;
+
+public delegate void EntityQueryAction<T1, T2>(ref Id id, ref T1 arg1, ref T2 arg2)
+    where T1 : notnull
+    where T2 : notnull;
 
 public interface IWorld
 {
@@ -79,7 +84,23 @@ internal sealed class World : IWorld
 
             archetype.Query(action);
         }
+    }
 
+    public void Query<T1, T2>(EntityQueryAction<T1, T2> action)
+        where T1 : notnull
+        where T2 : notnull
+    {
+        EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
+
+        foreach (var archetype in _archetypes)
+        {
+            if (!archetype.EntityType.HasSubset(entityType))
+            {
+                continue;
+            }
+
+            archetype.Query(action);
+        }
     }
 
     private Archetype GetArchetype(EntityType entityType)

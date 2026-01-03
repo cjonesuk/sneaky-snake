@@ -44,19 +44,44 @@ public class WorldTests
         entity2.AddComponent(new Position(3.0f, 4.0f));
         entity2.AddComponent(new Velocity(0.5f, 0.25f));
 
-        List<(Id, Position)> actual = new();
+        List<(Id, Position)> actualPositions = new();
 
         world.Query((ref Id id, ref Position position) =>
         {
-            actual.Add((id, position));
+            actualPositions.Add((id, position));
         });
 
-        actual.Count.ShouldBe(2);
-        actual.ShouldBeEquivalentTo(new List<(Id, Position)>
+        actualPositions.Count.ShouldBe(2);
+        actualPositions.ShouldBeEquivalentTo(new List<(Id, Position)>
         {
             (entity1.Id, new Position(1.0f, 2.0f)),
             (entity2.Id, new Position(3.0f, 4.0f))
         });
 
+        List<(Id, Velocity)> actualVelocities = new();
+
+        world.Query((ref Id id, ref Velocity velocity) =>
+        {
+            actualVelocities.Add((id, velocity));
+        });
+
+        actualVelocities.Count.ShouldBe(1);
+        actualVelocities.ShouldBeEquivalentTo(new List<(Id, Velocity)>
+        {
+            (entity2.Id, new Velocity(0.5f, 0.25f))
+        });
+
+        List<(Id, Position, Velocity)> actualPositionVelocities = new();
+
+        world.Query((ref Id id, ref Position position, ref Velocity velocity) =>
+        {
+            actualPositionVelocities.Add((id, position, velocity));
+        });
+
+        actualPositionVelocities.Count.ShouldBe(1);
+        actualPositionVelocities.ShouldBeEquivalentTo(new List<(Id, Position, Velocity)>
+        {
+            (entity2.Id, new Position(3.0f, 4.0f), new Velocity(0.5f, 0.25f))
+        });
     }
 }

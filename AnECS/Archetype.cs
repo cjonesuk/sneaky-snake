@@ -73,6 +73,28 @@ internal sealed class Archetype
         }
     }
 
+    internal void Query<T1, T2>(EntityQueryAction<T1, T2> action)
+        where T1 : notnull
+        where T2 : notnull
+    {
+        var entityIdsSpan = _entityIds.AsSpan();
+
+        var t1Type = ComponentTypeRegistry.GetComponentTypeId<T1>();
+        int t1ColumnIndex = _componentTypeIdToColumnIndex[t1Type];
+        var t1Column = (ComponentValues<T1>)_componentColumns[t1ColumnIndex];
+        var t1Span = t1Column.AsSpan();
+
+        var t2Type = ComponentTypeRegistry.GetComponentTypeId<T2>();
+        int t2ColumnIndex = _componentTypeIdToColumnIndex[t2Type];
+        var t2Column = (ComponentValues<T2>)_componentColumns[t2ColumnIndex];
+        var t2Span = t2Column.AsSpan();
+
+        for (int index = 0; index < _entityIds.Count; index++)
+        {
+            action(ref entityIdsSpan[index], ref t1Span[index], ref t2Span[index]);
+        }
+    }
+
     internal EntityLocation MigrateEntity(EntityLocation source, EntityComponentValue entityComponentValue)
     {
         int sourceIndex = source.ComponentIndex;
