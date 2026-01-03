@@ -3,9 +3,9 @@ using Shouldly;
 namespace AnECS.Tests;
 
 
-record struct Position(float X, float Y);
-record struct Velocity(float DX, float DY);
-record struct PlayerTag();
+file record struct Position(float X, float Y);
+file record struct Velocity(float DX, float DY);
+file record struct PlayerTag();
 
 public class WorldTests
 {
