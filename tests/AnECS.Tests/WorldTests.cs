@@ -51,9 +51,12 @@ public class WorldTests
             actual.Add((id, position));
         });
 
-        actual.Count.ShouldBe(1);
-        actual[0].Item1.ShouldBe(entity1.Id);
-        actual[0].Item2.ShouldBe(new Position(1.0f, 2.0f));
+        actual.Count.ShouldBe(2);
+        actual.ShouldBeEquivalentTo(new List<(Id, Position)>
+        {
+            (entity1.Id, new Position(1.0f, 2.0f)),
+            (entity2.Id, new Position(3.0f, 4.0f))
+        });
 
     }
 }

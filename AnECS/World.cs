@@ -37,6 +37,16 @@ internal sealed class ComponentValues<T> : IComponentValues
     {
         var sourceValues = (ComponentValues<T>)source;
         _values.Add(sourceValues._values[sourceIndex]);
+
+        // Remove the source value by replacing it with the last value to maintain density
+        sourceValues.RemoveAt(sourceIndex);
+    }
+
+    private void RemoveAt(int index)
+    {
+        int lastIndex = _values.Count - 1;
+        _values[index] = _values[lastIndex];
+        _values.RemoveAt(lastIndex);
     }
 }
 
