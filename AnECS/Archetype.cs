@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace AnECS;
 
 internal sealed class Archetype
@@ -32,23 +34,36 @@ internal sealed class Archetype
 
     public EntityType EntityType => _entityType;
 
-    public EntityLocation AddEntity(Id id, Span<EntityComponentValue> components)
+    public EntityLocation AddEntity(Id id)
     {
-        if (components.Length != _componentColumns.Length)
-        {
-            throw new InvalidOperationException($"Archetype expects {_componentColumns.Length} components, but {components.Length} were provided");
-        }
+        EntityTypeInformation.DebugAssertSupports(_entityType);
 
-        int entityIndex = _entityIds.Count;
-        _entityIds.Add(id);
+        EntityLocation location = AppendEntityIdInternal(ref id);
 
-        foreach (var component in components)
-        {
-            int columnIndex = _componentTypeIdToColumnIndex[component.ComponentTypeId];
-            _componentColumns[columnIndex].Add(component.Value);
-        }
+        return location;
+    }
 
-        return new EntityLocation(this, entityIndex);
+    public EntityLocation AddEntity<T1>(Id id, ref T1 c1) where T1 : struct
+    {
+        EntityTypeInformation<T1>.DebugAssertSupports(_entityType);
+
+        EntityLocation location = AppendEntityIdInternal(ref id);
+
+        AppendComponentInternal(ref c1);
+
+        return location;
+    }
+
+    public EntityLocation AddEntity<T1, T2>(Id id, ref T1 c1, ref T2 c2) where T1 : struct where T2 : struct
+    {
+        EntityTypeInformation<T1, T2>.DebugAssertSupports(_entityType);
+
+        EntityLocation location = AppendEntityIdInternal(ref id);
+
+        AppendComponentInternal(ref c1);
+        AppendComponentInternal(ref c2);
+
+        return location;
     }
 
     public void SetComponent<T>(int entityIndex, T component) where T : struct
@@ -57,6 +72,20 @@ internal sealed class Archetype
         int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
         var column = (ComponentValues<T>)_componentColumns[columnIndex];
         column.Set(entityIndex, component);
+    }
+
+    private EntityLocation AppendEntityIdInternal(ref Id id)
+    {
+        int index = _entityIds.Add(ref id);
+        return new EntityLocation(this, index);
+    }
+
+    private void AppendComponentInternal<T>(ref T component) where T : struct
+    {
+        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
+        var column = (ComponentValues<T>)_componentColumns[columnIndex];
+        column.Add(ref component);
     }
 
     internal void Query<T1>(EntityQueryAction<T1> action) where T1 : struct
@@ -128,7 +157,7 @@ internal sealed class Archetype
     /// <summary>
     /// Migrate an entity to a more complex archetype, adding in the new component.
     /// </summary> 
-    internal EntityLocation MigrateEntity(EntityLocation source, EntityComponentValue entityComponentValue)
+    internal EntityLocation MigrateEntity<T>(EntityLocation source, ref T c1) where T : struct
     {
         int sourceIndex = source.Index;
 
@@ -153,9 +182,10 @@ internal sealed class Archetype
 
         // Add the new component
         {
-            int targetColumnIndex = _componentTypeIdToColumnIndex[entityComponentValue.ComponentTypeId];
-            var targetColumn = _componentColumns[targetColumnIndex];
-            targetColumn.Add(entityComponentValue.Value);
+            ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+            int targetColumnIndex = _componentTypeIdToColumnIndex[componentTypeId];
+            var targetColumn = (ComponentValues<T>)_componentColumns[targetColumnIndex];
+            targetColumn.Add(ref c1);
         }
 
         return new EntityLocation(this, targetIndex);
@@ -178,5 +208,11 @@ internal sealed class Archetype
         int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
         var column = (ComponentValues<T>)_componentColumns[columnIndex];
         return ref column.GetRef(index);
+    }
+
+    internal void RemoveEntity(int index)
+    {
+
+
     }
 }

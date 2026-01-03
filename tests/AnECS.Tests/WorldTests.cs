@@ -20,7 +20,7 @@ public class WorldTests
     public void CreateEntity_ShouldReturnValidEntity()
     {
         var world = World.Create();
-        var entity = world.Entity();
+        var entity = world.CreateEntity();
         entity.World.ShouldBe(world);
         entity.Id.Value.ShouldNotBe<ulong>(0);
     }
@@ -31,10 +31,10 @@ public class WorldTests
     public void QueryEntities_wip()
     {
         var world = World.Create();
-        var entity1 = world.Entity();
+        var entity1 = world.CreateEntity();
         entity1.Set(new Position(1.0f, 2.0f));
 
-        var entity2 = world.Entity();
+        var entity2 = world.CreateEntity();
         entity2.Set(new Position(3.0f, 4.0f));
         entity2.Set(new Velocity(0.5f, 0.25f));
 
@@ -97,6 +97,6 @@ public class WorldTests
         });
     }
 
-    
+
 
 }

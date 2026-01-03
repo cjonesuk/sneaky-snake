@@ -51,4 +51,9 @@ public static class EntityWorldExtensions
     {
         return entity.World.GetComponentFromEntity<T>(entity.Id);
     }
+
+    public static void Delete(this Entity entity)
+    {
+        entity.World.RemoveEntity(entity.Id);
+    }
 }

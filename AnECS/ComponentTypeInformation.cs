@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace AnECS;
 
 public static class ComponentTypeInformation<T>
@@ -5,6 +7,14 @@ public static class ComponentTypeInformation<T>
     public static readonly int Id = ComponentTypeRegistry.Register<T>();
 
     public static readonly string Name = typeof(T).FullName ?? typeof(T).Name;
+}
+
+public static class EntityTypeInformation
+{
+    public static readonly EntityType EntityType = EntityType.Empty;
+
+    [Conditional("DEBUG")]
+    internal static void DebugAssertSupports(EntityType entityType) => EntityType.DebugAssertSupports(entityType);
 }
 
 public static class EntityTypeInformation<T1>
@@ -17,6 +27,10 @@ public static class EntityTypeInformation<T1>
 
         EntityType = EntityType.Create([type1]);
     }
+
+    [Conditional("DEBUG")]
+    internal static void DebugAssertSupports(EntityType entityType) => EntityType.DebugAssertSupports(entityType);
+
 }
 
 public static class EntityTypeInformation<T1, T2>
@@ -30,4 +44,7 @@ public static class EntityTypeInformation<T1, T2>
 
         EntityType = EntityType.Create([type1, type2]);
     }
+
+    [Conditional("DEBUG")]
+    internal static void DebugAssertSupports(EntityType entityType) => EntityType.DebugAssertSupports(entityType);
 }

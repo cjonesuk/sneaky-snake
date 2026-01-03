@@ -9,11 +9,15 @@ public delegate void EntityQueryAction<T1, T2>(ref Id id, ref T1 arg1, ref T2 ar
 
 public interface IWorld
 {
+    Entity CreateEntity();
+    void RemoveEntity(Id id);
+
     void SetComponentOnEntity<T>(Id id, T component) where T : struct;
     void AddComponentToEntity<T>(Id id) where T : struct;
     bool EntityHasComponent<T>(Id id) where T : struct;
     void RemoveComponentFromEntity<T>(Id id) where T : struct;
     ref T GetComponentFromEntity<T>(Id id) where T : struct;
+
 }
 
 internal sealed class World : IWorld
@@ -40,13 +44,38 @@ internal sealed class World : IWorld
         return new World();
     }
 
-    public Entity Entity()
+    private Id AllocateId()
     {
-        Id id = new Id(this, _nextId++);
-        EntityLocation location = _emptyArchetype.AddEntity(id, Span<EntityComponentValue>.Empty);
+        return new Id(this, _nextId++);
+    }
+
+    public Entity CreateEntity()
+    {
+        Id id = AllocateId();
+        EntityLocation location = _emptyArchetype.AddEntity(id);
         _entityIndices[id] = location;
 
         return new Entity(id);
+    }
+
+    public Entity CreateEntity<T1>(ref T1 c1) where T1 : struct
+    {
+        EntityType entityType = EntityTypeInformation<T1>.EntityType;
+
+        Id id = AllocateId();
+        Archetype archetype = GetArchetype(entityType);
+
+        EntityLocation location = archetype.AddEntity(id, ref c1);
+        _entityIndices[id] = location;
+
+        return new Entity(id);
+    }
+
+    public void RemoveEntity(Id id)
+    {
+        EntityLocation location = FindEntity(id);
+        location.Archetype.RemoveEntity(location.Index);
+        _entityIndices.Remove(id);
     }
 
     public void SetComponentOnEntity<T>(Id id, T component) where T : struct
@@ -109,11 +138,9 @@ internal sealed class World : IWorld
 
     public ref T GetComponentFromEntity<T>(Id id) where T : struct
     {
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
         EntityLocation location = FindEntity(id);
 
         return ref location.Archetype.GetComponentRef<T>(location.Index);
-
     }
 
     private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : struct
@@ -127,7 +154,7 @@ internal sealed class World : IWorld
 
         Archetype nextArchetype = GetArchetype(nextEntityType);
 
-        EntityLocation nextLocation = nextArchetype.MigrateEntity(location, new EntityComponentValue(componentTypeId, component));
+        EntityLocation nextLocation = nextArchetype.MigrateEntity(location, ref component);
 
         _entityIndices[id] = nextLocation;
     }

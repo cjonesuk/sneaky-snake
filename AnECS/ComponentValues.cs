@@ -1,21 +1,61 @@
-using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace AnECS;
 
-internal sealed class ComponentValues<T> : IComponentValues
+internal interface IComponentValues
 {
-    private readonly List<T> _values = new();
+    void Add<TInput>(ref TInput value) where TInput : struct;
+    void Migrate(IComponentValues source, int sourceIndex);
+}
 
-    public int Count => _values.Count;
+
+internal sealed class ComponentValues<T> : IComponentValues where T : struct
+{
+    private const int DefaultInitialCapacity = 32;
+
+    private T[] _values;
+    private int _count;
+
+    public int Count => _count;
+
+    public ComponentValues()
+    {
+        _values = new T[DefaultInitialCapacity];
+    }
 
     public Span<T> AsSpan()
     {
-        return CollectionsMarshal.AsSpan(_values);
+        return _values.AsSpan(0, _count);
     }
 
-    public void Add(object value)
+    void IComponentValues.Add<TInput>(ref TInput value) where TInput : struct
     {
-        _values.Add((T)value);
+        AssertTypeMatch<TInput>();
+
+        if (_count == _values.Length)
+        {
+            Array.Resize(ref _values, _values.Length * 2);
+        }
+
+        _values[_count++] = Unsafe.As<TInput, T>(ref value);
+    }
+
+    /// <summary>
+    /// Adds the given value to the end of the collection and returns its index.
+    /// </summary> 
+    public int Add(ref T value)
+    {
+        if (_count == _values.Length)
+        {
+            Array.Resize(ref _values, _values.Length * 2);
+        }
+
+        int index = _count++;
+
+        _values[index] = value;
+
+        return index;
     }
 
     public void Set(int index, T value)
@@ -26,22 +66,38 @@ internal sealed class ComponentValues<T> : IComponentValues
     public void Migrate(IComponentValues source, int sourceIndex)
     {
         var sourceValues = (ComponentValues<T>)source;
-        _values.Add(sourceValues._values[sourceIndex]);
+
+        // Append the source value to this collection
+        Add(ref sourceValues._values[sourceIndex]);
 
         // Remove the source value by replacing it with the last value to maintain density
-        sourceValues.RemoveAt(sourceIndex);
+        sourceValues.RemoveAndFillHoleAt(sourceIndex);
     }
 
-    private void RemoveAt(int index)
+    private void RemoveAndFillHoleAt(int index)
     {
-        int lastIndex = _values.Count - 1;
-        _values[index] = _values[lastIndex];
-        _values.RemoveAt(lastIndex);
+        int last = --_count;
+
+        if (index != last)
+        {
+            _values[index] = _values[last];
+        }
+
+        _values[last] = default!;
     }
 
     internal ref T GetRef(int index)
     {
-        var span = CollectionsMarshal.AsSpan(_values);
-        return ref span[index];
+        return ref _values[index];
     }
+
+    [Conditional("DEBUG")]
+    private void AssertTypeMatch<TActual>() where TActual : struct
+    {
+        if (typeof(TActual) != typeof(T))
+        {
+            throw new InvalidOperationException($"Invalid type {typeof(TActual)} for ComponentValues of type {typeof(T)}");
+        }
+    }
+
 }

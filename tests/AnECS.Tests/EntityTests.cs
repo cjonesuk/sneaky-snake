@@ -13,7 +13,7 @@ public class EntityTests
     public void Add_ShouldAddComponentToEntity()
     {
         var world = World.Create();
-        var entity = world.Entity();
+        var entity = world.CreateEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
     }
@@ -22,7 +22,7 @@ public class EntityTests
     public void Remove_ShouldRemoveComponentFromEntity()
     {
         var world = World.Create();
-        var entity = world.Entity();
+        var entity = world.CreateEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
         entity.Has<Position>().ShouldBeTrue();
@@ -45,7 +45,7 @@ public class EntityTests
     public void GetRef_ShouldReturnComponentReference()
     {
         var world = World.Create();
-        var entity = world.Entity();
+        var entity = world.CreateEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
         entity.Add<PlayerTag>();
@@ -72,7 +72,7 @@ public class EntityTests
     public void Get_ShouldReturnACopyOfTheComponent()
     {
         var world = World.Create();
-        var entity = world.Entity();
+        var entity = world.CreateEntity();
         entity.Set(new Position(1.0f, 2.0f));
 
         var position = entity.Get<Position>();

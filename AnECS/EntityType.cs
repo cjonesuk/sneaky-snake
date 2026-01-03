@@ -56,23 +56,32 @@ public readonly struct EntityType : IEquatable<EntityType>
         return _componentTypeIds.Equals(other._componentTypeIds);
     }
 
-
     [Conditional("DEBUG")]
-    public void Validate(EntityComponentValue[] components)
+    public void DebugAssertSupports(EntityType actualType)
     {
-        var componentTypeIdsSpan = _componentTypeIds.AsSpan();
-
-        if (components.Length != componentTypeIdsSpan.Length)
+        if (!actualType.Equals(this))
         {
-            throw new InvalidOperationException($"EntityType expects {componentTypeIdsSpan.Length} components, but {components.Length} were provided");
+            throw new InvalidOperationException($"EntityType {actualType} is not compatbile with expected type {this}");
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return _componentTypeIds.GetHashCode();
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is EntityType other)
+        {
+            return Equals(other);
         }
 
-        foreach (var component in components)
-        {
-            if (!componentTypeIdsSpan.Contains(component.ComponentTypeId))
-            {
-                throw new InvalidOperationException($"EntityType does not contain component type ID {component.ComponentTypeId}");
-            }
-        }
+        return false;
+    }
+
+    public override string ToString()
+    {
+        return $"EntityType[{_componentTypeIds}]";
     }
 }

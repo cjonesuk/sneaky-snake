@@ -3,33 +3,6 @@ namespace AnECS.Tests;
 using AnECS;
 using Shouldly;
 
-class FakeWorld : IWorld
-{
-    public void SetComponentOnEntity<T>(Id id, T component) where T : struct
-    {
-        throw new NotImplementedException();
-    }
-
-    public void AddComponentToEntity<T>(Id id) where T : struct
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool EntityHasComponent<T>(Id id) where T : struct
-    {
-        throw new NotImplementedException();
-    }
-
-    public void RemoveComponentFromEntity<T>(Id id) where T : struct
-    {
-        throw new NotImplementedException();
-    }
-
-    public ref T GetComponentFromEntity<T>(Id id) where T : struct
-    {
-        throw new NotImplementedException();
-    }
-}
 
 public class IdTests
 {
@@ -44,7 +17,7 @@ public class IdTests
     [Fact]
     public void IdEquality()
     {
-        FakeWorld world = new FakeWorld();
+        var world = World.Create();
 
         Id id1 = new Id(world, 42);
         Id id2 = new Id(world, 42);
@@ -58,7 +31,8 @@ public class IdTests
     [Fact]
     public void IdInequality()
     {
-        FakeWorld world = new FakeWorld();
+        var world = World.Create();
+
         Id id1 = new Id(world, 42);
         Id id2 = new Id(world, 43);
         id1.ShouldNotBe(id2);

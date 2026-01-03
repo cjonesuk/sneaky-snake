@@ -99,6 +99,21 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
         return true;
     }
 
+    public override string ToString()
+    {
+        return $"[{string.Join(", ", _items)}]";
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is SortedArray<T> other)
+        {
+            return Equals(other);
+        }
+
+        return false;
+    }
+
     public bool Equals(SortedArray<T> other)
     {
         if (ReferenceEquals(_items, other._items))
