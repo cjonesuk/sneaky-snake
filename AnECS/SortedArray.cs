@@ -13,8 +13,14 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
 
     public static SortedArray<T> Create(Span<T> items)
     {
+        if (items.IsEmpty)
+        {
+            return Empty;
+        }
+
         var itemsArray = items.ToArray();
         Array.Sort(itemsArray);
+
         return new SortedArray<T>(itemsArray);
     }
 
@@ -44,15 +50,26 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
 
     public SortedArray<T> WithItem(T item)
     {
-        if (_items.Contains(item))
+        int index = Array.BinarySearch(_items, item);
+        if (index >= 0)
         {
             return this;
         }
 
-        var newItems = new T[_items.Length + 1];
-        Array.Copy(_items, newItems, _items.Length);
-        newItems[^1] = item;
-        Array.Sort(newItems);
+        index = ~index;
+
+        T[] newItems = new T[_items.Length + 1];
+        if (index > 0)
+        {
+            Array.Copy(_items, 0, newItems, 0, index);
+        }
+
+        newItems[index] = item;
+
+        if (index < _items.Length)
+        {
+            Array.Copy(_items, index, newItems, index + 1, _items.Length - index);
+        }
 
         return new SortedArray<T>(newItems);
     }
@@ -69,14 +86,20 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
             return false;
         }
 
-        for (int i = 0; i < _items.Length; i++)
+        return _items.SequenceEqual(other._items);
+    }
+
+    public override int GetHashCode()
+    {
+        var span = _items.AsSpan();
+
+        var hashCode = new HashCode();
+
+        foreach (var i in span)
         {
-            if (!_items[i].Equals(other._items[i]))
-            {
-                return false;
-            }
+            hashCode.Add(i);
         }
 
-        return true;
+        return hashCode.ToHashCode();
     }
 }
