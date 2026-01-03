@@ -51,7 +51,7 @@ internal sealed class Archetype
         return new EntityLocation(this, entityIndex);
     }
 
-    public void SetComponent<T>(int entityIndex, T component) where T : notnull
+    public void SetComponent<T>(int entityIndex, T component) where T : struct
     {
         ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
         int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
@@ -59,7 +59,7 @@ internal sealed class Archetype
         column.Set(entityIndex, component);
     }
 
-    internal void Query<T1>(EntityQueryAction<T1> action) where T1 : notnull
+    internal void Query<T1>(EntityQueryAction<T1> action) where T1 : struct
     {
         var t1Type = ComponentTypeRegistry.GetComponentTypeId<T1>();
         int t1ColumnIndex = _componentTypeIdToColumnIndex[t1Type];
@@ -76,8 +76,8 @@ internal sealed class Archetype
     }
 
     internal void Query<T1, T2>(EntityQueryAction<T1, T2> action)
-        where T1 : notnull
-        where T2 : notnull
+        where T1 : struct
+        where T2 : struct
     {
         var entityIdsSpan = _entityIds.AsSpan();
 

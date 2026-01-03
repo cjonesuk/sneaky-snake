@@ -59,6 +59,11 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
 
     public bool Equals(SortedArray<T> other)
     {
+        if (ReferenceEquals(_items, other._items))
+        {
+            return true;
+        }
+
         if (_items.Length != other._items.Length)
         {
             return false;

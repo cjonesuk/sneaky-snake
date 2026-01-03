@@ -5,6 +5,7 @@ namespace AnECS.Tests;
 
 record struct Position(float X, float Y);
 record struct Velocity(float DX, float DY);
+record struct PlayerTag();
 
 public class WorldTests
 {
@@ -82,6 +83,18 @@ public class WorldTests
         actualPositionVelocities.ShouldBeEquivalentTo(new List<(Id, Position, Velocity)>
         {
             (entity2.Id, new Position(3.0f, 4.0f), new Velocity(0.5f, 0.25f))
+        });
+
+        entity1.Add<PlayerTag>();
+        List<(Id, PlayerTag)> actualPlayerTags = new();
+        world.Query((ref Id id, ref PlayerTag playerTag) =>
+        {
+            actualPlayerTags.Add((id, playerTag));
+        });
+        actualPlayerTags.Count.ShouldBe(1);
+        actualPlayerTags.ShouldBeEquivalentTo(new List<(Id, PlayerTag)>
+        {
+            (entity1.Id, new PlayerTag())
         });
     }
 }

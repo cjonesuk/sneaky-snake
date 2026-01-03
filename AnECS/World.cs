@@ -1,15 +1,16 @@
 namespace AnECS;
 
 public delegate void EntityQueryAction<T1>(ref Id id, ref T1 arg1)
-    where T1 : notnull;
+    where T1 : struct;
 
 public delegate void EntityQueryAction<T1, T2>(ref Id id, ref T1 arg1, ref T2 arg2)
-    where T1 : notnull
-    where T2 : notnull;
+    where T1 : struct
+    where T2 : struct;
 
 public interface IWorld
 {
-    void SetComponentOnEntity<T>(Id id, T component) where T : notnull;
+    void SetComponentOnEntity<T>(Id id, T component) where T : struct;
+    void AddComponentToEntity<T>(Id id) where T : struct;
 }
 
 internal sealed class World : IWorld
@@ -45,7 +46,7 @@ internal sealed class World : IWorld
         return new Entity(id);
     }
 
-    public void SetComponentOnEntity<T>(Id id, T component) where T : notnull
+    public void SetComponentOnEntity<T>(Id id, T component) where T : struct
     {
         EntityLocation location = FindEntity(id);
 
@@ -71,17 +72,16 @@ internal sealed class World : IWorld
         return location;
     }
 
-    public void AddComponentToEntity<T>(Id id) where T : notnull
+    public void AddComponentToEntity<T>(Id id) where T : struct
     {
         EntityLocation location = FindEntity(id);
 
         ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
 
         ExtendEntity(id, default(T), location, componentTypeId);
-        
     }
 
-    private void ExtendEntity<T>(Id id, T component, EntityLocation location, ComponentTypeId componentTypeId) where T : notnull
+    private void ExtendEntity<T>(Id id, T component, EntityLocation location, ComponentTypeId componentTypeId) where T : struct
     {
         EntityType nextEntityType = location.Archetype.EntityType.WithAddedComponent(componentTypeId);
 
@@ -98,7 +98,7 @@ internal sealed class World : IWorld
     }
 
 
-    public void Query<T1>(EntityQueryAction<T1> action) where T1 : notnull
+    public void Query<T1>(EntityQueryAction<T1> action) where T1 : struct
     {
         EntityType entityType = EntityTypeInformation<T1>.EntityType;
 
@@ -114,8 +114,8 @@ internal sealed class World : IWorld
     }
 
     public void Query<T1, T2>(EntityQueryAction<T1, T2> action)
-        where T1 : notnull
-        where T2 : notnull
+        where T1 : struct
+        where T2 : struct
     {
         EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
 

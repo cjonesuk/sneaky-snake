@@ -5,7 +5,12 @@ using Shouldly;
 
 class FakeWorld : IWorld
 {
-    public void SetComponentOnEntity<T>(Id id, T component) where T : notnull
+    public void SetComponentOnEntity<T>(Id id, T component) where T : struct
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddComponentToEntity<T>(Id id) where T : struct
     {
         throw new NotImplementedException();
     }
