@@ -24,6 +24,11 @@ class FakeWorld : IWorld
     {
         throw new NotImplementedException();
     }
+
+    public ref T GetComponentFromEntity<T>(Id id) where T : struct
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class IdTests

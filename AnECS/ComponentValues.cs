@@ -38,4 +38,10 @@ internal sealed class ComponentValues<T> : IComponentValues
         _values[index] = _values[lastIndex];
         _values.RemoveAt(lastIndex);
     }
+
+    internal ref T GetRef(int index)
+    {
+        var span = CollectionsMarshal.AsSpan(_values);
+        return ref span[index];
+    }
 }

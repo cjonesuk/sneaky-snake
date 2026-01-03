@@ -35,4 +35,9 @@ public static class EntityWorldExtensions
     {
         entity.World.RemoveComponentFromEntity<T>(entity.Id);
     }
+
+    public static ref T Get<T>(this Entity entity) where T : struct
+    {
+        return ref entity.World.GetComponentFromEntity<T>(entity.Id);
+    }
 }

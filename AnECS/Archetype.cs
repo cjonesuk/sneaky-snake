@@ -171,4 +171,12 @@ internal sealed class Archetype
     {
         return _componentTypeIdToColumnIndex.ContainsKey(componentTypeId);
     }
+
+    internal ref T GetComponentRef<T>(int index) where T : struct
+    {
+        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
+        var column = (ComponentValues<T>)_componentColumns[columnIndex];
+        return ref column.GetRef(index);
+    }
 }

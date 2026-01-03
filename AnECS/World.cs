@@ -13,6 +13,7 @@ public interface IWorld
     void AddComponentToEntity<T>(Id id) where T : struct;
     bool EntityHasComponent<T>(Id id) where T : struct;
     void RemoveComponentFromEntity<T>(Id id) where T : struct;
+    ref T GetComponentFromEntity<T>(Id id) where T : struct;
 }
 
 internal sealed class World : IWorld
@@ -104,6 +105,15 @@ internal sealed class World : IWorld
         EntityLocation nextLocation = nextArchetype.MigrateEntity(location);
 
         _entityIndices[id] = nextLocation;
+    }
+
+    public ref T GetComponentFromEntity<T>(Id id) where T : struct
+    {
+        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        EntityLocation location = FindEntity(id);
+
+        return ref location.Archetype.GetComponentRef<T>(location.Index);
+
     }
 
     private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : struct
