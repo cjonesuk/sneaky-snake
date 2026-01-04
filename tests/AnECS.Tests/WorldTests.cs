@@ -25,8 +25,6 @@ public class WorldTests
         entity.Id.Value.ShouldNotBe<ulong>(0);
     }
 
-
-
     [Fact]
     public void QueryEntities_wip()
     {
@@ -44,54 +42,25 @@ public class WorldTests
         entity2.Has<Position>().ShouldBeTrue();
         entity2.Has<Velocity>().ShouldBeTrue();
 
-        List<(Id, Position)> actualPositions = new();
-
-        world.Query((ref Id id, ref Position position) =>
-        {
-            actualPositions.Add((id, position));
-        });
-
-        actualPositions.Count.ShouldBe(2);
-        actualPositions.ShouldBeEquivalentTo(new List<(Id, Position)>
+        QueryRecorder.Run<Position>(world).ShouldBeEquivalentTo(new List<(Id, Position)>
         {
             (entity1.Id, new Position(1.0f, 2.0f)),
             (entity2.Id, new Position(3.0f, 4.0f))
         });
 
-        List<(Id, Velocity)> actualVelocities = new();
-
-        world.Query((ref Id id, ref Velocity velocity) =>
-        {
-            actualVelocities.Add((id, velocity));
-        });
-
-        actualVelocities.Count.ShouldBe(1);
-        actualVelocities.ShouldBeEquivalentTo(new List<(Id, Velocity)>
+        QueryRecorder.Run<Velocity>(world).ShouldBeEquivalentTo(new List<(Id, Velocity)>
         {
             (entity2.Id, new Velocity(0.5f, 0.25f))
         });
 
-        List<(Id, Position, Velocity)> actualPositionVelocities = new();
-
-        world.Query((ref Id id, ref Position position, ref Velocity velocity) =>
-        {
-            actualPositionVelocities.Add((id, position, velocity));
-        });
-
-        actualPositionVelocities.Count.ShouldBe(1);
-        actualPositionVelocities.ShouldBeEquivalentTo(new List<(Id, Position, Velocity)>
+        QueryRecorder.Run<Position, Velocity>(world).ShouldBeEquivalentTo(new List<(Id, Position, Velocity)>
         {
             (entity2.Id, new Position(3.0f, 4.0f), new Velocity(0.5f, 0.25f))
         });
 
         entity1.Add<PlayerTag>();
-        List<(Id, PlayerTag)> actualPlayerTags = new();
-        world.Query((ref Id id, ref PlayerTag playerTag) =>
-        {
-            actualPlayerTags.Add((id, playerTag));
-        });
-        actualPlayerTags.Count.ShouldBe(1);
-        actualPlayerTags.ShouldBeEquivalentTo(new List<(Id, PlayerTag)>
+
+        QueryRecorder.Run<PlayerTag>(world).ShouldBeEquivalentTo(new List<(Id, PlayerTag)>
         {
             (entity1.Id, new PlayerTag())
         });
