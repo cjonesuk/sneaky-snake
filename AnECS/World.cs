@@ -11,16 +11,15 @@ public interface IWorld
 {
     Entity CreateEntity();
     void RemoveEntity(Id id);
+    EntityType GetEntityType(Id id);
+    bool IsEntityAlive(Id id);
 
     void SetComponentOnEntity<T>(Id id, T component) where T : struct;
     void AddComponentToEntity<T>(Id id) where T : struct;
     bool EntityHasComponent<T>(Id id) where T : struct;
     void RemoveComponentFromEntity<T>(Id id) where T : struct;
     ref T GetComponentFromEntity<T>(Id id) where T : struct;
-
-    EntityType GetEntityType(Id id);
 }
-
 
 
 internal sealed class World : IWorld
@@ -69,6 +68,21 @@ internal sealed class World : IWorld
         Archetype archetype = GetArchetype(entityType);
 
         EntityLocation location = archetype.AddEntity(id, ref c1);
+        _entityIndices[id] = location;
+
+        return new Entity(id);
+    }
+
+    public Entity CreateEntity<T1, T2>(T1 c1, T2 c2)
+        where T1 : struct
+        where T2 : struct
+    {
+        EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
+
+        Id id = AllocateId();
+        Archetype archetype = GetArchetype(entityType);
+
+        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2);
         _entityIndices[id] = location;
 
         return new Entity(id);
@@ -199,6 +213,11 @@ internal sealed class World : IWorld
 
             archetype.Query(action);
         }
+    }
+
+    public bool IsEntityAlive(Id id)
+    {
+        return _entityIndices.ContainsKey(id);
     }
 
     private Archetype GetArchetype(EntityType entityType)

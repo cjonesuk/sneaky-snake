@@ -46,9 +46,20 @@ public class EntityTests
         debug.GetComponent<Position>().ShouldBe(new Position(1.0f, 2.0f));
     }
 
+    [Fact]
+    public void Create_TwoValues_HasTwoComponents()
+    {
+        var world = World.Create();
+        var entity = world.CreateEntity(new Position(1.0f, 2.0f), new Velocity(0.5f, 0.25f));
+        var debug = entity.DebugExport();
+        debug.EntityType.ShouldBe(EntityType.From<Position, Velocity>());
+        debug.ComponentCount.ShouldBe(2);
+        debug.GetComponent<Position>().ShouldBe(new Position(1.0f, 2.0f));
+        debug.GetComponent<Velocity>().ShouldBe(new Velocity(0.5f, 0.25f));
+    }
 
     [Fact]
-    public void Remove_ShouldRemoveComponentFromEntity()
+    public void Remove_RemovesComponent()
     {
         var world = World.Create();
         var entity = world.CreateEntity();
@@ -71,7 +82,7 @@ public class EntityTests
     }
 
     [Fact]
-    public void GetRef_ShouldReturnComponentReference()
+    public void GetRef_ReturnsComponentReference()
     {
         var world = World.Create();
         var entity = world.CreateEntity();
@@ -98,7 +109,7 @@ public class EntityTests
     }
 
     [Fact]
-    public void Get_ShouldReturnACopyOfTheComponent()
+    public void Get_ReturnsACopyOfTheComponent()
     {
         var world = World.Create();
         var entity = world.CreateEntity();
@@ -119,7 +130,7 @@ public class EntityTests
     }
 
     [Fact]
-    public void GetEntityType_ShouldReturnCorrectEntityType()
+    public void GetEntityType_ReturnsCorrectEntityType()
     {
         var world = World.Create();
         var entity = world.CreateEntity();
@@ -132,5 +143,16 @@ public class EntityTests
             ComponentTypeInformation<Position>.Id,
             ComponentTypeInformation<Velocity>.Id
         ]));
+    }
+
+    [Fact]
+    public void Delete_RemovesEntityFromWorld()
+    {
+        var world = World.Create();
+        var entity = world.CreateEntity(new Position(1.0f, 2.0f));
+        entity.IsAlive().ShouldBeTrue();
+
+        entity.Delete();
+        entity.IsAlive().ShouldBeFalse();
     }
 }
