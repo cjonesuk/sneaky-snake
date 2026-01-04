@@ -18,6 +18,7 @@ public interface IWorld
     void RemoveComponentFromEntity<T>(Id id) where T : struct;
     ref T GetComponentFromEntity<T>(Id id) where T : struct;
 
+    EntityType GetEntityType(Id id);
 }
 
 
@@ -60,7 +61,7 @@ internal sealed class World : IWorld
         return new Entity(id);
     }
 
-    public Entity CreateEntity<T1>(ref T1 c1) where T1 : struct
+    public Entity CreateEntity<T1>(T1 c1) where T1 : struct
     {
         EntityType entityType = EntityTypeInformation<T1>.EntityType;
 
@@ -143,6 +144,12 @@ internal sealed class World : IWorld
         EntityLocation location = FindEntity(id);
 
         return ref location.Archetype.GetComponentRef<T>(location.Index);
+    }
+
+    public EntityType GetEntityType(Id id)
+    {
+        EntityLocation location = FindEntity(id);
+        return location.Archetype.EntityType;
     }
 
     private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : struct

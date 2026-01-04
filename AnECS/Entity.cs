@@ -56,5 +56,10 @@ public static class EntityWorldExtensions
     {
         entity.World.RemoveEntity(entity.Id);
     }
+
+    public static ExportedEntity DebugExport(this Entity entity)
+    {
+        return ExportedEntity.Create(entity.World, entity.Id);
+    }
 }
 

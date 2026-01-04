@@ -20,6 +20,33 @@ public readonly struct EntityType : IEquatable<EntityType>
         return new EntityType(sortedArray);
     }
 
+    public static EntityType From<T1>()
+        where T1 : struct
+    {
+        return Create([
+            ComponentTypeInformation<T1>.Id
+        ]);
+    }
+
+    public static EntityType From<T1, T2>()
+        where T1 : struct where T2 : struct
+    {
+        return Create([
+            ComponentTypeInformation<T1>.Id,
+            ComponentTypeInformation<T2>.Id
+        ]);
+    }
+
+    public static EntityType From<T1, T2, T3>()
+        where T1 : struct where T2 : struct where T3 : struct
+    {
+        return Create([
+            ComponentTypeInformation<T1>.Id,
+            ComponentTypeInformation<T2>.Id,
+            ComponentTypeInformation<T3>.Id
+        ]);
+    }
+
     public Span<ComponentTypeId> ComponentTypeIds => _componentTypeIds.AsSpan();
 
     public bool HasSubset(EntityType other)

@@ -10,7 +10,7 @@ file record struct PlayerTag();
 public class EntityTests
 {
     [Fact]
-    public void Add_ShouldAddComponentToEntity()
+    public void Set_AddsAndSetsComponent()
     {
         var world = World.Create();
         var entity = world.CreateEntity();
@@ -20,7 +20,32 @@ public class EntityTests
         entity.Has<Position>().ShouldBeTrue();
         entity.Has<Velocity>().ShouldBeTrue();
         entity.Has<PlayerTag>().ShouldBeFalse();
+
+        entity.Get<Position>().ShouldBe(new Position(1.0f, 2.0f));
+        entity.Get<Velocity>().ShouldBe(new Velocity(0.5f, 0.25f));
     }
+
+    [Fact]
+    public void Create_Empty_HasNoComponents()
+    {
+        var world = World.Create();
+        var entity = world.CreateEntity();
+        var debug = entity.DebugExport();
+        debug.EntityType.ShouldBe(EntityType.Empty);
+        debug.Components.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Create_OneValue_HasOneComponent()
+    {
+        var world = World.Create();
+        var entity = world.CreateEntity(new Position(1.0f, 2.0f));
+        var debug = entity.DebugExport();
+        debug.EntityType.ShouldBe(EntityType.From<Position>());
+        debug.ComponentCount.ShouldBe(1);
+        debug.GetComponent<Position>().ShouldBe(new Position(1.0f, 2.0f));
+    }
+
 
     [Fact]
     public void Remove_ShouldRemoveComponentFromEntity()
@@ -91,5 +116,21 @@ public class EntityTests
         var positionAgain = entity.Get<Position>();
         positionAgain.X.ShouldBe(1.0f);
         positionAgain.Y.ShouldBe(2.0f);
+    }
+
+    [Fact]
+    public void GetEntityType_ShouldReturnCorrectEntityType()
+    {
+        var world = World.Create();
+        var entity = world.CreateEntity();
+        entity.Set(new Position(1.0f, 2.0f));
+        entity.Set(new Velocity(0.5f, 0.25f));
+
+        var entityType = world.GetEntityType(entity.Id);
+
+        entityType.ShouldBe(EntityType.Create([
+            ComponentTypeInformation<Position>.Id,
+            ComponentTypeInformation<Velocity>.Id
+        ]));
     }
 }
