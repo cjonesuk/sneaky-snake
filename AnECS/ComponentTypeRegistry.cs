@@ -1,26 +1,26 @@
 namespace AnECS;
 
+public record class ComponentTypeRegistration(ComponentTypeId TypeId, Type ClrType, string Name);
+
 public static class ComponentTypeRegistry
 {
     private static int _nextTypeId = 0;
-    private static readonly Dictionary<ComponentTypeId, Type> _typeById = new();
+    private static readonly Dictionary<ComponentTypeId, ComponentTypeRegistration> _registrationsById = new();
 
-    public static int Register<T>()
+    public static ComponentTypeRegistration Register<T>()
     {
         int typeId = Interlocked.Increment(ref _nextTypeId) - 1;
 
-        _typeById[new ComponentTypeId(typeId)] = typeof(T);
+        ComponentTypeId componentTypeId = new(typeId);
+        ComponentTypeRegistration registration = new(componentTypeId, typeof(T), typeof(T).Name);
 
-        return typeId;
+        _registrationsById[componentTypeId] = registration;
+
+        return registration;
     }
 
     public static Type GetTypeById(int typeId)
     {
-        return _typeById[new ComponentTypeId(typeId)];
-    }
-
-    public static ComponentTypeId GetComponentTypeId<T>()
-    {
-        return new ComponentTypeId(ComponentTypeInformation<T>.Id);
+        return _registrationsById[new ComponentTypeId(typeId)].ClrType;
     }
 }

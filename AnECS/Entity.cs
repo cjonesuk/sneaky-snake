@@ -57,3 +57,4 @@ public static class EntityWorldExtensions
         entity.World.RemoveEntity(entity.Id);
     }
 }
+

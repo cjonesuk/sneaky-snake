@@ -68,7 +68,7 @@ internal sealed class Archetype
 
     public void SetComponent<T>(int entityIndex, T component) where T : struct
     {
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
         int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
         var column = (ComponentValues<T>)_componentColumns[columnIndex];
         column.Set(entityIndex, component);
@@ -82,7 +82,7 @@ internal sealed class Archetype
 
     private void AppendComponentInternal<T>(ref T component) where T : struct
     {
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
         int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
         var column = (ComponentValues<T>)_componentColumns[columnIndex];
         column.Add(ref component);
@@ -90,13 +90,9 @@ internal sealed class Archetype
 
     internal void Query<T1>(EntityQueryAction<T1> action) where T1 : struct
     {
-        var t1Type = ComponentTypeRegistry.GetComponentTypeId<T1>();
-        int t1ColumnIndex = _componentTypeIdToColumnIndex[t1Type];
-
         var entityIdsSpan = _entityIds.AsSpan();
 
-        var t1Column = (ComponentValues<T1>)_componentColumns[t1ColumnIndex];
-        var t1Span = t1Column.AsSpan();
+        var t1Span = FindComponentColumnAsSpan<T1>();
 
         for (int index = 0; index < _entityIds.Count; index++)
         {
@@ -110,20 +106,29 @@ internal sealed class Archetype
     {
         var entityIdsSpan = _entityIds.AsSpan();
 
-        var t1Type = ComponentTypeRegistry.GetComponentTypeId<T1>();
-        int t1ColumnIndex = _componentTypeIdToColumnIndex[t1Type];
-        var t1Column = (ComponentValues<T1>)_componentColumns[t1ColumnIndex];
-        var t1Span = t1Column.AsSpan();
-
-        var t2Type = ComponentTypeRegistry.GetComponentTypeId<T2>();
-        int t2ColumnIndex = _componentTypeIdToColumnIndex[t2Type];
-        var t2Column = (ComponentValues<T2>)_componentColumns[t2ColumnIndex];
-        var t2Span = t2Column.AsSpan();
+        var t1Span = FindComponentColumnAsSpan<T1>();
+        var t2Span = FindComponentColumnAsSpan<T2>();
 
         for (int index = 0; index < _entityIds.Count; index++)
         {
             action(ref entityIdsSpan[index], ref t1Span[index], ref t2Span[index]);
         }
+    }
+
+    private ComponentValues<T> FindComponentColumn<T>() where T : struct
+    {
+        var type = ComponentTypeInformation<T>.Id;
+        int columnIndex = _componentTypeIdToColumnIndex[type];
+        var column = (ComponentValues<T>)_componentColumns[columnIndex];
+        return column;
+    }
+
+    private Span<T> FindComponentColumnAsSpan<T>() where T : struct
+    {
+        var type = ComponentTypeInformation<T>.Id;
+        int columnIndex = _componentTypeIdToColumnIndex[type];
+        var column = (ComponentValues<T>)_componentColumns[columnIndex];
+        return column.AsSpan();
     }
 
     /// <summary>
@@ -182,10 +187,8 @@ internal sealed class Archetype
 
         // Add the new component
         {
-            ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
-            int targetColumnIndex = _componentTypeIdToColumnIndex[componentTypeId];
-            var targetColumn = (ComponentValues<T>)_componentColumns[targetColumnIndex];
-            targetColumn.Add(ref c1);
+            var column = FindComponentColumn<T>();
+            column.Add(ref c1);
         }
 
         return new EntityLocation(this, targetIndex);
@@ -193,7 +196,7 @@ internal sealed class Archetype
 
     public bool SupportsComponentType<T>() where T : struct
     {
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
         return _componentTypeIdToColumnIndex.ContainsKey(componentTypeId);
     }
 
@@ -204,10 +207,8 @@ internal sealed class Archetype
 
     internal ref T GetComponentRef<T>(int index) where T : struct
     {
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
-        int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
-        var column = (ComponentValues<T>)_componentColumns[columnIndex];
-        return ref column.GetRef(index);
+        var column = FindComponentColumnAsSpan<T>();
+        return ref column[index];
     }
 
     internal void RemoveEntity(int index)

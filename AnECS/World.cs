@@ -20,6 +20,8 @@ public interface IWorld
 
 }
 
+
+
 internal sealed class World : IWorld
 {
     private uint _nextId = 1;
@@ -104,7 +106,7 @@ internal sealed class World : IWorld
 
     public bool EntityHasComponent<T>(Id id) where T : struct
     {
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
 
         EntityLocation location = FindEntity(id);
 
@@ -120,7 +122,7 @@ internal sealed class World : IWorld
 
     public void RemoveComponentFromEntity<T>(Id id) where T : struct
     {
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
         EntityLocation location = FindEntity(id);
 
         if (!location.Archetype.EntityType.Without(componentTypeId, out var nextEntityType))
@@ -145,7 +147,7 @@ internal sealed class World : IWorld
 
     private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : struct
     {
-        ComponentTypeId componentTypeId = ComponentTypeRegistry.GetComponentTypeId<T>();
+        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
 
         if (!location.Archetype.EntityType.With(componentTypeId, out var nextEntityType))
         {
