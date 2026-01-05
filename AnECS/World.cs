@@ -19,8 +19,55 @@ public interface IWorld
     bool EntityHasComponent<T>(Id id) where T : struct;
     void RemoveComponentFromEntity<T>(Id id) where T : struct;
     ref T GetComponentFromEntity<T>(Id id) where T : struct;
+
+    void Query<T1>(EntityQueryAction<T1> action)
+        where T1 : struct;
+    void Query<T1, T2>(EntityQueryAction<T1, T2> action)
+        where T1 : struct
+        where T2 : struct;
 }
 
+public record struct WorldTaskData(IWorld World, float deltaTime);
+
+internal interface IWorldTask
+{
+    void Execute(ref WorldTaskData data);
+}
+
+internal sealed class WorkQueryAllTask<T1> : IWorldTask where T1 : struct
+{
+    private readonly EntityQueryAction<T1> _action;
+
+    public WorkQueryAllTask(EntityQueryAction<T1> action)
+    {
+        _action = action;
+    }
+
+    public void Execute(ref WorldTaskData data)
+    {
+        data.World.Query(_action);
+    }
+}
+
+internal sealed class WorldQueryEachTask<T1> : IWorldTask where T1 : struct
+{
+    private readonly EntityQueryAction<T1> _action;
+
+    public WorldQueryEachTask(EntityQueryAction<T1> action)
+    {
+        _action = action;
+    }
+
+    public void Execute(ref WorldTaskData data)
+    {
+        data.World.Query(_action);
+    }
+}
+
+internal sealed class WorldTaskScheduler
+{
+
+}
 
 internal sealed class World : IWorld
 {
@@ -121,11 +168,9 @@ internal sealed class World : IWorld
 
     public bool EntityHasComponent<T>(Id id) where T : struct
     {
-        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
-
         EntityLocation location = FindEntity(id);
 
-        return location.Archetype.SupportsComponentType(componentTypeId);
+        return location.Archetype.SupportsComponentType<T>();
     }
 
     public void AddComponentToEntity<T>(Id id) where T : struct
@@ -194,7 +239,15 @@ internal sealed class World : IWorld
                 continue;
             }
 
-            archetype.Query(action);
+            if (!archetype.GetColumnSpans<T1>(out var entityIds, out var t1))
+            {
+                continue;
+            }
+
+            for (int index = 0; index < entityIds.Length; index++)
+            {
+                action(ref entityIds[index], ref t1[index]);
+            }
         }
     }
 
@@ -211,7 +264,15 @@ internal sealed class World : IWorld
                 continue;
             }
 
-            archetype.Query(action);
+            if (!archetype.GetColumnSpans<T1, T2>(out var entityIds, out var t1, out var t2))
+            {
+                continue;
+            }
+
+            for (int index = 0; index < entityIds.Length; index++)
+            {
+                action(ref entityIds[index], ref t1[index], ref t2[index]);
+            }
         }
     }
 

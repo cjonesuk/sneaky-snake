@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace AnECS;
 
@@ -88,31 +90,43 @@ internal sealed class Archetype
         column.Add(ref component);
     }
 
-    internal void Query<T1>(EntityQueryAction<T1> action) where T1 : struct
+
+    internal bool GetColumnSpans<T1>(
+        out Span<Id> entityIds,
+        out Span<T1> column1)
+        where T1 : struct
     {
-        var entityIdsSpan = _entityIds.AsSpan();
-
-        var t1Span = FindComponentColumnAsSpan<T1>();
-
-        for (int index = 0; index < _entityIds.Count; index++)
+        if (!SupportsComponentType<T1>())
         {
-            action(ref entityIdsSpan[index], ref t1Span[index]);
+            entityIds = null;
+            column1 = null;
+            return false;
         }
+
+        entityIds = _entityIds.AsSpan();
+        column1 = FindComponentColumn<T1>().AsSpan();
+        return true;
     }
 
-    internal void Query<T1, T2>(EntityQueryAction<T1, T2> action)
+    internal bool GetColumnSpans<T1, T2>(
+        out Span<Id> entityIds,
+        out Span<T1> column1,
+        out Span<T2> column2)
         where T1 : struct
         where T2 : struct
     {
-        var entityIdsSpan = _entityIds.AsSpan();
-
-        var t1Span = FindComponentColumnAsSpan<T1>();
-        var t2Span = FindComponentColumnAsSpan<T2>();
-
-        for (int index = 0; index < _entityIds.Count; index++)
+        if (!SupportsComponentType<T1>() || !SupportsComponentType<T2>())
         {
-            action(ref entityIdsSpan[index], ref t1Span[index], ref t2Span[index]);
+            entityIds = null;
+            column1 = null;
+            column2 = null;
+            return false;
         }
+
+        entityIds = _entityIds.AsSpan();
+        column1 = FindComponentColumn<T1>().AsSpan();
+        column2 = FindComponentColumn<T2>().AsSpan();
+        return true;
     }
 
     private ComponentValues<T> FindComponentColumn<T>() where T : struct
@@ -121,14 +135,6 @@ internal sealed class Archetype
         int columnIndex = _componentTypeIdToColumnIndex[type];
         var column = (ComponentValues<T>)_componentColumns[columnIndex];
         return column;
-    }
-
-    private Span<T> FindComponentColumnAsSpan<T>() where T : struct
-    {
-        var type = ComponentTypeInformation<T>.Id;
-        int columnIndex = _componentTypeIdToColumnIndex[type];
-        var column = (ComponentValues<T>)_componentColumns[columnIndex];
-        return column.AsSpan();
     }
 
     /// <summary>
@@ -200,20 +206,14 @@ internal sealed class Archetype
         return _componentTypeIdToColumnIndex.ContainsKey(componentTypeId);
     }
 
-    public bool SupportsComponentType(ComponentTypeId componentTypeId)
-    {
-        return _componentTypeIdToColumnIndex.ContainsKey(componentTypeId);
-    }
-
     internal ref T GetComponentRef<T>(int index) where T : struct
     {
-        var column = FindComponentColumnAsSpan<T>();
+        var column = FindComponentColumn<T>().AsSpan();
         return ref column[index];
     }
 
     internal void RemoveEntity(int index)
     {
-
-
+        throw new NotImplementedException();
     }
 }

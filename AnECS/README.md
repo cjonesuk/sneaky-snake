@@ -10,3 +10,5 @@
 ## Medium term tasks
 
 - Replace old ECS in snake game with AnECS
+- Cloning an entity
+- Investigate using Id's instead of component type ids
