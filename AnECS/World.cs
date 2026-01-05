@@ -20,9 +20,9 @@ public interface IWorld
     void RemoveComponentFromEntity<T>(Id id) where T : struct;
     ref T GetComponentFromEntity<T>(Id id) where T : struct;
 
-    void Query<T1>(EntityQueryAction<T1> action)
+    void QueryEach<T1>(EntityQueryAction<T1> action)
         where T1 : struct;
-    void Query<T1, T2>(EntityQueryAction<T1, T2> action)
+    void QueryEach<T1, T2>(EntityQueryAction<T1, T2> action)
         where T1 : struct
         where T2 : struct;
 }
@@ -45,7 +45,7 @@ internal sealed class WorkQueryAllTask<T1> : IWorldTask where T1 : struct
 
     public void Execute(ref WorldTaskData data)
     {
-        data.World.Query(_action);
+        data.World.QueryEach(_action);
     }
 }
 
@@ -60,7 +60,7 @@ internal sealed class WorldQueryEachTask<T1> : IWorldTask where T1 : struct
 
     public void Execute(ref WorldTaskData data)
     {
-        data.World.Query(_action);
+        data.World.QueryEach(_action);
     }
 }
 
@@ -221,7 +221,7 @@ internal sealed class World : IWorld
     }
 
 
-    public void Query<T1>(EntityQueryAction<T1> action) where T1 : struct
+    public void QueryEach<T1>(EntityQueryAction<T1> action) where T1 : struct
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1>())
         {
@@ -232,7 +232,7 @@ internal sealed class World : IWorld
         }
     }
 
-    public void Query<T1, T2>(EntityQueryAction<T1, T2> action)
+    public void QueryEach<T1, T2>(EntityQueryAction<T1, T2> action)
         where T1 : struct
         where T2 : struct
     {

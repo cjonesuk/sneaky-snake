@@ -42,25 +42,25 @@ public class WorldTests
         entity2.Has<Position>().ShouldBeTrue();
         entity2.Has<Velocity>().ShouldBeTrue();
 
-        QueryRecorder.Run<Position>(world).ShouldBeEquivalentTo(new List<(Id, Position)>
+        QueryRecorder.QueryEach<Position>(world).ShouldBeEquivalentTo(new List<(Id, Position)>
         {
             (entity1.Id, new Position(1.0f, 2.0f)),
             (entity2.Id, new Position(3.0f, 4.0f))
         });
 
-        QueryRecorder.Run<Velocity>(world).ShouldBeEquivalentTo(new List<(Id, Velocity)>
+        QueryRecorder.QueryEach<Velocity>(world).ShouldBeEquivalentTo(new List<(Id, Velocity)>
         {
             (entity2.Id, new Velocity(0.5f, 0.25f))
         });
 
-        QueryRecorder.Run<Position, Velocity>(world).ShouldBeEquivalentTo(new List<(Id, Position, Velocity)>
+        QueryRecorder.QueryEach<Position, Velocity>(world).ShouldBeEquivalentTo(new List<(Id, Position, Velocity)>
         {
             (entity2.Id, new Position(3.0f, 4.0f), new Velocity(0.5f, 0.25f))
         });
 
         entity1.Add<PlayerTag>();
 
-        QueryRecorder.Run<PlayerTag>(world).ShouldBeEquivalentTo(new List<(Id, PlayerTag)>
+        QueryRecorder.QueryEach<PlayerTag>(world).ShouldBeEquivalentTo(new List<(Id, PlayerTag)>
         {
             (entity1.Id, new PlayerTag())
         });

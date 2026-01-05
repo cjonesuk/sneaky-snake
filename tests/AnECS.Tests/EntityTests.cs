@@ -97,12 +97,7 @@ public class EntityTests
         positionRef.X = 10.0f;
         positionRef.Y = 20.0f;
 
-        var positions = new List<(Id, Position)>();
-
-        world.Query((ref Id id, ref Position position) =>
-        {
-            positions.Add((id, position));
-        });
+        var positions = QueryRecorder.QueryEach<Position>(world);
 
         positions.Count.ShouldBe(1);
         positions[0].ShouldBe((entity.Id, new Position(10.0f, 20.0f)));
