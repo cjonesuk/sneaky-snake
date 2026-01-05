@@ -91,12 +91,12 @@ internal sealed class Archetype
     }
 
 
-    internal bool GetColumnSpans<T1>(
+    internal bool TryGetColumnSpans<T1>(
         out Span<Id> entityIds,
         out Span<T1> column1)
         where T1 : struct
     {
-        if (!SupportsComponentType<T1>())
+        if (!TryFindComponentColumn<T1>(out var column1Data))
         {
             entityIds = null;
             column1 = null;
@@ -104,28 +104,32 @@ internal sealed class Archetype
         }
 
         entityIds = _entityIds.AsSpan();
-        column1 = FindComponentColumn<T1>().AsSpan();
+        column1 = column1Data.AsSpan();
+
         return true;
     }
 
-    internal bool GetColumnSpans<T1, T2>(
+    internal bool TryGetColumnSpans<T1, T2>(
         out Span<Id> entityIds,
         out Span<T1> column1,
         out Span<T2> column2)
         where T1 : struct
         where T2 : struct
     {
-        if (!SupportsComponentType<T1>() || !SupportsComponentType<T2>())
+        if (!TryFindComponentColumn<T1>(out var column1Data) ||
+            !TryFindComponentColumn<T2>(out var column2Data))
         {
             entityIds = null;
             column1 = null;
             column2 = null;
+
             return false;
         }
 
         entityIds = _entityIds.AsSpan();
-        column1 = FindComponentColumn<T1>().AsSpan();
-        column2 = FindComponentColumn<T2>().AsSpan();
+        column1 = column1Data.AsSpan();
+        column2 = column2Data.AsSpan();
+
         return true;
     }
 
@@ -135,6 +139,19 @@ internal sealed class Archetype
         int columnIndex = _componentTypeIdToColumnIndex[type];
         var column = (ComponentValues<T>)_componentColumns[columnIndex];
         return column;
+    }
+
+    private bool TryFindComponentColumn<T>([NotNullWhen(true)] out ComponentValues<T>? column) where T : struct
+    {
+        var type = ComponentTypeInformation<T>.Id;
+        if (!_componentTypeIdToColumnIndex.TryGetValue(type, out int columnIndex))
+        {
+            column = null;
+            return false;
+        }
+
+        column = (ComponentValues<T>)_componentColumns[columnIndex];
+        return true;
     }
 
     /// <summary>

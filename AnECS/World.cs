@@ -223,28 +223,12 @@ internal sealed class World : IWorld
 
     public void Query<T1>(EntityQueryAction<T1> action) where T1 : struct
     {
-        IterateArchetypes(static (ref Span<Id> entityIds, ref Span<T1> t1, EntityQueryAction<T1> action) =>
+        foreach (var archetype in _archetypes.QueryArchetypes<T1>())
         {
-            for (int index = 0; index < entityIds.Length; index++)
+            for (int index = 0; index < archetype.EntityIds.Length; index++)
             {
-                action(ref entityIds[index], ref t1[index]);
+                action(ref archetype.EntityIds[index], ref archetype.Col1[index]);
             }
-        }, ref action);
-    }
-
-    delegate void IterateArchetypeAction<T1, TState>(ref Span<Id> entityIds, ref Span<T1> column1, TState state) where T1 : struct;
-
-    private void IterateArchetypes<T1, TInput>(IterateArchetypeAction<T1, TInput> action, ref TInput input)
-        where T1 : struct
-    {
-        foreach (var archetype in _archetypes.GetArchetypesWithComponents<T1>())
-        {
-            if (!archetype.GetColumnSpans<T1>(out var entityIds, out var t1))
-            {
-                continue;
-            }
-
-            action(ref entityIds, ref t1, input);
         }
     }
 
@@ -252,16 +236,13 @@ internal sealed class World : IWorld
         where T1 : struct
         where T2 : struct
     {
-        foreach (var archetype in _archetypes.GetArchetypesWithComponents<T1, T2>())
+        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2>())
         {
-            if (!archetype.GetColumnSpans<T1, T2>(out var entityIds, out var t1, out var t2))
+            for (int index = 0; index < archetype.EntityIds.Length; index++)
             {
-                continue;
-            }
-
-            for (int index = 0; index < entityIds.Length; index++)
-            {
-                action(ref entityIds[index], ref t1[index], ref t2[index]);
+                action(ref archetype.EntityIds[index],
+                       ref archetype.Col1[index],
+                       ref archetype.Col2[index]);
             }
         }
     }

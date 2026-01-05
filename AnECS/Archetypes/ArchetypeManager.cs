@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace AnECS;
 
 internal sealed class ArchetypeManager
@@ -32,17 +34,18 @@ internal sealed class ArchetypeManager
         return archetype;
     }
 
-    public ArchetypeEnumerable GetArchetypesWithComponents<T>() where T : struct
+    public ArchetypeQueryEnumerable<T1> QueryArchetypes<T1>()
+        where T1 : struct
     {
-        EntityType entityType = EntityTypeInformation<T>.EntityType;
-        return new ArchetypeEnumerable(_archetypes, entityType);
+        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeQueryEnumerable<T1>(archetypesSpan);
     }
 
-    public ArchetypeEnumerable GetArchetypesWithComponents<T1, T2>()
+    public ArchetypeQueryEnumerable<T1, T2> QueryArchetypes<T1, T2>()
         where T1 : struct
         where T2 : struct
     {
-        EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
-        return new ArchetypeEnumerable(_archetypes, entityType);
+        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeQueryEnumerable<T1, T2>(archetypesSpan);
     }
 }
