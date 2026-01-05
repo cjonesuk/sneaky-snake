@@ -73,19 +73,12 @@ internal sealed class World : IWorld
 {
     private uint _nextId = 1;
     private readonly Dictionary<Id, EntityLocation> _entityIndices;
-    private readonly Dictionary<EntityType, Archetype> _archetypesByEntityType;
-    private readonly List<Archetype> _archetypes;
-    private readonly Archetype _emptyArchetype;
+    private readonly ArchetypeManager _archetypes;
 
     internal World()
     {
         _entityIndices = new Dictionary<Id, EntityLocation>();
-        _emptyArchetype = new Archetype(EntityType.Empty);
-        _archetypesByEntityType = new Dictionary<EntityType, Archetype>()
-        {
-            { EntityType.Empty, _emptyArchetype }
-        };
-        _archetypes = new List<Archetype>() { };
+        _archetypes = new ArchetypeManager();
     }
 
     public static World Create()
@@ -101,7 +94,7 @@ internal sealed class World : IWorld
     public Entity CreateEntity()
     {
         Id id = AllocateId();
-        EntityLocation location = _emptyArchetype.AddEntity(id);
+        EntityLocation location = _archetypes.EmptyArchetype.AddEntity(id);
         _entityIndices[id] = location;
 
         return new Entity(id);
@@ -112,7 +105,7 @@ internal sealed class World : IWorld
         EntityType entityType = EntityTypeInformation<T1>.EntityType;
 
         Id id = AllocateId();
-        Archetype archetype = GetArchetype(entityType);
+        Archetype archetype = _archetypes.GetOrCreate(entityType);
 
         EntityLocation location = archetype.AddEntity(id, ref c1);
         _entityIndices[id] = location;
@@ -127,7 +120,7 @@ internal sealed class World : IWorld
         EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
 
         Id id = AllocateId();
-        Archetype archetype = GetArchetype(entityType);
+        Archetype archetype = _archetypes.GetOrCreate(entityType);
 
         EntityLocation location = archetype.AddEntity(id, ref c1, ref c2);
         _entityIndices[id] = location;
@@ -191,7 +184,7 @@ internal sealed class World : IWorld
             return;
         }
 
-        Archetype nextArchetype = GetArchetype(nextEntityType);
+        Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
         EntityLocation nextLocation = nextArchetype.MigrateEntity(location);
 
@@ -220,7 +213,7 @@ internal sealed class World : IWorld
             throw new InvalidOperationException("Failed to extend entity: resulting EntityType is the same as the current one.");
         }
 
-        Archetype nextArchetype = GetArchetype(nextEntityType);
+        Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
         EntityLocation nextLocation = nextArchetype.MigrateEntity(location, ref component);
 
@@ -230,24 +223,28 @@ internal sealed class World : IWorld
 
     public void Query<T1>(EntityQueryAction<T1> action) where T1 : struct
     {
-        EntityType entityType = EntityTypeInformation<T1>.EntityType;
-
-        foreach (var archetype in _archetypes)
+        IterateArchetypes(static (ref Span<Id> entityIds, ref Span<T1> t1, EntityQueryAction<T1> action) =>
         {
-            if (!archetype.EntityType.HasSubset(entityType))
+            for (int index = 0; index < entityIds.Length; index++)
             {
-                continue;
+                action(ref entityIds[index], ref t1[index]);
             }
+        }, ref action);
+    }
 
+    delegate void IterateArchetypeAction<T1, TState>(ref Span<Id> entityIds, ref Span<T1> column1, TState state) where T1 : struct;
+
+    private void IterateArchetypes<T1, TInput>(IterateArchetypeAction<T1, TInput> action, ref TInput input)
+        where T1 : struct
+    {
+        foreach (var archetype in _archetypes.GetArchetypesWithComponents<T1>())
+        {
             if (!archetype.GetColumnSpans<T1>(out var entityIds, out var t1))
             {
                 continue;
             }
 
-            for (int index = 0; index < entityIds.Length; index++)
-            {
-                action(ref entityIds[index], ref t1[index]);
-            }
+            action(ref entityIds, ref t1, input);
         }
     }
 
@@ -255,15 +252,8 @@ internal sealed class World : IWorld
         where T1 : struct
         where T2 : struct
     {
-        EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
-
-        foreach (var archetype in _archetypes)
+        foreach (var archetype in _archetypes.GetArchetypesWithComponents<T1, T2>())
         {
-            if (!archetype.EntityType.HasSubset(entityType))
-            {
-                continue;
-            }
-
             if (!archetype.GetColumnSpans<T1, T2>(out var entityIds, out var t1, out var t2))
             {
                 continue;
@@ -280,19 +270,4 @@ internal sealed class World : IWorld
     {
         return _entityIndices.ContainsKey(id);
     }
-
-    private Archetype GetArchetype(EntityType entityType)
-    {
-        if (_archetypesByEntityType.TryGetValue(entityType, out Archetype? archetype))
-        {
-            return archetype;
-        }
-
-        archetype = new Archetype(entityType);
-        _archetypesByEntityType[entityType] = archetype;
-        _archetypes.Add(archetype);
-
-        return archetype;
-    }
-
 }
