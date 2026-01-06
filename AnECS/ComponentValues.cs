@@ -8,6 +8,11 @@ internal interface IComponentValues
     void Add<TInput>(ref TInput value) where TInput : struct;
     void RemoveAndFillHoleAt(int index);
     void Migrate(IComponentValues source, int sourceIndex);
+
+    /// <summary>
+    /// Clears all values from the collection without resizing the underlying array.
+    /// </summary>
+    void Clear();
 }
 
 
@@ -101,4 +106,16 @@ internal sealed class ComponentValues<T> : IComponentValues where T : struct
         }
     }
 
+    /// <summary>
+    /// Clears all values from the collection without resizing the underlying array.
+    /// </summary>
+    public void Clear()
+    {
+        for (int index = 0; index < _count; index++)
+        {
+            _values[index] = default!;
+        }
+
+        _count = 0;
+    }
 }

@@ -101,6 +101,15 @@ internal sealed class World : IWorld
         _entityIndices.Remove(id);
     }
 
+    /// <summary>
+    /// Clears all entities and components from the world without removing archetypes or resizing underlying collections.
+    /// </summary>
+    public void ClearAll()
+    {
+        _archetypes.ClearAll();
+        _entityIndices.Clear();
+    }
+
     public void SetComponentOnEntity<T>(Id id, T component) where T : struct
     {
         EntityLocation location = FindEntity(id);

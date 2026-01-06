@@ -63,4 +63,15 @@ internal sealed class ArchetypeManager
         Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
         return new ArchetypeQueryEnumerable<T1, T2>(archetypesSpan);
     }
+
+    /// <summary>
+    /// Clears all archetypes without removing them or resizing the underlying collections.
+    /// </summary>
+    public void ClearAll()
+    {
+        foreach (var archetype in _archetypes)
+        {
+            archetype.Clear();
+        }
+    }
 }

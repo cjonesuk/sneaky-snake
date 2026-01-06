@@ -65,4 +65,20 @@ public class WorldTests
             (entity1.Id, new PlayerTag())
         });
     }
+
+    [Fact]
+    public void ClearAll_RemovesAllEntitiesAndComponents()
+    {
+        var world = World.Create();
+        var entity1 = world.CreateEntity(new Position(1.0f, 2.0f), new Velocity(0.5f, 0.25f));
+        var entity2 = world.CreateEntity(new Position(3.0f, 4.0f));
+
+        world.ClearAll();
+
+        entity1.IsAlive().ShouldBeFalse();
+        entity2.IsAlive().ShouldBeFalse();
+
+        QueryRecorder.QueryEach<Position>(world).ShouldBeEmpty();
+        QueryRecorder.QueryEach<Velocity>(world).ShouldBeEmpty();
+    }
 }

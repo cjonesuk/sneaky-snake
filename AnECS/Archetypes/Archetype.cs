@@ -236,4 +236,17 @@ internal sealed class Archetype
             column.RemoveAndFillHoleAt(index);
         }
     }
+
+    /// <summary>
+    /// Clears all component columns without resizing the underlying arrays.
+    /// </summary>
+    internal void Clear()
+    {
+        _entityIds.Clear();
+
+        foreach (var column in _componentColumns)
+        {
+            column.Clear();
+        }
+    }
 }
