@@ -6,6 +6,7 @@ namespace AnECS;
 internal interface IComponentValues
 {
     void Add<TInput>(ref TInput value) where TInput : struct;
+    void RemoveAndFillHoleAt(int index);
     void Migrate(IComponentValues source, int sourceIndex);
 }
 
@@ -41,6 +42,18 @@ internal sealed class ComponentValues<T> : IComponentValues where T : struct
         _values[_count++] = Unsafe.As<TInput, T>(ref value);
     }
 
+    public void RemoveAndFillHoleAt(int index)
+    {
+        int last = --_count;
+
+        if (index != last)
+        {
+            _values[index] = _values[last];
+        }
+
+        _values[last] = default!;
+    }
+
     /// <summary>
     /// Adds the given value to the end of the collection and returns its index.
     /// </summary> 
@@ -72,18 +85,6 @@ internal sealed class ComponentValues<T> : IComponentValues where T : struct
 
         // Remove the source value by replacing it with the last value to maintain density
         sourceValues.RemoveAndFillHoleAt(sourceIndex);
-    }
-
-    private void RemoveAndFillHoleAt(int index)
-    {
-        int last = --_count;
-
-        if (index != last)
-        {
-            _values[index] = _values[last];
-        }
-
-        _values[last] = default!;
     }
 
     internal ref T GetRef(int index)

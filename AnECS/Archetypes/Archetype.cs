@@ -231,6 +231,9 @@ internal sealed class Archetype
 
     internal void RemoveEntity(int index)
     {
-        throw new NotImplementedException();
+        foreach (var column in _componentColumns)
+        {
+            column.RemoveAndFillHoleAt(index);
+        }
     }
 }

@@ -82,6 +82,17 @@ public class EntityTests
     }
 
     [Fact]
+    public void Delete_RemovesEntityFromWorld()
+    {
+        var world = World.Create();
+        var entity = world.CreateEntity(new Position(1.0f, 2.0f), new Velocity(0.5f, 0.25f));
+        entity.IsAlive().ShouldBeTrue();
+
+        entity.Delete();
+        entity.IsAlive().ShouldBeFalse();
+    }
+
+    [Fact]
     public void GetRef_ReturnsComponentReference()
     {
         var world = World.Create();
@@ -138,16 +149,5 @@ public class EntityTests
             ComponentTypeInformation<Position>.Id,
             ComponentTypeInformation<Velocity>.Id
         ]));
-    }
-
-    [Fact]
-    public void Delete_RemovesEntityFromWorld()
-    {
-        var world = World.Create();
-        var entity = world.CreateEntity(new Position(1.0f, 2.0f));
-        entity.IsAlive().ShouldBeTrue();
-
-        entity.Delete();
-        entity.IsAlive().ShouldBeFalse();
     }
 }
