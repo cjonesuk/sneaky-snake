@@ -1,5 +1,11 @@
 namespace AnECS;
 
+public delegate void QueryChunkAction<T1>(Span<Id> ids, Span<T1> col1) where T1 : struct;
+
+public delegate void QueryChunkAction<T1, T2>(Span<Id> ids, Span<T1> col1, Span<T2> col2)
+    where T1 : struct
+    where T2 : struct;
+
 public delegate void EntityQueryAction<T1>(ref Id id, ref T1 arg1)
     where T1 : struct;
 
@@ -27,63 +33,29 @@ public interface IWorld
         where T2 : struct;
 }
 
-public record struct WorldTaskData(IWorld World, float deltaTime);
-
-internal interface IWorldTask
-{
-    void Execute(ref WorldTaskData data);
-}
-
-internal sealed class WorkQueryAllTask<T1> : IWorldTask where T1 : struct
-{
-    private readonly EntityQueryAction<T1> _action;
-
-    public WorkQueryAllTask(EntityQueryAction<T1> action)
-    {
-        _action = action;
-    }
-
-    public void Execute(ref WorldTaskData data)
-    {
-        data.World.QueryEach(_action);
-    }
-}
-
-internal sealed class WorldQueryEachTask<T1> : IWorldTask where T1 : struct
-{
-    private readonly EntityQueryAction<T1> _action;
-
-    public WorldQueryEachTask(EntityQueryAction<T1> action)
-    {
-        _action = action;
-    }
-
-    public void Execute(ref WorldTaskData data)
-    {
-        data.World.QueryEach(_action);
-    }
-}
-
-internal sealed class WorldTaskScheduler
-{
-
-}
-
 internal sealed class World : IWorld
 {
     private uint _nextId = 1;
     private readonly Dictionary<Id, EntityLocation> _entityIndices;
     private readonly ArchetypeManager _archetypes;
+    private readonly WorldSystemScheduler _systemScheduler;
 
     internal World()
     {
         _entityIndices = new Dictionary<Id, EntityLocation>();
         _archetypes = new ArchetypeManager();
+        _systemScheduler = new WorldSystemScheduler();
     }
 
     public static World Create()
     {
         return new World();
+    }
+
+    public void ExecuteSystems(float deltaTime)
+    {
+        var data = new WorldSystemData(this, deltaTime);
+        _systemScheduler.ExecuteAll(ref data);
     }
 
     private Id AllocateId()
@@ -220,6 +192,24 @@ internal sealed class World : IWorld
         _entityIndices[id] = nextLocation;
     }
 
+
+    public void QueryChunks<T1>(QueryChunkAction<T1> action) where T1 : struct
+    {
+        foreach (var archetype in _archetypes.QueryArchetypes<T1>())
+        {
+            action(archetype.EntityIds, archetype.Col1);
+        }
+    }
+
+    public void QueryChunks<T1, T2>(QueryChunkAction<T1, T2> action)
+        where T1 : struct
+        where T2 : struct
+    {
+        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2>())
+        {
+            action(archetype.EntityIds, archetype.Col1, archetype.Col2);
+        }
+    }
 
     public void QueryEach<T1>(EntityQueryAction<T1> action) where T1 : struct
     {
