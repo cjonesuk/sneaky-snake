@@ -1,16 +1,34 @@
 namespace AnECS;
 
-internal sealed class WorldQueryAllSystem<T1> : IWorldSystem where T1 : struct
+internal sealed class ForAllEntitiesSystem<T1> : IWorldSystem where T1 : struct
 {
-    private readonly EntityQueryAction<T1> _action;
+    private readonly QueryAllEntitiesAction<T1> _action;
 
-    public WorldQueryAllSystem(EntityQueryAction<T1> action)
+    public ForAllEntitiesSystem(QueryAllEntitiesAction<T1> action)
     {
         _action = action;
     }
 
     public void Execute(ref WorldSystemData data)
     {
-        data.World.QueryEach(_action);
+        data.World.QueryAll(_action);
+    }
+}
+
+internal sealed class ForAllEntitiesSystem<T1, T2> : IWorldSystem
+    where T1 : struct
+    where T2 : struct
+
+{
+    private readonly QueryAllEntitiesAction<T1, T2> _action;
+
+    public ForAllEntitiesSystem(QueryAllEntitiesAction<T1, T2> action)
+    {
+        _action = action;
+    }
+
+    public void Execute(ref WorldSystemData data)
+    {
+        data.World.QueryAll(_action);
     }
 }

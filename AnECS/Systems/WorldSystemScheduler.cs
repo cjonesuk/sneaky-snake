@@ -1,6 +1,6 @@
 namespace AnECS;
 
-internal sealed class WorldSystemScheduler
+public sealed class WorldSystemScheduler
 {
     private readonly List<IWorldSystem> _systems;
 

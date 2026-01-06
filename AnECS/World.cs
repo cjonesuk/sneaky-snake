@@ -1,20 +1,9 @@
 namespace AnECS;
 
-public delegate void QueryChunkAction<T1>(Span<Id> ids, Span<T1> col1) where T1 : struct;
-
-public delegate void QueryChunkAction<T1, T2>(Span<Id> ids, Span<T1> col1, Span<T2> col2)
-    where T1 : struct
-    where T2 : struct;
-
-public delegate void EntityQueryAction<T1>(ref Id id, ref T1 arg1)
-    where T1 : struct;
-
-public delegate void EntityQueryAction<T1, T2>(ref Id id, ref T1 arg1, ref T2 arg2)
-    where T1 : struct
-    where T2 : struct;
-
 public interface IWorld
 {
+    WorldSystemScheduler Systems { get; }
+
     Entity CreateEntity();
     void RemoveEntity(Id id);
     EntityType GetEntityType(Id id);
@@ -26,9 +15,14 @@ public interface IWorld
     void RemoveComponentFromEntity<T>(Id id) where T : struct;
     ref T GetComponentFromEntity<T>(Id id) where T : struct;
 
-    void QueryEach<T1>(EntityQueryAction<T1> action)
-        where T1 : struct;
-    void QueryEach<T1, T2>(EntityQueryAction<T1, T2> action)
+    void QueryAll<T1>(QueryAllEntitiesAction<T1> action) where T1 : struct;
+    void QueryAll<T1, T2>(QueryAllEntitiesAction<T1, T2> action)
+        where T1 : struct
+        where T2 : struct;
+
+    void QueryEach<T1>(QueryEachEntityAction<T1> action)
+         where T1 : struct;
+    void QueryEach<T1, T2>(QueryEachEntityAction<T1, T2> action)
         where T1 : struct
         where T2 : struct;
 }
@@ -51,6 +45,8 @@ internal sealed class World : IWorld
     {
         return new World();
     }
+
+    public WorldSystemScheduler Systems => _systemScheduler;
 
     public void ExecuteSystems(float deltaTime)
     {
@@ -193,7 +189,7 @@ internal sealed class World : IWorld
     }
 
 
-    public void QueryChunks<T1>(QueryChunkAction<T1> action) where T1 : struct
+    public void QueryAll<T1>(QueryAllEntitiesAction<T1> action) where T1 : struct
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1>())
         {
@@ -201,7 +197,7 @@ internal sealed class World : IWorld
         }
     }
 
-    public void QueryChunks<T1, T2>(QueryChunkAction<T1, T2> action)
+    public void QueryAll<T1, T2>(QueryAllEntitiesAction<T1, T2> action)
         where T1 : struct
         where T2 : struct
     {
@@ -211,7 +207,7 @@ internal sealed class World : IWorld
         }
     }
 
-    public void QueryEach<T1>(EntityQueryAction<T1> action) where T1 : struct
+    public void QueryEach<T1>(QueryEachEntityAction<T1> action) where T1 : struct
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1>())
         {
@@ -222,7 +218,7 @@ internal sealed class World : IWorld
         }
     }
 
-    public void QueryEach<T1, T2>(EntityQueryAction<T1, T2> action)
+    public void QueryEach<T1, T2>(QueryEachEntityAction<T1, T2> action)
         where T1 : struct
         where T2 : struct
     {
@@ -240,5 +236,25 @@ internal sealed class World : IWorld
     public bool IsEntityAlive(Id id)
     {
         return _entityIndices.ContainsKey(id);
+    }
+}
+
+public static class WorldExtensions
+{
+    public static void AddSystem(this IWorld world, IWorldSystem system)
+    {
+        world.Systems.AddSystem(system);
+    }
+
+    public static SystemBuilder<T1> System<T1>(this IWorld world) where T1 : struct
+    {
+        return new SystemBuilder<T1>(world);
+    }
+
+    public static SystemBuilder<T1, T2> System<T1, T2>(this IWorld world)
+        where T1 : struct
+        where T2 : struct
+    {
+        return new SystemBuilder<T1, T2>(world);
     }
 }
