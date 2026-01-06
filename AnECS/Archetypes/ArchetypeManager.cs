@@ -20,6 +20,21 @@ internal sealed class ArchetypeManager
 
     public Archetype EmptyArchetype => _emptyArchetype;
 
+    public Archetype GetOrCreate<T1>()
+        where T1 : struct
+    {
+        EntityType entityType = EntityTypeInformation<T1>.EntityType;
+        return GetOrCreate(entityType);
+    }
+
+    public Archetype GetOrCreate<T1, T2>()
+        where T1 : struct
+        where T2 : struct
+    {
+        EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
+        return GetOrCreate(entityType);
+    }
+
     public Archetype GetOrCreate(EntityType entityType)
     {
         if (_archetypesByEntityType.TryGetValue(entityType, out Archetype? archetype))

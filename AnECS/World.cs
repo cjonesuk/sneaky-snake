@@ -61,8 +61,10 @@ internal sealed class World : IWorld
 
     public Entity CreateEntity()
     {
+        Archetype archetype = _archetypes.EmptyArchetype;
+
         Id id = AllocateId();
-        EntityLocation location = _archetypes.EmptyArchetype.AddEntity(id);
+        EntityLocation location = archetype.AddEntity(id);
         _entityIndices[id] = location;
 
         return new Entity(id);
@@ -70,11 +72,9 @@ internal sealed class World : IWorld
 
     public Entity CreateEntity<T1>(T1 c1) where T1 : struct
     {
-        EntityType entityType = EntityTypeInformation<T1>.EntityType;
+        Archetype archetype = _archetypes.GetOrCreate<T1>();
 
         Id id = AllocateId();
-        Archetype archetype = _archetypes.GetOrCreate(entityType);
-
         EntityLocation location = archetype.AddEntity(id, ref c1);
         _entityIndices[id] = location;
 
@@ -85,11 +85,9 @@ internal sealed class World : IWorld
         where T1 : struct
         where T2 : struct
     {
-        EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
+        Archetype archetype = _archetypes.GetOrCreate<T1, T2>();
 
         Id id = AllocateId();
-        Archetype archetype = _archetypes.GetOrCreate(entityType);
-
         EntityLocation location = archetype.AddEntity(id, ref c1, ref c2);
         _entityIndices[id] = location;
 
