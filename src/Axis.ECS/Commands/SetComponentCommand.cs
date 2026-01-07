@@ -28,3 +28,28 @@ internal static unsafe class SetComponentCommand<T> where T : unmanaged
         world.SetComponentOnEntity(value.Entity, value.Component);
     }
 }
+
+internal static unsafe class RemoveComponentFromEntityCommand<T> where T : unmanaged
+{
+    private static readonly CommandAction ApplyAction = ApplyRemoveComponentFromEntity;
+    public readonly struct Payload
+    {
+        public readonly Id Entity;
+
+        public Payload(Id entity)
+        {
+            Entity = entity;
+        }
+    }
+
+    public static (CommandAction, Payload) Make(ref Id id)
+    {
+        return (ApplyAction, new Payload(id));
+    }
+
+    private static void ApplyRemoveComponentFromEntity(IWorld world, void* payload)
+    {
+        ref Payload value = ref Unsafe.AsRef<Payload>(payload);
+        world.RemoveComponentFromEntity<T>(value.Entity);
+    }
+}

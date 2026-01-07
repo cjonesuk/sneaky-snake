@@ -206,6 +206,12 @@ internal sealed class World : IWorld
 
     public void RemoveComponentFromEntity<T>(Id id) where T : unmanaged
     {
+        if (_deferredMode)
+        {
+            _commands.RemoveComponent<T>(ref id);
+            return;
+        }
+
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
         EntityLocation location = FindEntity(id);
 

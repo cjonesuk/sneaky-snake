@@ -46,6 +46,13 @@ internal static class CommandQueueExtensions
         queue.Write(ref payload, action);
     }
 
+    public static void RemoveComponent<T>(this CommandQueue queue, ref Id id) where T : unmanaged
+    {
+        var (action, payload) = RemoveComponentFromEntityCommand<T>.Make(ref id);
+
+        queue.Write(ref payload, action);
+    }
+
     public static void ClearAllEntities(this CommandQueue queue)
     {
         var (action, payload) = ClearAllEntitiesCommand.Make();
