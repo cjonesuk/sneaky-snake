@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace AnECS;
 
 public interface IWorld
@@ -27,6 +29,20 @@ public interface IWorld
         where T2 : unmanaged;
 }
 
+internal readonly struct WorldDeferredCommandsScope : IDisposable
+{
+    private readonly World _world;
+
+    public WorldDeferredCommandsScope(World world)
+    {
+        _world = world;
+    }
+
+    public void Dispose()
+    {
+        _world.EndDeferringCommands();
+    }
+}
 
 internal sealed class World : IWorld
 {
@@ -34,12 +50,16 @@ internal sealed class World : IWorld
     private readonly Dictionary<Id, EntityLocation> _entityIndices;
     private readonly ArchetypeManager _archetypes;
     private readonly WorldSystemScheduler _systemScheduler;
+    private DeferredCommandQueue _deferredCommandQueue;
+    private bool _deferredMode;
 
     internal World()
     {
         _entityIndices = new Dictionary<Id, EntityLocation>();
         _archetypes = new ArchetypeManager();
         _systemScheduler = new WorldSystemScheduler();
+        _deferredCommandQueue = new DeferredCommandQueue();
+        _deferredMode = false;
     }
 
     public static World Create()
@@ -48,6 +68,23 @@ internal sealed class World : IWorld
     }
 
     public WorldSystemScheduler Systems => _systemScheduler;
+
+    public WorldDeferredCommandsScope BeginDeferringCommands()
+    {
+        Debug.Assert(!_deferredMode, "World is already in deferred command mode.");
+
+        _deferredMode = true;
+        _deferredCommandQueue.Clear();
+        return new WorldDeferredCommandsScope(this);
+    }
+
+    public void EndDeferringCommands()
+    {
+        Debug.Assert(_deferredMode, "World is not in deferred command mode.");
+
+        _deferredMode = false;
+        _deferredCommandQueue.ApplyAndClear(this);
+    }
 
     public void ExecuteSystems(float deltaTime)
     {
@@ -64,13 +101,19 @@ internal sealed class World : IWorld
     {
         Id id = AllocateId();
 
-        CreateEntityInternal(id);
+        CreateEntityWithId(id);
 
         return new Entity(this, id);
     }
 
-    public void CreateEntityInternal(Id id)
+    public void CreateEntityWithId(Id id)
     {
+        if (_deferredMode)
+        {
+            _deferredCommandQueue.EnqueueAddEntity(id);
+            return;
+        }
+
         Archetype archetype = _archetypes.EmptyArchetype;
         EntityLocation location = archetype.AddEntity(id);
         _entityIndices[id] = location;
@@ -78,30 +121,62 @@ internal sealed class World : IWorld
 
     public Entity CreateEntity<T1>(T1 c1) where T1 : unmanaged
     {
-        Archetype archetype = _archetypes.GetOrCreate<T1>();
-
         Id id = AllocateId();
-        EntityLocation location = archetype.AddEntity(id, ref c1);
-        _entityIndices[id] = location;
+
+        CreateEntityWithId(ref id, ref c1);
 
         return new Entity(this, id);
+    }
+
+    public void CreateEntityWithId<T1>(ref Id id, ref T1 c1) where T1 : unmanaged
+    {
+        if (_deferredMode)
+        {
+            _deferredCommandQueue.EnqueueAddEntity(id, c1);
+            return;
+        }
+
+        Archetype archetype = _archetypes.GetOrCreate<T1>();
+
+        EntityLocation location = archetype.AddEntity(id, ref c1);
+        _entityIndices[id] = location;
     }
 
     public Entity CreateEntity<T1, T2>(T1 c1, T2 c2)
         where T1 : unmanaged
         where T2 : unmanaged
     {
-        Archetype archetype = _archetypes.GetOrCreate<T1, T2>();
-
         Id id = AllocateId();
-        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2);
-        _entityIndices[id] = location;
+
+        CreateEntityWithId(ref id, ref c1, ref c2);
 
         return new Entity(this, id);
     }
 
+    public void CreateEntityWithId<T1, T2>(ref Id id, ref T1 c1, ref T2 c2)
+        where T1 : unmanaged
+        where T2 : unmanaged
+    {
+        if (_deferredMode)
+        {
+            _deferredCommandQueue.EnqueueAddEntity(ref id, ref c1, ref c2);
+            return;
+        }
+
+        Archetype archetype = _archetypes.GetOrCreate<T1, T2>();
+
+        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2);
+        _entityIndices[id] = location;
+    }
+
     public void RemoveEntity(Id id)
     {
+        if (_deferredMode)
+        {
+            _deferredCommandQueue.EnqueueRemoveEntity(id);
+            return;
+        }
+
         EntityLocation location = FindEntity(id);
         location.Archetype.RemoveEntity(location.Index);
         _entityIndices.Remove(id);
@@ -218,6 +293,18 @@ internal sealed class World : IWorld
         {
             action(archetype.EntityIds, archetype.Col1, archetype.Col2);
         }
+    }
+
+    public void QueryEach(QueryEachEntityAction action)
+    {
+        foreach (var archetype in _archetypes.QueryArchetypes())
+        {
+            for (int index = 0; index < archetype.EntityIds.Length; index++)
+            {
+                action(ref archetype.EntityIds[index]);
+            }
+        }
+
     }
 
     public void QueryEach<T1>(QueryEachEntityAction<T1> action) where T1 : unmanaged

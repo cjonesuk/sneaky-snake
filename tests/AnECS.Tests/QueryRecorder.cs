@@ -2,6 +2,16 @@ namespace AnECS.Tests;
 
 static class QueryRecorder
 {
+    public static List<Id> QueryEach(World world)
+    {
+        var recorder = new List<Id>();
+        world.QueryEach((ref Id id) =>
+        {
+            recorder.Add(id);
+        });
+        return recorder;
+    }
+
     public static List<(Id, T1)> QueryEach<T1>(World world) where T1 : unmanaged
     {
         var recorder = new List<(Id, T1)>();

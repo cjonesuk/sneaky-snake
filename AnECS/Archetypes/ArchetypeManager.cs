@@ -11,7 +11,7 @@ internal sealed class ArchetypeManager
     public ArchetypeManager()
     {
         _emptyArchetype = new Archetype(EntityType.Empty);
-        _archetypes = new List<Archetype>();
+        _archetypes = new List<Archetype>() { _emptyArchetype };
         _archetypesByEntityType = new Dictionary<EntityType, Archetype>()
         {
             { EntityType.Empty, _emptyArchetype }
@@ -47,6 +47,12 @@ internal sealed class ArchetypeManager
         _archetypes.Add(archetype);
 
         return archetype;
+    }
+
+    public ArchetypeQueryEnumerable QueryArchetypes()
+    {
+        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeQueryEnumerable(archetypesSpan);
     }
 
     public ArchetypeQueryEnumerable<T1> QueryArchetypes<T1>()

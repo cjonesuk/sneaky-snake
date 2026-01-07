@@ -88,6 +88,12 @@ internal sealed class Archetype
         column.Add(ref component);
     }
 
+    internal bool TryGetColumnSpans(
+        out Span<Id> entityIds)
+    {
+        entityIds = _entityIds.AsSpan();
+        return true;
+    }
 
     internal bool TryGetColumnSpans<T1>(
         out Span<Id> entityIds,

@@ -1,5 +1,9 @@
 namespace AnECS;
 
+ref struct ArchetypeColumnSpans
+{
+    public Span<Id> EntityIds;
+}
 
 ref struct ArchetypeColumnSpans<T1> where T1 : unmanaged
 {
@@ -14,6 +18,40 @@ ref struct ArchetypeColumnSpans<T1, T2>
     public Span<Id> EntityIds;
     public Span<T1> Col1;
     public Span<T2> Col2;
+}
+
+
+
+ref struct ArchetypeQueryEnumerator
+{
+    private readonly Span<Archetype> _archetypes;
+    private int _index;
+    private ArchetypeColumnSpans _current;
+
+    public ArchetypeQueryEnumerator(Span<Archetype> archetypes)
+    {
+        _archetypes = archetypes;
+        _index = -1;
+        _current = default;
+    }
+
+    public bool MoveNext()
+    {
+        while (++_index < _archetypes.Length)
+        {
+            ref var a = ref _archetypes[_index];
+
+            if (!a.TryGetColumnSpans(out var e))
+                continue;
+
+            _current = new ArchetypeColumnSpans { EntityIds = e };
+            return true;
+        }
+
+        return false;
+    }
+
+    public ArchetypeColumnSpans Current => _current;
 }
 
 
@@ -87,6 +125,21 @@ ref struct ArchetypeQueryEnumerator<T1, T2>
 
     public ArchetypeColumnSpans<T1, T2> Current => _current;
 }
+
+
+ref struct ArchetypeQueryEnumerable
+{
+    private readonly Span<Archetype> _archetypes;
+
+    public ArchetypeQueryEnumerable(Span<Archetype> archetypes)
+    {
+        _archetypes = archetypes;
+    }
+
+    public ArchetypeQueryEnumerator GetEnumerator()
+        => new ArchetypeQueryEnumerator(_archetypes);
+}
+
 
 ref struct ArchetypeQueryEnumerable<T1> where T1 : unmanaged
 {

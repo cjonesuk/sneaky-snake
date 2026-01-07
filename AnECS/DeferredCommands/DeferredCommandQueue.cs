@@ -47,7 +47,7 @@ internal sealed class DeferredCommandQueue
         _used += size;
     }
 
-    public unsafe void ApplyAll(World world)
+    public unsafe void ApplyAndClear(World world)
     {
         if (_commands.Count == 0)
             return;
@@ -65,6 +65,11 @@ internal sealed class DeferredCommandQueue
             }
         }
 
+        Clear();
+    }
+
+    internal void Clear()
+    {
         _commands.Clear();
         _used = 0;
     }
