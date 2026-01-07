@@ -28,4 +28,3 @@ internal static unsafe class SetComponentCommand<T> where T : unmanaged
         world.SetComponentOnEntity(value.Entity, value.Component);
     }
 }
-

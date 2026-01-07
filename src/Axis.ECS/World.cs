@@ -193,6 +193,12 @@ internal sealed class World : IWorld
 
     public void AddComponentToEntity<T>(Id id) where T : unmanaged
     {
+        if (_deferredMode)
+        {
+            _commands.AddComponent<T>(id);
+            return;
+        }
+
         EntityLocation location = FindEntity(id);
 
         AddComponentToEntityInternal<T>(id, default, location);
