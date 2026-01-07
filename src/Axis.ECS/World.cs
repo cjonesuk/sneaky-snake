@@ -172,6 +172,11 @@ internal sealed class World : IWorld
     /// </summary>
     public void ClearAll()
     {
+        if(_deferredMode)
+        {
+            _commands.ClearAllEntities();
+        }
+
         _archetypes.ClearAll();
         _entityIndices.Clear();
     }

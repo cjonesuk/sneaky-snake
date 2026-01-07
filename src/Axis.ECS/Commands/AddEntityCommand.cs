@@ -1,9 +1,8 @@
 using System.Runtime.CompilerServices;
-using Axis.ECS.Commands;
 
-namespace Axis.ECS.DeferredCommands;
+namespace Axis.ECS.Commands;
 
-unsafe static class DeferredAddEntityCommand
+unsafe static class AddEntityCommand
 {
     private static readonly CommandAction ApplyAction = ApplyCreateEntity;
 
@@ -30,7 +29,8 @@ unsafe static class DeferredAddEntityCommand
     }
 }
 
-unsafe static class DeferredAddEntityCommand<T1> where T1 : unmanaged
+
+unsafe static class AddEntityCommand<T1> where T1 : unmanaged
 {
     private static readonly CommandAction ApplyAction = ApplyCreateEntity;
 
@@ -60,7 +60,7 @@ unsafe static class DeferredAddEntityCommand<T1> where T1 : unmanaged
 }
 
 
-unsafe static class DeferredAddEntityCommand<T1, T2>
+unsafe static class AddEntityCommand<T1, T2>
     where T1 : unmanaged
     where T2 : unmanaged
 {

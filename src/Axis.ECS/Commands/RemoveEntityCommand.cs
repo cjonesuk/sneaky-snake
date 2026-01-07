@@ -1,9 +1,8 @@
 using System.Runtime.CompilerServices;
-using Axis.ECS.Commands;
 
-namespace Axis.ECS;
+namespace Axis.ECS.Commands;
 
-unsafe static class DeferredRemoveEntityCommand
+unsafe static class RemoveEntityCommand
 {
     private static readonly CommandAction ApplyAction = ApplyRemoveEntity;
 

@@ -1,9 +1,8 @@
 using System.Runtime.CompilerServices;
-using Axis.ECS.Commands;
 
-namespace Axis.ECS;
+namespace Axis.ECS.Commands;
 
-internal static unsafe class DeferredSetComponent<T> where T : unmanaged
+internal static unsafe class SetComponentCommand<T> where T : unmanaged
 {
     private static readonly CommandAction ApplyAction = ApplySetComponent;
     public readonly struct Payload
