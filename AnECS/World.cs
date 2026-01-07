@@ -27,6 +27,7 @@ public interface IWorld
         where T2 : unmanaged;
 }
 
+
 internal sealed class World : IWorld
 {
     private uint _nextId = 1;
@@ -61,13 +62,18 @@ internal sealed class World : IWorld
 
     public Entity CreateEntity()
     {
-        Archetype archetype = _archetypes.EmptyArchetype;
-
         Id id = AllocateId();
-        EntityLocation location = archetype.AddEntity(id);
-        _entityIndices[id] = location;
+
+        CreateEntityInternal(id);
 
         return new Entity(this, id);
+    }
+
+    public void CreateEntityInternal(Id id)
+    {
+        Archetype archetype = _archetypes.EmptyArchetype;
+        EntityLocation location = archetype.AddEntity(id);
+        _entityIndices[id] = location;
     }
 
     public Entity CreateEntity<T1>(T1 c1) where T1 : unmanaged
