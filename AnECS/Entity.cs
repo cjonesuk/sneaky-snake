@@ -2,36 +2,38 @@ namespace AnECS;
 
 public readonly struct Entity
 {
+    private readonly IWorld _world;
     private readonly Id _id;
 
     public Id Id => _id;
 
-    public IWorld World => _id.World;
+    public IWorld World => _world;
 
-    public Entity(Id id)
+    public Entity(IWorld world, Id id)
     {
+        _world = world;
         _id = id;
     }
 }
 
 public static class EntityWorldExtensions
 {
-    public static void Set<T>(this Entity entity, T component) where T : struct
+    public static void Set<T>(this Entity entity, T component) where T : unmanaged
     {
         entity.World.SetComponentOnEntity(entity.Id, component);
     }
 
-    public static void Add<T>(this Entity entity) where T : struct
+    public static void Add<T>(this Entity entity) where T : unmanaged
     {
         entity.World.AddComponentToEntity<T>(entity.Id);
     }
 
-    public static bool Has<T>(this Entity entity) where T : struct
+    public static bool Has<T>(this Entity entity) where T : unmanaged
     {
         return entity.World.EntityHasComponent<T>(entity.Id);
     }
 
-    public static void Remove<T>(this Entity entity) where T : struct
+    public static void Remove<T>(this Entity entity) where T : unmanaged
     {
         entity.World.RemoveComponentFromEntity<T>(entity.Id);
     }
@@ -39,7 +41,7 @@ public static class EntityWorldExtensions
     /// <summary>
     /// Get a mutable reference to the component T from the entity.
     /// </summary>
-    public static ref T GetRef<T>(this Entity entity) where T : struct
+    public static ref T GetRef<T>(this Entity entity) where T : unmanaged
     {
         return ref entity.World.GetComponentFromEntity<T>(entity.Id);
     }
@@ -47,7 +49,7 @@ public static class EntityWorldExtensions
     /// <summary>
     /// Gets a copy of the component T from the entity.
     /// </summary>
-    public static T Get<T>(this Entity entity) where T : struct
+    public static T Get<T>(this Entity entity) where T : unmanaged
     {
         return entity.World.GetComponentFromEntity<T>(entity.Id);
     }

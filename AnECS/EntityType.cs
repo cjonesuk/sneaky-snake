@@ -21,7 +21,7 @@ public readonly struct EntityType : IEquatable<EntityType>
     }
 
     public static EntityType From<T1>()
-        where T1 : struct
+        where T1 : unmanaged
     {
         return Create([
             ComponentTypeInformation<T1>.Id
@@ -29,7 +29,7 @@ public readonly struct EntityType : IEquatable<EntityType>
     }
 
     public static EntityType From<T1, T2>()
-        where T1 : struct where T2 : struct
+        where T1 : unmanaged where T2 : unmanaged
     {
         return Create([
             ComponentTypeInformation<T1>.Id,
@@ -38,7 +38,7 @@ public readonly struct EntityType : IEquatable<EntityType>
     }
 
     public static EntityType From<T1, T2, T3>()
-        where T1 : struct where T2 : struct where T3 : struct
+        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged
     {
         return Create([
             ComponentTypeInformation<T1>.Id,

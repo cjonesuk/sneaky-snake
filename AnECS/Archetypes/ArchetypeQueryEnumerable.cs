@@ -1,15 +1,15 @@
 namespace AnECS;
 
 
-ref struct ArchetypeColumnSpans<T1> where T1 : struct
+ref struct ArchetypeColumnSpans<T1> where T1 : unmanaged
 {
     public Span<Id> EntityIds;
     public Span<T1> Col1;
 }
 
 ref struct ArchetypeColumnSpans<T1, T2>
-    where T1 : struct
-    where T2 : struct
+    where T1 : unmanaged
+    where T2 : unmanaged
 {
     public Span<Id> EntityIds;
     public Span<T1> Col1;
@@ -17,7 +17,7 @@ ref struct ArchetypeColumnSpans<T1, T2>
 }
 
 
-ref struct ArchetypeQueryEnumerator<T1> where T1 : struct
+ref struct ArchetypeQueryEnumerator<T1> where T1 : unmanaged
 {
     private readonly Span<Archetype> _archetypes;
     private int _index;
@@ -50,8 +50,8 @@ ref struct ArchetypeQueryEnumerator<T1> where T1 : struct
 }
 
 ref struct ArchetypeQueryEnumerator<T1, T2>
-    where T1 : struct
-    where T2 : struct
+    where T1 : unmanaged
+    where T2 : unmanaged
 {
     private readonly Span<Archetype> _archetypes;
     private int _index;
@@ -88,7 +88,7 @@ ref struct ArchetypeQueryEnumerator<T1, T2>
     public ArchetypeColumnSpans<T1, T2> Current => _current;
 }
 
-ref struct ArchetypeQueryEnumerable<T1> where T1 : struct
+ref struct ArchetypeQueryEnumerable<T1> where T1 : unmanaged
 {
     private readonly Span<Archetype> _archetypes;
 
@@ -102,8 +102,8 @@ ref struct ArchetypeQueryEnumerable<T1> where T1 : struct
 }
 
 ref struct ArchetypeQueryEnumerable<T1, T2>
-    where T1 : struct
-    where T2 : struct
+    where T1 : unmanaged
+    where T2 : unmanaged
 {
     private readonly Span<Archetype> _archetypes;
 

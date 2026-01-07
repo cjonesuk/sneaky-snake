@@ -1,6 +1,6 @@
 namespace AnECS;
 
-internal sealed class ForEachEntitySystem<T1> : IWorldSystem where T1 : struct
+internal sealed class ForEachEntitySystem<T1> : IWorldSystem where T1 : unmanaged
 {
     private readonly QueryEachEntityAction<T1> _action;
 
@@ -16,8 +16,8 @@ internal sealed class ForEachEntitySystem<T1> : IWorldSystem where T1 : struct
 }
 
 internal sealed class ForEachEntitySystem<T1, T2> : IWorldSystem
-    where T1 : struct
-    where T2 : struct
+    where T1 : unmanaged
+    where T2 : unmanaged
 
 {
     private readonly QueryEachEntityAction<T1, T2> _action;

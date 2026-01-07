@@ -17,10 +17,8 @@ public class IdTests
     [Fact]
     public void IdEquality()
     {
-        var world = World.Create();
-
-        Id id1 = new Id(world, 42);
-        Id id2 = new Id(world, 42);
+        Id id1 = new Id(42);
+        Id id2 = new Id(42);
 
         id1.ShouldBe(id2);
         (id1 == id2).ShouldBeTrue();
@@ -31,10 +29,8 @@ public class IdTests
     [Fact]
     public void IdInequality()
     {
-        var world = World.Create();
-
-        Id id1 = new Id(world, 42);
-        Id id2 = new Id(world, 43);
+        Id id1 = new Id(42);
+        Id id2 = new Id(43);
         id1.ShouldNotBe(id2);
         (id1 != id2).ShouldBeTrue();
         (id1 == id2).ShouldBeFalse();

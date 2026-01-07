@@ -1,6 +1,6 @@
 namespace AnECS;
 
-public ref struct SystemBuilder<T1>(IWorld World) where T1 : struct
+public ref struct SystemBuilder<T1>(IWorld World) where T1 : unmanaged
 {
     public void ForEach(QueryEachEntityAction<T1> action)
     {
@@ -16,8 +16,8 @@ public ref struct SystemBuilder<T1>(IWorld World) where T1 : struct
 }
 
 public ref struct SystemBuilder<T1, T2>(IWorld World)
-    where T1 : struct
-    where T2 : struct
+    where T1 : unmanaged
+    where T2 : unmanaged
 {
     public void ForEach(QueryEachEntityAction<T1, T2> action)
     {

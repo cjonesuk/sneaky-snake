@@ -9,22 +9,22 @@ public interface IWorld
     EntityType GetEntityType(Id id);
     bool IsEntityAlive(Id id);
 
-    void SetComponentOnEntity<T>(Id id, T component) where T : struct;
-    void AddComponentToEntity<T>(Id id) where T : struct;
-    bool EntityHasComponent<T>(Id id) where T : struct;
-    void RemoveComponentFromEntity<T>(Id id) where T : struct;
-    ref T GetComponentFromEntity<T>(Id id) where T : struct;
+    void SetComponentOnEntity<T>(Id id, T component) where T : unmanaged;
+    void AddComponentToEntity<T>(Id id) where T : unmanaged;
+    bool EntityHasComponent<T>(Id id) where T : unmanaged;
+    void RemoveComponentFromEntity<T>(Id id) where T : unmanaged;
+    ref T GetComponentFromEntity<T>(Id id) where T : unmanaged;
 
-    void QueryAll<T1>(QueryAllEntitiesAction<T1> action) where T1 : struct;
+    void QueryAll<T1>(QueryAllEntitiesAction<T1> action) where T1 : unmanaged;
     void QueryAll<T1, T2>(QueryAllEntitiesAction<T1, T2> action)
-        where T1 : struct
-        where T2 : struct;
+        where T1 : unmanaged
+        where T2 : unmanaged;
 
     void QueryEach<T1>(QueryEachEntityAction<T1> action)
-         where T1 : struct;
+         where T1 : unmanaged;
     void QueryEach<T1, T2>(QueryEachEntityAction<T1, T2> action)
-        where T1 : struct
-        where T2 : struct;
+        where T1 : unmanaged
+        where T2 : unmanaged;
 }
 
 internal sealed class World : IWorld
@@ -56,7 +56,7 @@ internal sealed class World : IWorld
 
     private Id AllocateId()
     {
-        return new Id(this, _nextId++);
+        return new Id(_nextId++);
     }
 
     public Entity CreateEntity()
@@ -67,10 +67,10 @@ internal sealed class World : IWorld
         EntityLocation location = archetype.AddEntity(id);
         _entityIndices[id] = location;
 
-        return new Entity(id);
+        return new Entity(this, id);
     }
 
-    public Entity CreateEntity<T1>(T1 c1) where T1 : struct
+    public Entity CreateEntity<T1>(T1 c1) where T1 : unmanaged
     {
         Archetype archetype = _archetypes.GetOrCreate<T1>();
 
@@ -78,12 +78,12 @@ internal sealed class World : IWorld
         EntityLocation location = archetype.AddEntity(id, ref c1);
         _entityIndices[id] = location;
 
-        return new Entity(id);
+        return new Entity(this, id);
     }
 
     public Entity CreateEntity<T1, T2>(T1 c1, T2 c2)
-        where T1 : struct
-        where T2 : struct
+        where T1 : unmanaged
+        where T2 : unmanaged
     {
         Archetype archetype = _archetypes.GetOrCreate<T1, T2>();
 
@@ -91,7 +91,7 @@ internal sealed class World : IWorld
         EntityLocation location = archetype.AddEntity(id, ref c1, ref c2);
         _entityIndices[id] = location;
 
-        return new Entity(id);
+        return new Entity(this, id);
     }
 
     public void RemoveEntity(Id id)
@@ -110,7 +110,7 @@ internal sealed class World : IWorld
         _entityIndices.Clear();
     }
 
-    public void SetComponentOnEntity<T>(Id id, T component) where T : struct
+    public void SetComponentOnEntity<T>(Id id, T component) where T : unmanaged
     {
         EntityLocation location = FindEntity(id);
 
@@ -134,21 +134,21 @@ internal sealed class World : IWorld
         return location;
     }
 
-    public bool EntityHasComponent<T>(Id id) where T : struct
+    public bool EntityHasComponent<T>(Id id) where T : unmanaged
     {
         EntityLocation location = FindEntity(id);
 
         return location.Archetype.SupportsComponentType<T>();
     }
 
-    public void AddComponentToEntity<T>(Id id) where T : struct
+    public void AddComponentToEntity<T>(Id id) where T : unmanaged
     {
         EntityLocation location = FindEntity(id);
 
         AddComponentToEntityInternal<T>(id, default, location);
     }
 
-    public void RemoveComponentFromEntity<T>(Id id) where T : struct
+    public void RemoveComponentFromEntity<T>(Id id) where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
         EntityLocation location = FindEntity(id);
@@ -166,7 +166,7 @@ internal sealed class World : IWorld
         _entityIndices[id] = nextLocation;
     }
 
-    public ref T GetComponentFromEntity<T>(Id id) where T : struct
+    public ref T GetComponentFromEntity<T>(Id id) where T : unmanaged
     {
         EntityLocation location = FindEntity(id);
 
@@ -179,7 +179,7 @@ internal sealed class World : IWorld
         return location.Archetype.EntityType;
     }
 
-    private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : struct
+    private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
 
@@ -196,7 +196,7 @@ internal sealed class World : IWorld
     }
 
 
-    public void QueryAll<T1>(QueryAllEntitiesAction<T1> action) where T1 : struct
+    public void QueryAll<T1>(QueryAllEntitiesAction<T1> action) where T1 : unmanaged
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1>())
         {
@@ -205,8 +205,8 @@ internal sealed class World : IWorld
     }
 
     public void QueryAll<T1, T2>(QueryAllEntitiesAction<T1, T2> action)
-        where T1 : struct
-        where T2 : struct
+        where T1 : unmanaged
+        where T2 : unmanaged
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1, T2>())
         {
@@ -214,7 +214,7 @@ internal sealed class World : IWorld
         }
     }
 
-    public void QueryEach<T1>(QueryEachEntityAction<T1> action) where T1 : struct
+    public void QueryEach<T1>(QueryEachEntityAction<T1> action) where T1 : unmanaged
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1>())
         {
@@ -226,8 +226,8 @@ internal sealed class World : IWorld
     }
 
     public void QueryEach<T1, T2>(QueryEachEntityAction<T1, T2> action)
-        where T1 : struct
-        where T2 : struct
+        where T1 : unmanaged
+        where T2 : unmanaged
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1, T2>())
         {
@@ -253,14 +253,14 @@ public static class WorldExtensions
         world.Systems.AddSystem(system);
     }
 
-    public static SystemBuilder<T1> System<T1>(this IWorld world) where T1 : struct
+    public static SystemBuilder<T1> System<T1>(this IWorld world) where T1 : unmanaged
     {
         return new SystemBuilder<T1>(world);
     }
 
     public static SystemBuilder<T1, T2> System<T1, T2>(this IWorld world)
-        where T1 : struct
-        where T2 : struct
+        where T1 : unmanaged
+        where T2 : unmanaged
     {
         return new SystemBuilder<T1, T2>(world);
     }

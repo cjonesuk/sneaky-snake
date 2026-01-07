@@ -2,8 +2,8 @@
 
 ## Short term tasks
 
+- Staging when running systems - queuing up add entity/remove entity/add component/remove component commands
 - Reuse removed entity Ids
-- Systems
 - Expand Add entity with more values
 - Expand Query entities with more selections
 

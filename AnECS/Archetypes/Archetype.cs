@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 
 namespace AnECS;
 
@@ -45,7 +43,7 @@ internal sealed class Archetype
         return location;
     }
 
-    public EntityLocation AddEntity<T1>(Id id, ref T1 c1) where T1 : struct
+    public EntityLocation AddEntity<T1>(Id id, ref T1 c1) where T1 : unmanaged
     {
         EntityTypeInformation<T1>.DebugAssertSupports(_entityType);
 
@@ -56,7 +54,7 @@ internal sealed class Archetype
         return location;
     }
 
-    public EntityLocation AddEntity<T1, T2>(Id id, ref T1 c1, ref T2 c2) where T1 : struct where T2 : struct
+    public EntityLocation AddEntity<T1, T2>(Id id, ref T1 c1, ref T2 c2) where T1 : unmanaged where T2 : unmanaged
     {
         EntityTypeInformation<T1, T2>.DebugAssertSupports(_entityType);
 
@@ -68,7 +66,7 @@ internal sealed class Archetype
         return location;
     }
 
-    public void SetComponent<T>(int entityIndex, T component) where T : struct
+    public void SetComponent<T>(int entityIndex, T component) where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
         int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
@@ -82,7 +80,7 @@ internal sealed class Archetype
         return new EntityLocation(this, index);
     }
 
-    private void AppendComponentInternal<T>(ref T component) where T : struct
+    private void AppendComponentInternal<T>(ref T component) where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
         int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
@@ -94,7 +92,7 @@ internal sealed class Archetype
     internal bool TryGetColumnSpans<T1>(
         out Span<Id> entityIds,
         out Span<T1> column1)
-        where T1 : struct
+        where T1 : unmanaged
     {
         if (!TryFindComponentColumn<T1>(out var column1Data))
         {
@@ -113,8 +111,8 @@ internal sealed class Archetype
         out Span<Id> entityIds,
         out Span<T1> column1,
         out Span<T2> column2)
-        where T1 : struct
-        where T2 : struct
+        where T1 : unmanaged
+        where T2 : unmanaged
     {
         if (!TryFindComponentColumn<T1>(out var column1Data) ||
             !TryFindComponentColumn<T2>(out var column2Data))
@@ -133,7 +131,7 @@ internal sealed class Archetype
         return true;
     }
 
-    private ComponentValues<T> FindComponentColumn<T>() where T : struct
+    private ComponentValues<T> FindComponentColumn<T>() where T : unmanaged
     {
         var type = ComponentTypeInformation<T>.Id;
         int columnIndex = _componentTypeIdToColumnIndex[type];
@@ -141,7 +139,7 @@ internal sealed class Archetype
         return column;
     }
 
-    private bool TryFindComponentColumn<T>([NotNullWhen(true)] out ComponentValues<T>? column) where T : struct
+    private bool TryFindComponentColumn<T>([NotNullWhen(true)] out ComponentValues<T>? column) where T : unmanaged
     {
         var type = ComponentTypeInformation<T>.Id;
         if (!_componentTypeIdToColumnIndex.TryGetValue(type, out int columnIndex))
@@ -185,7 +183,7 @@ internal sealed class Archetype
     /// <summary>
     /// Migrate an entity to a more complex archetype, adding in the new component.
     /// </summary> 
-    internal EntityLocation MigrateEntity<T>(EntityLocation source, ref T c1) where T : struct
+    internal EntityLocation MigrateEntity<T>(EntityLocation source, ref T c1) where T : unmanaged
     {
         int sourceIndex = source.Index;
 
@@ -217,13 +215,13 @@ internal sealed class Archetype
         return new EntityLocation(this, targetIndex);
     }
 
-    public bool SupportsComponentType<T>() where T : struct
+    public bool SupportsComponentType<T>() where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
         return _componentTypeIdToColumnIndex.ContainsKey(componentTypeId);
     }
 
-    internal ref T GetComponentRef<T>(int index) where T : struct
+    internal ref T GetComponentRef<T>(int index) where T : unmanaged
     {
         var column = FindComponentColumn<T>().AsSpan();
         return ref column[index];

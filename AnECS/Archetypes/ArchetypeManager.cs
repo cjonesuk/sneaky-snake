@@ -21,15 +21,15 @@ internal sealed class ArchetypeManager
     public Archetype EmptyArchetype => _emptyArchetype;
 
     public Archetype GetOrCreate<T1>()
-        where T1 : struct
+        where T1 : unmanaged
     {
         EntityType entityType = EntityTypeInformation<T1>.EntityType;
         return GetOrCreate(entityType);
     }
 
     public Archetype GetOrCreate<T1, T2>()
-        where T1 : struct
-        where T2 : struct
+        where T1 : unmanaged
+        where T2 : unmanaged
     {
         EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
         return GetOrCreate(entityType);
@@ -50,15 +50,15 @@ internal sealed class ArchetypeManager
     }
 
     public ArchetypeQueryEnumerable<T1> QueryArchetypes<T1>()
-        where T1 : struct
+        where T1 : unmanaged
     {
         Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
         return new ArchetypeQueryEnumerable<T1>(archetypesSpan);
     }
 
     public ArchetypeQueryEnumerable<T1, T2> QueryArchetypes<T1, T2>()
-        where T1 : struct
-        where T2 : struct
+        where T1 : unmanaged
+        where T2 : unmanaged
     {
         Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
         return new ArchetypeQueryEnumerable<T1, T2>(archetypesSpan);

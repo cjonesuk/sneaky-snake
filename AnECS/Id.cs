@@ -2,17 +2,14 @@ namespace AnECS;
 
 public readonly struct Id : IEquatable<Id>
 {
-    private readonly IWorld _world;
     private readonly ulong _id;
 
-    public IWorld World => _world;
     public ulong Value => _id;
 
     public static readonly Id Invalid = new Id();
 
-    public Id(IWorld world, uint id)
+    public Id(uint id)
     {
-        _world = world;
         _id = id;
     }
 
@@ -23,7 +20,7 @@ public readonly struct Id : IEquatable<Id>
 
     public bool Equals(Id other)
     {
-        return _world == other._world && _id == other._id;
+        return _id == other._id;
     }
 
     public override bool Equals(object? obj)
@@ -33,7 +30,7 @@ public readonly struct Id : IEquatable<Id>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(_world, _id);
+        return _id.GetHashCode();
     }
 
     public static bool operator ==(Id left, Id right)

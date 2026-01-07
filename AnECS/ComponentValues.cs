@@ -5,7 +5,7 @@ namespace AnECS;
 
 internal interface IComponentValues
 {
-    void Add<TInput>(ref TInput value) where TInput : struct;
+    void Add<TInput>(ref TInput value) where TInput : unmanaged;
     void RemoveAndFillHoleAt(int index);
     void Migrate(IComponentValues source, int sourceIndex);
 
@@ -16,7 +16,7 @@ internal interface IComponentValues
 }
 
 
-internal sealed class ComponentValues<T> : IComponentValues where T : struct
+internal sealed class ComponentValues<T> : IComponentValues where T : unmanaged
 {
     private const int DefaultInitialCapacity = 32;
 
@@ -35,7 +35,7 @@ internal sealed class ComponentValues<T> : IComponentValues where T : struct
         return _values.AsSpan(0, _count);
     }
 
-    void IComponentValues.Add<TInput>(ref TInput value) where TInput : struct
+    void IComponentValues.Add<TInput>(ref TInput value)
     {
         AssertTypeMatch<TInput>();
 
@@ -98,7 +98,7 @@ internal sealed class ComponentValues<T> : IComponentValues where T : struct
     }
 
     [Conditional("DEBUG")]
-    private void AssertTypeMatch<TActual>() where TActual : struct
+    private void AssertTypeMatch<TActual>() where TActual : unmanaged
     {
         if (typeof(TActual) != typeof(T))
         {

@@ -45,7 +45,7 @@ public sealed class ExportedEntity
 
     public int ComponentCount => _components.Count;
 
-    public T GetComponent<T>() where T : struct
+    public T GetComponent<T>() where T : unmanaged
     {
         return (T)_components[ComponentTypeInformation<T>.Id];
     }
