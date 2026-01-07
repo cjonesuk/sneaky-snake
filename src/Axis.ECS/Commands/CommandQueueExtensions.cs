@@ -41,7 +41,9 @@ internal static class CommandQueueExtensions
 
     public static void ClearAllEntities(this CommandQueue queue)
     {
-        throw new NotImplementedException();
+        var (action, payload) = ClearAllEntitiesCommand.Make();
+
+        queue.Write(ref payload, action);
     }
 
 }
