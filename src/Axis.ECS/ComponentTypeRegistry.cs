@@ -1,11 +1,13 @@
 namespace Axis.ECS;
 
+using System.Collections.Concurrent;
+
 public record class ComponentTypeRegistration(ComponentTypeId TypeId, Type ClrType, string Name);
 
 public static class ComponentTypeRegistry
 {
     private static int _nextTypeId = 0;
-    private static readonly Dictionary<ComponentTypeId, ComponentTypeRegistration> _registrationsById = new();
+    private static readonly ConcurrentDictionary<ComponentTypeId, ComponentTypeRegistration> _registrationsById = new();
 
     public static ComponentTypeRegistration Register<T>()
     {

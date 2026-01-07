@@ -2,10 +2,6 @@ using Shouldly;
 
 namespace Axis.ECS.Tests;
 
-file record struct Health(int Value);
-file record struct Healing(int Amount);
-file record struct PlayerTag();
-
 public class SystemTests
 {
     [Fact]

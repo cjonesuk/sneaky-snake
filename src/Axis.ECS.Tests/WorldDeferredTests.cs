@@ -2,10 +2,6 @@ using Shouldly;
 
 namespace Axis.ECS.Tests;
 
-file record struct Position(float X, float Y);
-file record struct Velocity(float DX, float DY);
-file record struct PlayerTag();
-
 public class WorldDeferredTests
 {
     [Fact]
