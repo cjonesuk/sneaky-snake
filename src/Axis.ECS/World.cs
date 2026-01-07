@@ -3,33 +3,6 @@ using Axis.ECS.Commands;
 
 namespace Axis.ECS;
 
-public interface IWorld
-{
-    WorldSystemScheduler Systems { get; }
-
-    Entity CreateEntity();
-    void RemoveEntity(Id id);
-    EntityType GetEntityType(Id id);
-    bool IsEntityAlive(Id id);
-
-    void SetComponentOnEntity<T>(Id id, T component) where T : unmanaged;
-    void AddComponentToEntity<T>(Id id) where T : unmanaged;
-    bool EntityHasComponent<T>(Id id) where T : unmanaged;
-    void RemoveComponentFromEntity<T>(Id id) where T : unmanaged;
-    ref T GetComponentFromEntity<T>(Id id) where T : unmanaged;
-
-    void QueryAll<T1>(QueryAllEntitiesAction<T1> action) where T1 : unmanaged;
-    void QueryAll<T1, T2>(QueryAllEntitiesAction<T1, T2> action)
-        where T1 : unmanaged
-        where T2 : unmanaged;
-
-    void QueryEach<T1>(QueryEachEntityAction<T1> action)
-         where T1 : unmanaged;
-    void QueryEach<T1, T2>(QueryEachEntityAction<T1, T2> action)
-        where T1 : unmanaged
-        where T2 : unmanaged;
-}
-
 internal sealed class World : IWorld
 {
     private uint _nextId = 1;
@@ -172,7 +145,7 @@ internal sealed class World : IWorld
     /// </summary>
     public void ClearAll()
     {
-        if(_deferredMode)
+        if (_deferredMode)
         {
             _commands.ClearAllEntities();
         }
@@ -332,25 +305,5 @@ internal sealed class World : IWorld
     public bool IsEntityAlive(Id id)
     {
         return _entityIndices.ContainsKey(id);
-    }
-}
-
-public static class WorldExtensions
-{
-    public static void AddSystem(this IWorld world, IWorldSystem system)
-    {
-        world.Systems.AddSystem(system);
-    }
-
-    public static SystemBuilder<T1> System<T1>(this IWorld world) where T1 : unmanaged
-    {
-        return new SystemBuilder<T1>(world);
-    }
-
-    public static SystemBuilder<T1, T2> System<T1, T2>(this IWorld world)
-        where T1 : unmanaged
-        where T2 : unmanaged
-    {
-        return new SystemBuilder<T1, T2>(world);
     }
 }
