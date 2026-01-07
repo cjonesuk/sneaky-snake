@@ -60,7 +60,6 @@ internal sealed class World : IWorld
         Debug.Assert(!_deferredMode, "World is already in deferred command mode.");
 
         _deferredMode = true;
-        _commands.Clear();
         return new WorldDeferredCommandsScope(this);
     }
 
@@ -179,6 +178,12 @@ internal sealed class World : IWorld
 
     public void SetComponentOnEntity<T>(Id id, T component) where T : unmanaged
     {
+        if (_deferredMode)
+        {
+            _commands.SetComponent(ref id, ref component);
+            return;
+        }
+
         EntityLocation location = FindEntity(id);
 
         if (location.Archetype.SupportsComponentType<T>())
