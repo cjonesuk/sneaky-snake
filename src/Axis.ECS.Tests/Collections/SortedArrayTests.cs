@@ -1,6 +1,6 @@
 using Shouldly;
 
-namespace Axis.ECS.Tests;
+namespace Axis.ECS.Collections.Tests;
 
 public class SortedArrayTests
 {

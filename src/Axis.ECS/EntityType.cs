@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Axis.ECS.Collections;
 
 namespace Axis.ECS;
 

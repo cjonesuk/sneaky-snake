@@ -1,4 +1,4 @@
-namespace Axis.ECS;
+namespace Axis.ECS.Collections;
 
 readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparable<T>
 {
