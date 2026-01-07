@@ -1,10 +1,11 @@
 using System.Runtime.CompilerServices;
+using AnECS.Commands;
 
 namespace AnECS;
 
 internal static unsafe class DeferredSetComponent<T> where T : unmanaged
 {
-    private static readonly DeferredCommandAction ApplyAction = ApplySetComponent;
+    private static readonly CommandAction ApplyAction = ApplySetComponent;
     public readonly struct Payload
     {
         public readonly Id Entity;
@@ -17,7 +18,7 @@ internal static unsafe class DeferredSetComponent<T> where T : unmanaged
         }
     }
 
-    public static (DeferredCommandAction, Payload) Make(ref Id id, ref T component)
+    public static (CommandAction, Payload) Make(ref Id id, ref T component)
     {
         return (ApplyAction, new Payload(id, component));
     }

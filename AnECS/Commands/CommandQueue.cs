@@ -1,20 +1,20 @@
 using System.Runtime.CompilerServices;
 
-namespace AnECS;
+namespace AnECS.Commands;
 
 
-unsafe delegate void DeferredCommandAction(World world, void* payload);
+unsafe delegate void CommandAction(World world, void* payload);
 
 
-internal sealed class DeferredCommandQueue
+internal sealed class CommandQueue
 {
-    private readonly List<DeferredCommand> _commands;
+    private readonly List<Command> _commands;
     private byte[] _payload;
     private int _used;
 
-    public DeferredCommandQueue()
+    public CommandQueue()
     {
-        _commands = new List<DeferredCommand>();
+        _commands = new List<Command>();
         _payload = new byte[1024];
         _used = 0;
     }
@@ -31,7 +31,7 @@ internal sealed class DeferredCommandQueue
         }
     }
 
-    public unsafe void Write<T>(ref T value, DeferredCommandAction action)
+    public unsafe void Write<T>(ref T value, CommandAction action)
         where T : unmanaged
     {
         int size = sizeof(T);
@@ -41,7 +41,7 @@ internal sealed class DeferredCommandQueue
         {
             void* dest = pBase + _used;
             Buffer.MemoryCopy(Unsafe.AsPointer(ref value), dest, size, size);
-            _commands.Add(new DeferredCommand(action, _used));
+            _commands.Add(new Command(action, _used));
         }
 
         _used += size;

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using AnECS.Commands;
 
 namespace AnECS;
 
@@ -29,28 +30,13 @@ public interface IWorld
         where T2 : unmanaged;
 }
 
-internal readonly struct WorldDeferredCommandsScope : IDisposable
-{
-    private readonly World _world;
-
-    public WorldDeferredCommandsScope(World world)
-    {
-        _world = world;
-    }
-
-    public void Dispose()
-    {
-        _world.EndDeferringCommands();
-    }
-}
-
 internal sealed class World : IWorld
 {
     private uint _nextId = 1;
     private readonly Dictionary<Id, EntityLocation> _entityIndices;
     private readonly ArchetypeManager _archetypes;
     private readonly WorldSystemScheduler _systemScheduler;
-    private DeferredCommandQueue _deferredCommandQueue;
+    private CommandQueue _commands;
     private bool _deferredMode;
 
     internal World()
@@ -58,7 +44,7 @@ internal sealed class World : IWorld
         _entityIndices = new Dictionary<Id, EntityLocation>();
         _archetypes = new ArchetypeManager();
         _systemScheduler = new WorldSystemScheduler();
-        _deferredCommandQueue = new DeferredCommandQueue();
+        _commands = new CommandQueue();
         _deferredMode = false;
     }
 
@@ -74,7 +60,7 @@ internal sealed class World : IWorld
         Debug.Assert(!_deferredMode, "World is already in deferred command mode.");
 
         _deferredMode = true;
-        _deferredCommandQueue.Clear();
+        _commands.Clear();
         return new WorldDeferredCommandsScope(this);
     }
 
@@ -83,7 +69,7 @@ internal sealed class World : IWorld
         Debug.Assert(_deferredMode, "World is not in deferred command mode.");
 
         _deferredMode = false;
-        _deferredCommandQueue.ApplyAndClear(this);
+        _commands.ApplyAndClear(this);
     }
 
     public void ExecuteSystems(float deltaTime)
@@ -110,7 +96,7 @@ internal sealed class World : IWorld
     {
         if (_deferredMode)
         {
-            _deferredCommandQueue.EnqueueAddEntity(id);
+            _commands.AddEntity(id);
             return;
         }
 
@@ -132,7 +118,7 @@ internal sealed class World : IWorld
     {
         if (_deferredMode)
         {
-            _deferredCommandQueue.EnqueueAddEntity(id, c1);
+            _commands.AddEntity(id, c1);
             return;
         }
 
@@ -159,7 +145,7 @@ internal sealed class World : IWorld
     {
         if (_deferredMode)
         {
-            _deferredCommandQueue.EnqueueAddEntity(ref id, ref c1, ref c2);
+            _commands.AddEntity(ref id, ref c1, ref c2);
             return;
         }
 
@@ -173,7 +159,7 @@ internal sealed class World : IWorld
     {
         if (_deferredMode)
         {
-            _deferredCommandQueue.EnqueueRemoveEntity(id);
+            _commands.RemoveEntity(id);
             return;
         }
 

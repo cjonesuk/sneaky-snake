@@ -1,10 +1,11 @@
 using System.Runtime.CompilerServices;
+using AnECS.Commands;
 
 namespace AnECS;
 
 unsafe static class DeferredRemoveEntityCommand
 {
-    private static readonly DeferredCommandAction ApplyAction = ApplyRemoveEntity;
+    private static readonly CommandAction ApplyAction = ApplyRemoveEntity;
 
     public struct Payload
     {
@@ -16,7 +17,7 @@ unsafe static class DeferredRemoveEntityCommand
         }
     }
 
-    public static (DeferredCommandAction, Payload) Make(ref Id id)
+    public static (CommandAction, Payload) Make(ref Id id)
     {
         var payload = new Payload(id);
         return (ApplyAction, payload);

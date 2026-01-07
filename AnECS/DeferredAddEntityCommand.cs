@@ -1,10 +1,11 @@
 using System.Runtime.CompilerServices;
+using AnECS.Commands;
 
-namespace AnECS;
+namespace AnECS.DeferredCommands;
 
 unsafe static class DeferredAddEntityCommand
 {
-    private static readonly DeferredCommandAction ApplyAction = ApplyCreateEntity;
+    private static readonly CommandAction ApplyAction = ApplyCreateEntity;
 
     public struct Payload
     {
@@ -16,7 +17,7 @@ unsafe static class DeferredAddEntityCommand
         }
     }
 
-    public static (DeferredCommandAction, Payload) Make(ref Id id)
+    public static (CommandAction, Payload) Make(ref Id id)
     {
         var payload = new Payload(id);
         return (ApplyAction, payload);
@@ -31,7 +32,7 @@ unsafe static class DeferredAddEntityCommand
 
 unsafe static class DeferredAddEntityCommand<T1> where T1 : unmanaged
 {
-    private static readonly DeferredCommandAction ApplyAction = ApplyCreateEntity;
+    private static readonly CommandAction ApplyAction = ApplyCreateEntity;
 
     public struct Payload
     {
@@ -45,7 +46,7 @@ unsafe static class DeferredAddEntityCommand<T1> where T1 : unmanaged
         }
     }
 
-    public static (DeferredCommandAction, Payload) Make(ref Id id, ref T1 c1)
+    public static (CommandAction, Payload) Make(ref Id id, ref T1 c1)
     {
         var payload = new Payload(id, c1);
         return (ApplyAction, payload);
@@ -63,7 +64,7 @@ unsafe static class DeferredAddEntityCommand<T1, T2>
     where T1 : unmanaged
     where T2 : unmanaged
 {
-    private static readonly DeferredCommandAction ApplyAction = ApplyCreateEntity;
+    private static readonly CommandAction ApplyAction = ApplyCreateEntity;
 
     public struct Payload
     {
@@ -79,7 +80,7 @@ unsafe static class DeferredAddEntityCommand<T1, T2>
         }
     }
 
-    public static (DeferredCommandAction, Payload) Make(ref Id id, ref T1 c1, ref T2 c2)
+    public static (CommandAction, Payload) Make(ref Id id, ref T1 c1, ref T2 c2)
     {
         var payload = new Payload(id, c1, c2);
         return (ApplyAction, payload);
