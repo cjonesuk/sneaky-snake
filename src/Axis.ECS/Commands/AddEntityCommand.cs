@@ -2,10 +2,8 @@ using System.Runtime.CompilerServices;
 
 namespace Axis.ECS.Commands;
 
-unsafe static class AddEntityCommand
+static class AddEntityCommand
 {
-    private static readonly CommandAction ApplyAction = ApplyCreateEntity;
-
     public struct Payload
     {
         public Id Id;
@@ -16,13 +14,14 @@ unsafe static class AddEntityCommand
         }
     }
 
-    public static (CommandAction, Payload) Make(ref Id id)
+    public static unsafe void AddEntity(this CommandQueue queue, Id id)
     {
         var payload = new Payload(id);
-        return (ApplyAction, payload);
+
+        queue.Write(ref payload, ApplyCreateEntity);
     }
 
-    private static void ApplyCreateEntity(World world, void* payload)
+    private static unsafe void ApplyCreateEntity(World world, void* payload)
     {
         ref Payload value = ref Unsafe.AsRef<Payload>(payload);
         world.CreateEntityWithId(value.Id);

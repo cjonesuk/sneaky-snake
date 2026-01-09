@@ -2,13 +2,6 @@ namespace Axis.ECS.Commands;
 
 internal static class CommandQueueExtensions
 {
-    public static void AddEntity(this CommandQueue queue, Id id)
-    {
-        var (action, payload) = AddEntityCommand.Make(ref id);
-
-        queue.Write(ref payload, action);
-    }
-
     public static void AddEntity<T1>(this CommandQueue queue, Id id, T1 c1) where T1 : unmanaged
     {
         var (action, payload) = AddEntityCommand<T1>.Make(ref id, ref c1);
