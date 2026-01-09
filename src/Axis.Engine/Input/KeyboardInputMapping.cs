@@ -15,14 +15,14 @@ public readonly struct KeyboardInputMapping
     public readonly bool IsBlocking;
 
     /// <summary>
-    /// The action to trigger when the input condition is met.
+    /// The identifier of the action to trigger when the input condition is met.
     /// </summary>
-    public readonly InputAction Action;
+    public readonly InputActionId ActionId;
 
-    public KeyboardInputMapping(KeyboardKey primary, InputAction action, bool isBlocking = false)
+    public KeyboardInputMapping(KeyboardKey primary, InputActionId actionId, bool isBlocking = false)
     {
         Primary = primary;
-        Action = action;
+        ActionId = actionId;
         IsBlocking = isBlocking;
     }
 }

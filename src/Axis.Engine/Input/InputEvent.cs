@@ -2,12 +2,12 @@ namespace Axis.Engine.Input;
 
 public readonly struct InputEvent
 {
-    public InputAction Action { get; }
+    public InputActionId Id { get; }
     public float Value { get; }
 
-    public InputEvent(InputAction action, float value)
+    public InputEvent(InputActionId id, float value)
     {
-        Action = action;
+        Id = id;
         Value = value;
     }
 }
