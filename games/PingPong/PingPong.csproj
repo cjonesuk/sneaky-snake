@@ -5,6 +5,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>PingPong</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Axis.Engine/Axis.Engine.csproj" />
+  </ItemGroup>
 
 </Project>

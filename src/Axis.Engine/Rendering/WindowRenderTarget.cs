@@ -44,12 +44,13 @@ internal sealed class WindowRenderTarget
             ref var viewport = ref _viewports[index];
             ref var viewportInternal = ref _viewportInternals[index];
 
-            if (viewportInternal.RenderPass == null)
-            {
-                viewportInternal.RenderPass = viewport.Camera.World.CreateRenderPass();
-            }
 
-            viewport.Camera.World.GenerateRenderCommandsForCamera(viewportInternal.RenderPass, viewport.Camera);
+            // if (viewportInternal.RenderPass == null)
+            // {
+            //     viewportInternal.RenderPass = viewport.Camera.World.CreateRenderPass();
+            // }
+
+            // viewport.Camera.World.GenerateRenderCommandsForCamera(viewportInternal.RenderPass, viewport.Camera);
         }
 
         Raylib.BeginDrawing();
@@ -87,7 +88,7 @@ internal sealed class WindowRenderTarget
             Raylib.BeginMode2D(camera2d);
             Raylib.BeginScissorMode(x, y, width, height);
 
-            renderPass.Render();
+            //renderPass.Render();
 
             Raylib.EndScissorMode();
             Raylib.EndMode2D();

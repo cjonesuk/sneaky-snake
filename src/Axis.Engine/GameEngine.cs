@@ -1,24 +1,68 @@
+using Axis.Engine.Input;
+using Axis.Engine.Rendering;
+using Raylib_cs;
+
 namespace Axis.Engine;
+
+public record Settings(int ScreenWidth, int ScreenHeight, string Title);
+
+public interface IGameInstance
+{
+    void OnEngineStart(IGameEngine engine);
+    void OnEngineStop(IGameEngine engine);
+}
 
 public interface IGameEngine
 {
+    Settings Settings { get; }
+    IDeviceManager Devices { get; }
 
 }
 
+public delegate IGameInstance GameInstanceFactory(IGameEngine engine);
+
 public sealed class GameEngine : IGameEngine
 {
-    internal GameEngine()
+    private readonly IDeviceManager _devices;
+    private readonly Settings _settings;
+    private readonly WindowRenderTarget _window;
+
+    internal GameEngine(IDeviceManager devices, WindowRenderTarget window, Settings settings)
     {
+        _devices = devices;
+        _window = window;
+        _settings = settings;
     }
 
-    public static GameEngine Create()
+    public static GameEngine Create(Settings settings)
     {
-        return new GameEngine();
+        var devices = new DeviceManager();
+        var window = new WindowRenderTarget(Color.SkyBlue);
+
+        return new GameEngine(devices, window, settings);
     }
 
-    public void Run()
-    {
+    public Settings Settings => _settings;
+    public IDeviceManager Devices => _devices;
 
+    public void Run(IGameInstance game)
+    {
+        game.OnEngineStart(this);
+
+        Raylib.InitWindow(_settings.ScreenWidth, _settings.ScreenHeight, _settings.Title);
+
+        while (!Raylib.WindowShouldClose())
+        {
+            float deltaTime = Raylib.GetFrameTime();
+
+            _devices.Poll();
+
+            _window.Render();
+        }
+
+        game.OnEngineStop(this);
+
+        Raylib.CloseWindow();
     }
 
 }
