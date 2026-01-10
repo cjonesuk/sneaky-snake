@@ -4,12 +4,6 @@ namespace Axis.ECS.Commands;
 
 using static CommandQueue<World, WorldCommand>;
 
-
-public readonly struct CommandBase<TContext, TCommand>
-{
-
-}
-
 internal readonly struct WorldCommand
 {
     public readonly CommandAction Apply;

@@ -1,41 +1,11 @@
+using System.Numerics;
 using Axis.ECS;
 using Axis.Engine.Components;
 using Engine.Components;
+using Raylib_cs;
 
 namespace Axis.Engine.Rendering;
 
-
-
-public readonly record struct LayerId(int Value);
-
-public sealed class RenderPassManager
-{
-    private readonly Dictionary<LayerId, RenderPass> _passes;
-
-    public RenderPassManager()
-    {
-        _passes = new Dictionary<LayerId, RenderPass>();
-    }
-
-    public RenderPass GetOrCreatePass(LayerId layer)
-    {
-        if (!_passes.TryGetValue(layer, out var pass))
-        {
-            pass = new RenderPass();
-            _passes[layer] = pass;
-        }
-
-        return pass;
-    }
-}
-
-/// <summary>
-/// 
-/// </summary>
-public sealed class RenderPass
-{
-
-}
 
 internal sealed class WorldRenderManager
 {
@@ -43,18 +13,33 @@ internal sealed class WorldRenderManager
     {
     }
 
-    public void Render(IWorld world, Camera2dRenderView view, RenderPassManager renderPasses)
+    public void GenerateRenderCommands(IWorld world, Camera2dRenderView view, RenderCommandQueue renderCommands)
     {
         // Problems
         // 1. Need access to context within queries
         // 2. Need to define render passes
-        // 3. Need to define render queues within passes
-        // 4. Need to make render commands
+        // 3. Need to define render queues within passes 
 
         world.QueryEach((ref Id id, ref Transform2d transform, ref BasicShape shape) =>
         {
+            var position = transform.Position;
+            var size = shape.HalfExtents;
+            var rotation = transform.Rotation;
+            var color = shape.Color;
+            var type = shape.Type;
 
+            switch (type)
+            {
+                case ShapeType.Circle:
+                    return;
 
+                case ShapeType.Rectangle:
+                    Vector2 origin = new Vector2(size.X / 2, size.Y / 2);
+                    Rectangle rect = new Rectangle(position.X - size.X / 2, position.Y - size.Y / 2, size.X, size.Y);
+
+                    renderCommands.AddRectangle(ref rect, ref origin, rotation, color, 0);
+                    break;
+            }
         });
     }
 }
