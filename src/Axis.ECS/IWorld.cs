@@ -5,6 +5,11 @@ public interface IWorld
     WorldSystemScheduler Systems { get; }
 
     Entity CreateEntity();
+    Entity CreateEntity<T1>(T1 c1) where T1 : unmanaged;
+    Entity CreateEntity<T1, T2>(T1 c1, T2 c2)
+        where T1 : unmanaged
+        where T2 : unmanaged;
+
     void RemoveEntity(Id id);
     EntityType GetEntityType(Id id);
     bool IsEntityAlive(Id id);

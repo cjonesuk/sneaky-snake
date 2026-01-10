@@ -1,7 +1,11 @@
 using System.Diagnostics;
+using System.Numerics;
 using Axis.ECS;
 using Axis.Engine;
+using Axis.Engine.Components;
 using Axis.Engine.Input;
+using Axis.Engine.Rendering;
+using Engine.Components;
 using Raylib_cs;
 namespace PingPong;
 
@@ -75,11 +79,29 @@ internal interface IGameMode
     void Deactivate();
 }
 
+internal static class WorldExtensions
+{
+    public static Entity SpawnCamera2d(this IWorld world, Vector2 position, float zoom)
+    {
+        return world.CreateEntity(new Transform2d(position), new Camera2d(zoom));
+    }
+
+    public static Entity SpawnBall(this IWorld world, Vector2 position, Color color)
+    {
+        return world.CreateEntity(
+            new Transform2d(position),
+            new BasicShape(ShapeType.Circle, new Vector2(10f, 10f),
+            color));
+    }
+}
+
 internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
 {
     private readonly IPingPongGame _game;
     private readonly IGameEngine _engine;
     private readonly IWorld _world;
+    private readonly Entity _camera;
+    private readonly Entity _ball;
 
 
     public StartMenuGameMode(IPingPongGame game, IGameEngine engine)
@@ -87,6 +109,8 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
         _game = game;
         _engine = engine;
         _world = World.Create();
+        _camera = _world.SpawnCamera2d(new Vector2(400, 300), 1.0f);
+        _ball = _world.SpawnBall(new Vector2(400, 300), Color.Red);
     }
 
     public void Activate()
@@ -101,6 +125,11 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
                     new KeyboardInputMapping(KeyboardKey.Enter, StartMenuActions.StartGame)
                 ]
             )
+        ]);
+
+        _engine.SetViewports(
+        [
+            Viewport.Fullscreen(_camera)
         ]);
 
         Console.WriteLine("Start Menu Activated");

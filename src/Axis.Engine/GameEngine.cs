@@ -21,6 +21,8 @@ public interface IGameEngine
     void SetWorld(IWorld world);
     void ClearWorld();
 
+    void SetViewports(Viewport[] viewports);
+
 }
 
 
@@ -53,6 +55,11 @@ public sealed class GameEngine : IGameEngine
     public void SetWorld(IWorld world)
     {
         _world = world;
+    }
+
+    public void SetViewports(Viewport[] viewports)
+    {
+        _window.SetViewports(viewports);
     }
 
     public void ClearWorld()

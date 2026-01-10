@@ -6,17 +6,16 @@ namespace Axis.Engine.Rendering;
 
 using static CommandQueue<RenderContext, RenderCommand>;
 
-internal static class RectangleRenderCommand
+internal static class CircleRenderCommand
 {
-    public static void AddRectangle(
+    public static void AddCircle(
         this RenderCommandQueue queue,
-        ref Rectangle rect,
-         ref Vector2 origin,
-         float rotation,
+        ref Vector2 center,
+         float radius,
          Color color,
          int zOrder)
     {
-        var payload = new Payload(rect, origin, rotation, color);
+        var payload = new Payload(center, radius, color);
 
         queue.Write(ref payload, Apply, zOrder);
     }
@@ -25,14 +24,13 @@ internal static class RectangleRenderCommand
     {
         ref Payload value = ref payload.GetRef<Payload>();
 
-        Raylib.DrawRectanglePro(value.Rec, value.Origin, value.Rotation, value.Color);
+        Raylib.DrawCircleV(value.Center, value.Radius, value.Color);
     };
 
-    internal struct Payload(Rectangle rec, Vector2 origin, float rotation, Color color)
+    internal struct Payload(Vector2 center, float radius, Color color)
     {
-        public Rectangle Rec = rec;
-        public Vector2 Origin = origin;
-        public float Rotation = rotation;
+        public Vector2 Center = center;
+        public float Radius = radius;
         public Color Color = color;
     }
 }

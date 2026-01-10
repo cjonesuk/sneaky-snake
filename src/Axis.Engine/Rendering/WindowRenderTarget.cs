@@ -6,7 +6,7 @@ namespace Axis.Engine.Rendering;
 
 internal struct ViewportInternal
 {
-    public RenderPass? RenderPass;
+    //public RenderPass? RenderPass;
 }
 
 internal sealed class WindowRenderTarget
@@ -38,21 +38,6 @@ internal sealed class WindowRenderTarget
 
     public void Render()
     {
-        // Populate each viewports RenderPass from its world and camera
-        for (int index = 0; index < _viewports.Length; index++)
-        {
-            ref var viewport = ref _viewports[index];
-            ref var viewportInternal = ref _viewportInternals[index];
-
-
-            // if (viewportInternal.RenderPass == null)
-            // {
-            //     viewportInternal.RenderPass = viewport.Camera.World.CreateRenderPass();
-            // }
-
-            // viewport.Camera.World.GenerateRenderCommandsForCamera(viewportInternal.RenderPass, viewport.Camera);
-        }
-
         Raylib.BeginDrawing();
 
         int renderWidth = Raylib.GetRenderWidth();
@@ -60,38 +45,34 @@ internal sealed class WindowRenderTarget
 
         Raylib.ClearBackground(_clearColor);
 
+        var renderCommands = new RenderCommandQueue();
+        var worldRenderer = new WorldRenderManager();
+
         for (int index = 0; index < _viewports.Length; index++)
         {
             ref var viewport = ref _viewports[index];
             ref var viewportInternal = ref _viewportInternals[index];
 
-            // RenderPass? renderPass = viewportInternal.RenderPass;
+            var cameraView = worldRenderer.GenerateRenderCommands(viewport.Camera, renderCommands);
 
-            // if (renderPass == null)
-            // {
-            //     continue;
-            // }
+            int x = (int)(viewport.X * renderWidth);
+            int y = (int)(viewport.Y * renderHeight);
+            int width = (int)(viewport.Width * renderWidth);
+            int height = (int)(viewport.Height * renderHeight);
+            int centerX = x + (width / 2);
+            int centerY = y + (height / 2);
 
-            // Camera2dRenderView cameraView = renderPass.GetCamera();
+            Vector2 viewportOffset = new Vector2(centerX, centerY);
 
-            // int x = (int)(viewport.X * renderWidth);
-            // int y = (int)(viewport.Y * renderHeight);
-            // int width = (int)(viewport.Width * renderWidth);
-            // int height = (int)(viewport.Height * renderHeight);
-            // int centerX = x + (width / 2);
-            // int centerY = y + (height / 2);
+            Camera2D camera2d = new Camera2D(viewportOffset, cameraView.Target, cameraView.Rotation, cameraView.Zoom);
 
-            // Vector2 viewportOffset = new Vector2(centerX, centerY);
+            Raylib.BeginMode2D(camera2d);
+            Raylib.BeginScissorMode(x, y, width, height);
 
-            // Camera2D camera2d = new Camera2D(viewportOffset, cameraView.Target, cameraView.Rotation, cameraView.Zoom);
+            renderCommands.ApplyAndClear(new RenderContext());
 
-            // Raylib.BeginMode2D(camera2d);
-            // Raylib.BeginScissorMode(x, y, width, height);
-
-            // //renderPass.Render();
-
-            // Raylib.EndScissorMode();
-            // Raylib.EndMode2D();
+            Raylib.EndScissorMode();
+            Raylib.EndMode2D();
         }
 
         Raylib.EndDrawing();
