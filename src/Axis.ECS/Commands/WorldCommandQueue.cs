@@ -22,12 +22,11 @@ internal sealed class WorldCommandQueue : CommandQueue<World, WorldCommand>
 
         byte* pBase = _payload.Ptr;
 
-        foreach (var cmd in _commands)
+        foreach (var command in _commands)
         {
-            void* payloadPtr = pBase + cmd.PayloadOffset;
-            CommandPayload payload = new CommandPayload(payloadPtr);
+            CommandPayload payload = CommandPayload.From(pBase, command.PayloadOffset);
 
-            cmd.Apply(ref world, payload);
+            command.Apply(ref world, payload);
         }
 
         Clear();

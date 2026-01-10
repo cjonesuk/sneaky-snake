@@ -3,15 +3,16 @@ using Axis.Core.Memory;
 
 namespace Axis.Core.Collections;
 
-public unsafe readonly struct CommandPayload
+public unsafe readonly struct CommandPayload(void* payloadPtr)
 {
-    private readonly void* _payloadPtr;
+    private readonly void* _payloadPtr = payloadPtr;
 
-    public CommandPayload(void* payloadPtr)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CommandPayload From(void* basePtr, int offset)
     {
-        _payloadPtr = payloadPtr;
+        void* payloadPtr = (byte*)basePtr + offset;
+        return new CommandPayload(payloadPtr);
     }
-
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref TPayload GetRef<TPayload>()
