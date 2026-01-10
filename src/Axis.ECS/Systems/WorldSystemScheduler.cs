@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Axis.ECS;
 
 public sealed class WorldSystemScheduler
@@ -14,11 +16,8 @@ public sealed class WorldSystemScheduler
         _systems.Add(system);
     }
 
-    public void ExecuteAll(ref WorldSystemData data)
+    public Span<IWorldSystem> GetSystems()
     {
-        foreach (var system in _systems)
-        {
-            system.Execute(ref data);
-        }
+        return CollectionsMarshal.AsSpan(_systems);
     }
 }

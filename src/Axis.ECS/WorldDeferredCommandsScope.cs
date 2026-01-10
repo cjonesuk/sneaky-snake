@@ -1,6 +1,6 @@
 namespace Axis.ECS;
 
-internal readonly struct WorldDeferredCommandsScope : IDisposable
+public readonly struct WorldDeferredCommandsScope : IDisposable
 {
     private readonly World _world;
 

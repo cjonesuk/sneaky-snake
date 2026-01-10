@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Axis.ECS;
 using Axis.Engine;
 using Axis.Engine.Input;
 using Raylib_cs;
@@ -78,16 +79,20 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
 {
     private readonly IPingPongGame _game;
     private readonly IGameEngine _engine;
+    private readonly IWorld _world;
 
 
     public StartMenuGameMode(IPingPongGame game, IGameEngine engine)
     {
         _game = game;
         _engine = engine;
+        _world = World.Create();
     }
 
     public void Activate()
     {
+        _engine.SetWorld(_world);
+
         _engine.Devices.KeyboardAndMouse.BindContext([
             new KeyboardInputContext(
                 this,
@@ -104,6 +109,8 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
     public void Deactivate()
     {
         _engine.Devices.KeyboardAndMouse.ClearContext();
+        _engine.ClearWorld();
+
         Console.WriteLine("Start Menu Deactivated");
     }
 

@@ -1,20 +1,22 @@
+using Axis.Core.Collections;
+
 namespace Axis.ECS.Commands;
 
-unsafe static class ClearAllEntitiesCommand
+internal static class ClearAllEntitiesCommand
 {
-    private static readonly CommandAction ApplyAction = ApplyClearAllEntities;
+    private static readonly WorldCommandQueue.CommandAction ApplyAction = ApplyClearAllEntities;
 
     public struct Payload
     {
     }
 
-    public static (CommandAction, Payload) Make()
+    public static void ClearAllEntities(this WorldCommandQueue queue)
     {
         var payload = new Payload();
-        return (ApplyAction, payload);
+        queue.Write(ref payload, ApplyAction);
     }
 
-    private static void ApplyClearAllEntities(World world, void* payload)
+    private static void ApplyClearAllEntities(ref World world, CommandPayload payload)
     {
         world.ClearAll();
     }

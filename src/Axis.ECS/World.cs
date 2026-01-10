@@ -3,13 +3,13 @@ using Axis.ECS.Commands;
 
 namespace Axis.ECS;
 
-internal sealed class World : IWorld
+public sealed class World : IWorld
 {
     private uint _nextId = 1;
     private readonly Dictionary<Id, EntityLocation> _entityIndices;
     private readonly ArchetypeManager _archetypes;
     private readonly WorldSystemScheduler _systemScheduler;
-    private CommandQueue _commands;
+    private WorldCommandQueue _commands;
     private bool _deferredMode;
 
     internal World()
@@ -17,7 +17,7 @@ internal sealed class World : IWorld
         _entityIndices = new Dictionary<Id, EntityLocation>();
         _archetypes = new ArchetypeManager();
         _systemScheduler = new WorldSystemScheduler();
-        _commands = new CommandQueue();
+        _commands = new WorldCommandQueue();
         _deferredMode = false;
     }
 
@@ -47,7 +47,13 @@ internal sealed class World : IWorld
     public void ExecuteSystems(float deltaTime)
     {
         var data = new WorldSystemData(this, deltaTime);
-        _systemScheduler.ExecuteAll(ref data);
+        var systems = _systemScheduler.GetSystems();
+
+        foreach (var system in systems)
+        {
+            using var deferredMode = BeginDeferringCommands();
+            system.Execute(ref data);
+        }
     }
 
     private Id AllocateId()
@@ -90,7 +96,7 @@ internal sealed class World : IWorld
     {
         if (_deferredMode)
         {
-            _commands.AddEntity(id, c1);
+            _commands.AddEntity(id, ref c1);
             return;
         }
 
@@ -117,7 +123,7 @@ internal sealed class World : IWorld
     {
         if (_deferredMode)
         {
-            _commands.AddEntity(ref id, ref c1, ref c2);
+            _commands.AddEntity(id, ref c1, ref c2);
             return;
         }
 

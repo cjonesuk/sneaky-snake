@@ -1,30 +1,23 @@
-using System.Runtime.CompilerServices;
+using Axis.Core.Collections;
 
 namespace Axis.ECS.Commands;
 
-unsafe static class RemoveEntityCommand
+internal static class RemoveEntityCommand
 {
-    private static readonly CommandAction ApplyAction = ApplyRemoveEntity;
-
-    public struct Payload
-    {
-        public Id Id;
-
-        public Payload(Id id)
-        {
-            Id = id;
-        }
-    }
-
-    public static (CommandAction, Payload) Make(ref Id id)
+    public static void RemoveEntity(this WorldCommandQueue queue, Id id)
     {
         var payload = new Payload(id);
-        return (ApplyAction, payload);
+        queue.Write(ref payload, ApplyAction);
     }
 
-    private static void ApplyRemoveEntity(World world, void* payload)
+    private static readonly WorldCommandQueue.CommandAction ApplyAction = (ref World world, CommandPayload payload) =>
+      {
+          ref Payload value = ref payload.GetRef<Payload>();
+          world.RemoveEntity(value.Id);
+      };
+
+    struct Payload(Id id)
     {
-        ref Payload value = ref Unsafe.AsRef<Payload>(payload);
-        world.RemoveEntity(value.Id);
+        public Id Id = id;
     }
 }

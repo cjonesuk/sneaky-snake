@@ -15,9 +15,16 @@ When rendering, the viewport is cleared and for each pass the render command lis
 
 ## Short term tasks
 
-- Create Axis.Engine project
-- Move game engine code into Axis.Engine project
-- Create pong application project
+- Create a world when starting game
+- Update the worlds during frame
+- Define basic engine components
+- Define basic PingPong components
+- Populate the scene when game start
+- Create concept of world renderer which queries ECS world and generates render commands
+- Render to the screen
+
+End Goal: Rendering the ball and paddles for PingPong
+Strech Goal: Move paddle up and down with keyboard
 
 ## Medium term tasks
 

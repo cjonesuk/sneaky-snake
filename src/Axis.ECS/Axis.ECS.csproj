@@ -8,4 +8,8 @@
     <RootNamespace>Axis.ECS</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../Axis.Core/Axis.Core.csproj" />
+  </ItemGroup>
+
 </Project>

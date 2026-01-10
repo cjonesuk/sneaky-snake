@@ -9,6 +9,8 @@ public interface IWorld
     EntityType GetEntityType(Id id);
     bool IsEntityAlive(Id id);
 
+    void ExecuteSystems(float deltaTime);
+
     void SetComponentOnEntity<T>(Id id, T component) where T : unmanaged;
     void AddComponentToEntity<T>(Id id) where T : unmanaged;
     bool EntityHasComponent<T>(Id id) where T : unmanaged;

@@ -1,22 +1,27 @@
-using System.Runtime.CompilerServices;
+using Axis.Core.Collections;
 
 namespace Axis.ECS.Commands;
 
-internal static unsafe class AddComponentCommand<T> where T : unmanaged
+internal static class AddComponentCommand
 {
-    private static readonly CommandAction ApplyAction = ApplyAddComponent;
-
-    public readonly record struct Payload(Id Id);
-
-    public static (CommandAction, Payload) Make(ref Id id)
+    struct Payload(Id id)
     {
-        var payload = new Payload(id);
-        return (ApplyAction, payload);
+        public Id Id = id;
     }
 
-    private static void ApplyAddComponent(IWorld world, void* payload)
+    public static void AddComponent<T>(this WorldCommandQueue queue, Id id)
+        where T : unmanaged
     {
-        ref Payload value = ref Unsafe.AsRef<Payload>(payload);
-        world.AddComponentToEntity<T>(value.Id);
+        var payload = new Payload(id);
+        queue.Write(ref payload, Applier<T>.ApplyAddComponent);
+    }
+
+    static class Applier<T> where T : unmanaged
+    {
+        public static readonly WorldCommandQueue.CommandAction ApplyAddComponent = (ref World world, CommandPayload payload) =>
+        {
+            ref Payload value = ref payload.GetRef<Payload>();
+            world.AddComponentToEntity<T>(value.Id);
+        };
     }
 }

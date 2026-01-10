@@ -1,3 +1,4 @@
+using Axis.ECS;
 using Axis.Engine.Input;
 using Axis.Engine.Rendering;
 using Raylib_cs;
@@ -17,15 +18,19 @@ public interface IGameEngine
     Settings Settings { get; }
     IDeviceManager Devices { get; }
 
+    void SetWorld(IWorld world);
+    void ClearWorld();
+
 }
 
-public delegate IGameInstance GameInstanceFactory(IGameEngine engine);
 
 public sealed class GameEngine : IGameEngine
 {
     private readonly IDeviceManager _devices;
     private readonly Settings _settings;
     private readonly WindowRenderTarget _window;
+
+    private IWorld? _world;
 
     internal GameEngine(IDeviceManager devices, WindowRenderTarget window, Settings settings)
     {
@@ -45,6 +50,16 @@ public sealed class GameEngine : IGameEngine
     public Settings Settings => _settings;
     public IDeviceManager Devices => _devices;
 
+    public void SetWorld(IWorld world)
+    {
+        _world = world;
+    }
+
+    public void ClearWorld()
+    {
+        _world = null;
+    }
+
     public void Run(IGameInstance game)
     {
         game.OnEngineStart(this);
@@ -56,6 +71,8 @@ public sealed class GameEngine : IGameEngine
             float deltaTime = Raylib.GetFrameTime();
 
             _devices.Poll();
+
+            _world?.ExecuteSystems(deltaTime);
 
             _window.Render();
         }

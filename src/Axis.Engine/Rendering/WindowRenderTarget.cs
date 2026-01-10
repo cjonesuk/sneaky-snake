@@ -65,33 +65,33 @@ internal sealed class WindowRenderTarget
             ref var viewport = ref _viewports[index];
             ref var viewportInternal = ref _viewportInternals[index];
 
-            RenderPass? renderPass = viewportInternal.RenderPass;
+            // RenderPass? renderPass = viewportInternal.RenderPass;
 
-            if (renderPass == null)
-            {
-                continue;
-            }
+            // if (renderPass == null)
+            // {
+            //     continue;
+            // }
 
-            Camera2dRenderView cameraView = renderPass.GetCamera();
+            // Camera2dRenderView cameraView = renderPass.GetCamera();
 
-            int x = (int)(viewport.X * renderWidth);
-            int y = (int)(viewport.Y * renderHeight);
-            int width = (int)(viewport.Width * renderWidth);
-            int height = (int)(viewport.Height * renderHeight);
-            int centerX = x + (width / 2);
-            int centerY = y + (height / 2);
+            // int x = (int)(viewport.X * renderWidth);
+            // int y = (int)(viewport.Y * renderHeight);
+            // int width = (int)(viewport.Width * renderWidth);
+            // int height = (int)(viewport.Height * renderHeight);
+            // int centerX = x + (width / 2);
+            // int centerY = y + (height / 2);
 
-            Vector2 viewportOffset = new Vector2(centerX, centerY);
+            // Vector2 viewportOffset = new Vector2(centerX, centerY);
 
-            Camera2D camera2d = new Camera2D(viewportOffset, cameraView.Target, cameraView.Rotation, cameraView.Zoom);
+            // Camera2D camera2d = new Camera2D(viewportOffset, cameraView.Target, cameraView.Rotation, cameraView.Zoom);
 
-            Raylib.BeginMode2D(camera2d);
-            Raylib.BeginScissorMode(x, y, width, height);
+            // Raylib.BeginMode2D(camera2d);
+            // Raylib.BeginScissorMode(x, y, width, height);
 
-            //renderPass.Render();
+            // //renderPass.Render();
 
-            Raylib.EndScissorMode();
-            Raylib.EndMode2D();
+            // Raylib.EndScissorMode();
+            // Raylib.EndMode2D();
         }
 
         Raylib.EndDrawing();
