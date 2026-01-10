@@ -13,6 +13,8 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
     private readonly IWorld _world;
     private readonly Entity _camera;
     private readonly Entity _ball;
+    private readonly Entity _player1Paddle;
+    private readonly Entity _player2Paddle;
 
 
     public StartMenuGameMode(IPingPongGame game, IGameEngine engine)
@@ -22,6 +24,8 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
         _world = World.Create();
         _camera = _world.SpawnCamera2d(new Vector2(400, 300), 1.0f);
         _ball = _world.SpawnBall(new Vector2(400, 300), Color.Red);
+        _player1Paddle = _world.SpawnPaddle(new Vector2(50, 300), Color.Blue);
+        _player2Paddle = _world.SpawnPaddle(new Vector2(750, 300), Color.Green);
     }
 
     public void Activate()

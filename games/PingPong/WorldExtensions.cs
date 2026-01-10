@@ -16,7 +16,7 @@ internal static class WorldExtensions
     {
         return world.CreateEntity(
             new Transform2d(position),
-            new BasicShape(ShapeType.Circle, new Vector2(10f, 10f),
+            new BasicShape(ShapeType.Circle, new Vector2(20f, 20f),
             color));
     }
 
@@ -24,6 +24,6 @@ internal static class WorldExtensions
     {
         return world.CreateEntity(
             new Transform2d(position),
-            new BasicShape(ShapeType.Rectangle, new Vector2(10f, 60f), color));
+            new BasicShape(ShapeType.Rectangle, new Vector2(20f, 100f), color));
     }
 }

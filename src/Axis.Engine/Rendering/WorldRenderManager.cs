@@ -32,7 +32,7 @@ internal sealed class WorldRenderManager
         world.QueryEach((ref Id id, ref Transform2d transform, ref BasicShape shape) =>
         {
             var position = transform.Position;
-            var size = shape.HalfExtents;
+            var halfExtents = shape.HalfExtents;
             var rotation = transform.Rotation;
             var color = shape.Color;
             var type = shape.Type;
@@ -40,12 +40,16 @@ internal sealed class WorldRenderManager
             switch (type)
             {
                 case ShapeType.Circle:
-                    renderCommands.AddCircle(ref position, size.X, color, 0);
+                    renderCommands.AddCircle(ref position, halfExtents.X, color, 0);
                     return;
 
                 case ShapeType.Rectangle:
-                    Vector2 origin = new Vector2(size.X / 2, size.Y / 2);
-                    Rectangle rect = new Rectangle(position.X - size.X / 2, position.Y - size.Y / 2, size.X, size.Y);
+                    Vector2 origin = halfExtents; // Center of the rectangle
+                    Rectangle rect = new Rectangle(
+                        position.X,
+                        position.Y,
+                        halfExtents.X * 2,
+                        halfExtents.Y * 2);
 
                     renderCommands.AddRectangle(ref rect, ref origin, rotation, color, 0);
                     break;

@@ -11,10 +11,10 @@ internal static class RectangleRenderCommand
     public static void AddRectangle(
         this RenderCommandQueue queue,
         ref Rectangle rect,
-         ref Vector2 origin,
-         float rotation,
-         Color color,
-         int zOrder)
+        ref Vector2 origin,
+        float rotation,
+        Color color,
+        int zOrder)
     {
         var payload = new Payload(rect, origin, rotation, color);
 
