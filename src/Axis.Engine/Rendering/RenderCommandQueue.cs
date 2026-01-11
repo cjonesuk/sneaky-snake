@@ -4,16 +4,16 @@ namespace Axis.Engine.Rendering;
 
 using static CommandQueue<RenderContext, RenderCommand>;
 
-struct RenderContext { }
+public struct RenderContext { }
 
-internal readonly struct RenderCommand(CommandAction apply, int payloadOffset, int zOrder)
+public readonly struct RenderCommand(CommandAction apply, int payloadOffset, int zOrder)
 {
     public readonly CommandAction Apply = apply;
     public readonly int PayloadOffset = payloadOffset;
     public readonly int ZOrder = zOrder;
 }
 
-internal sealed class RenderCommandQueue : CommandQueue<RenderContext, RenderCommand>
+public sealed class RenderCommandQueue : CommandQueue<RenderContext, RenderCommand>
 {
     public RenderCommandQueue()
     {

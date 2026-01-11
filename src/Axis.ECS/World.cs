@@ -67,7 +67,7 @@ public sealed class World : IWorld
 
         CreateEntityWithId(id);
 
-        return new Entity(this, id);
+        return Entity.Create(this, id);
     }
 
     public void CreateEntityWithId(Id id)
@@ -89,7 +89,7 @@ public sealed class World : IWorld
 
         CreateEntityWithId(ref id, ref c1);
 
-        return new Entity(this, id);
+        return Entity.Create(this, id);
     }
 
     public void CreateEntityWithId<T1>(ref Id id, ref T1 c1) where T1 : unmanaged
@@ -114,7 +114,7 @@ public sealed class World : IWorld
 
         CreateEntityWithId(ref id, ref c1, ref c2);
 
-        return new Entity(this, id);
+        return Entity.Create(this, id);
     }
 
     public void CreateEntityWithId<T1, T2>(ref Id id, ref T1 c1, ref T2 c2)

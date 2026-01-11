@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Axis.ECS;
 
 public readonly struct Id : IEquatable<Id>
@@ -11,6 +13,12 @@ public readonly struct Id : IEquatable<Id>
     public Id(uint id)
     {
         _id = id;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsValid()
+    {
+        return _id != 0; // tbd
     }
 
     public bool HasFlags(ulong flags)
