@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Numerics;
 using Axis.Engine;
+using Axis.Engine.Rendering;
 namespace PingPong;
 
 internal enum PingPongGameState
@@ -21,6 +23,19 @@ interface IPingPongGame
 
 }
 
+
+internal sealed class PingPongUiRenderer : IRenderer
+{
+    public void GenerateRenderCommands(RenderCommandQueue renderCommands, out RenderMode renderMode)
+    {
+        renderMode = RenderMode.Create2d(
+            Vector2.Zero,
+            1.0f,
+            0.0f);
+
+
+    }
+}
 
 internal sealed class PingPongGame : IPingPongGame, IGameInstance
 {
