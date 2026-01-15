@@ -20,21 +20,29 @@ public ref struct Utf8StringBuilder
 
     public void Write(string text)
     {
-        if (string.IsNullOrEmpty(text)) return;
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+
+        }
         _pos += Encoding.UTF8.GetBytes(text, _buffer[_pos..]);
     }
 
     public void WriteInt(int value)
     {
         if (!Utf8Formatter.TryFormat(value, _buffer[_pos..], out int written))
+        {
             throw new InvalidOperationException("Buffer too small");
+        }
+
         _pos += written;
     }
 
     public void WriteFloat(float value, string format = "G")
     {
-        _pos += Encoding.UTF8.GetBytes(value.ToString(format, System.Globalization.CultureInfo.InvariantCulture),
-                                       _buffer[_pos..]);
+        _pos += Encoding.UTF8.GetBytes(
+            value.ToString(format, System.Globalization.CultureInfo.InvariantCulture),
+            _buffer[_pos..]);
     }
 
     public void WriteChar(char c)
