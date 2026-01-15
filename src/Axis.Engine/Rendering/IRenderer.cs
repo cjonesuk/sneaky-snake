@@ -2,6 +2,9 @@ namespace Axis.Engine.Rendering;
 
 public interface IRenderer
 {
-    void GenerateRenderCommands(RenderCommandQueue renderCommands, out RenderMode renderMode);
+    void GenerateRenderCommands(
+        ref RenderContext context,
+        RenderCommandQueue renderCommands,
+        out RenderMode renderMode);
 }
 

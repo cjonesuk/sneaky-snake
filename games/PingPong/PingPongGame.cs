@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using System.Numerics;
+using Axis.Core.Text;
 using Axis.Engine;
 using Axis.Engine.Rendering;
+using Raylib_cs;
 namespace PingPong;
 
 internal enum PingPongGameState
@@ -26,14 +28,22 @@ interface IPingPongGame
 
 internal sealed class PingPongUiRenderer : IRenderer
 {
-    public void GenerateRenderCommands(RenderCommandQueue renderCommands, out RenderMode renderMode)
+    public void GenerateRenderCommands(
+        ref RenderContext context,
+        RenderCommandQueue renderCommands,
+        out RenderMode renderMode)
     {
         renderMode = RenderMode.Create2d(
             Vector2.Zero,
             1.0f,
             0.0f);
 
+        Span<byte> buffer = stackalloc byte[256];
+        Utf8StringBuilder sb = new Utf8StringBuilder(buffer);
+        sb.Write("Ping Pong Game");
+        var textIndex = sb.CommitTo(context.FrameResources.TextBuffer, addNull: true);
 
+        renderCommands.AddText(textIndex, new Vector2(10, 10), 20, Color.Red, 1);
     }
 }
 

@@ -25,7 +25,10 @@ public sealed class WorldRenderer : IRenderer
         _camera = camera;
     }
 
-    public void GenerateRenderCommands(RenderCommandQueue renderCommands, out RenderMode renderMode)
+    public void GenerateRenderCommands(
+        ref RenderContext context,
+        RenderCommandQueue renderCommands,
+        out RenderMode renderMode)
     {
         if (!_camera.IsValid())
         {

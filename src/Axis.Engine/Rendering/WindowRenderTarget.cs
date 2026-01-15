@@ -1,5 +1,6 @@
 
 using System.Numerics;
+using Axis.Engine.Resources;
 using Raylib_cs;
 
 namespace Axis.Engine.Rendering;
@@ -12,6 +13,7 @@ internal struct ViewportInternal
 internal sealed class WindowRenderTarget
 {
     private readonly RenderCommandQueue _renderCommands;
+    private readonly FrameResources _frameResources;
     private Viewport[] _viewports;
     private ViewportInternal[] _viewportInternals;
     private Color _clearColor;
@@ -19,6 +21,7 @@ internal sealed class WindowRenderTarget
     public WindowRenderTarget(Color clearColor)
     {
         _renderCommands = new RenderCommandQueue();
+        _frameResources = new FrameResources();
         _clearColor = clearColor;
         _viewports = [];
         _viewportInternals = [];
@@ -40,6 +43,8 @@ internal sealed class WindowRenderTarget
 
     public void Render()
     {
+        _frameResources.Reset();
+
         Raylib.BeginDrawing();
 
         int renderWidth = Raylib.GetRenderWidth();
@@ -53,7 +58,8 @@ internal sealed class WindowRenderTarget
             ref var viewportInternal = ref _viewportInternals[index];
 
             var renderer = viewport.Renderer;
-            renderer.GenerateRenderCommands(_renderCommands, out var renderMode);
+            var context = new RenderContext(_frameResources);
+            renderer.GenerateRenderCommands(ref context, _renderCommands, out var renderMode);
 
             if (renderMode.RenderType == RenderType.None)
             {
@@ -79,7 +85,7 @@ internal sealed class WindowRenderTarget
             Raylib.BeginMode2D(camera2d);
             Raylib.BeginScissorMode(x, y, width, height);
 
-            _renderCommands.ApplyAndClear(new RenderContext());
+            _renderCommands.ApplyAndClear(ref context);
 
             Raylib.EndScissorMode();
             Raylib.EndMode2D();

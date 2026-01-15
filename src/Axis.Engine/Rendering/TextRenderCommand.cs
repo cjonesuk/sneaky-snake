@@ -9,7 +9,7 @@ using static CommandQueue<RenderContext, RenderCommand>;
 
 
 
-internal static class TextRenderCommand
+public static class TextRenderCommand
 {
     public static void AddText(
         this RenderCommandQueue queue,

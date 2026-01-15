@@ -11,6 +11,7 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
     private readonly IPingPongGame _game;
     private readonly IGameEngine _engine;
     private readonly WorldRenderer _worldRenderer;
+    private readonly PingPongUiRenderer _uiRenderer;
     private readonly IWorld _world;
     private readonly Entity _camera;
     private readonly Entity _ball;
@@ -23,6 +24,7 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
         _game = game;
         _engine = engine;
         _worldRenderer = WorldRenderer.Create();
+        _uiRenderer = new PingPongUiRenderer();
         _world = World.Create();
         _camera = _world.SpawnCamera2d(new Vector2(400, 300), 1.0f);
         _ball = _world.SpawnBall(new Vector2(400, 300), Color.Red);
@@ -48,7 +50,8 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
 
         _engine.SetViewports(
         [
-            Viewport.Fullscreen(_worldRenderer)
+            Viewport.Fullscreen(_worldRenderer),
+            Viewport.Fullscreen(_uiRenderer)
         ]);
 
         Console.WriteLine("Start Menu Activated");
