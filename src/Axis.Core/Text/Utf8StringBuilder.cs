@@ -18,14 +18,25 @@ public ref struct Utf8StringBuilder
 
     public readonly int Length => _pos;
 
-    public void Write(string text)
+    public void Write(ReadOnlySpan<char> text)
     {
-        if (string.IsNullOrEmpty(text))
+        if (text.IsEmpty)
         {
             return;
-
         }
+
         _pos += Encoding.UTF8.GetBytes(text, _buffer[_pos..]);
+    }
+
+    public void Write(ReadOnlySpan<byte> utf8)
+    {
+        if (utf8.IsEmpty)
+        {
+            return;
+        }
+
+        utf8.CopyTo(_buffer[_pos..]);
+        _pos += utf8.Length;
     }
 
     public void WriteInt(int value)
