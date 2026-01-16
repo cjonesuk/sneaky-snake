@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Axis.ECS;
 
-internal sealed class Archetype
+public sealed class Archetype
 {
     private readonly Dictionary<ComponentTypeId, int> _componentTypeIdToColumnIndex;
     private readonly IComponentValues[] _componentColumns;
@@ -231,6 +231,19 @@ internal sealed class Archetype
     {
         var column = FindComponentColumn<T>().AsSpan();
         return ref column[index];
+    }
+
+    internal bool TryGetComponentRef<T>(int index, [NotNullWhen(true)] out Ref<T> component) where T : unmanaged
+    {
+        if (!TryFindComponentColumn<T>(out var column))
+        {
+            component = default;
+            return false;
+        }
+
+        var span = column.AsSpan();
+        component = new Ref<T>(ref span[index]);
+        return true;
     }
 
     internal void RemoveEntity(int index)

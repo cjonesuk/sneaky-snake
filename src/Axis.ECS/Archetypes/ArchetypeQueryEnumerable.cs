@@ -1,23 +1,26 @@
 namespace Axis.ECS;
 
-ref struct ArchetypeColumnSpans
+ref struct ArchetypeColumnSpans(Archetype archetype, Span<Id> entityIds)
 {
-    public Span<Id> EntityIds;
+    public Archetype Archetype = archetype;
+    public Span<Id> EntityIds = entityIds;
 }
 
-ref struct ArchetypeColumnSpans<T1> where T1 : unmanaged
+ref struct ArchetypeColumnSpans<T1>(Archetype archetype, Span<Id> entityIds, Span<T1> col1) where T1 : unmanaged
 {
-    public Span<Id> EntityIds;
-    public Span<T1> Col1;
+    public Archetype Archetype = archetype;
+    public Span<Id> EntityIds = entityIds;
+    public Span<T1> Col1 = col1;
 }
 
-ref struct ArchetypeColumnSpans<T1, T2>
+ref struct ArchetypeColumnSpans<T1, T2>(Archetype archetype, Span<Id> entityIds, Span<T1> col1, Span<T2> col2)
     where T1 : unmanaged
     where T2 : unmanaged
 {
-    public Span<Id> EntityIds;
-    public Span<T1> Col1;
-    public Span<T2> Col2;
+    public Archetype Archetype = archetype;
+    public Span<Id> EntityIds = entityIds;
+    public Span<T1> Col1 = col1;
+    public Span<T2> Col2 = col2;
 }
 
 
@@ -44,7 +47,7 @@ ref struct ArchetypeQueryEnumerator
             if (!a.TryGetColumnSpans(out var e))
                 continue;
 
-            _current = new ArchetypeColumnSpans { EntityIds = e };
+            _current = new ArchetypeColumnSpans(a, e);
             return true;
         }
 
@@ -77,7 +80,7 @@ ref struct ArchetypeQueryEnumerator<T1> where T1 : unmanaged
             if (!a.TryGetColumnSpans<T1>(out var e, out var t1))
                 continue;
 
-            _current = new ArchetypeColumnSpans<T1> { EntityIds = e, Col1 = t1 };
+            _current = new ArchetypeColumnSpans<T1>(a, e, t1);
             return true;
         }
 
@@ -111,12 +114,7 @@ ref struct ArchetypeQueryEnumerator<T1, T2>
             if (!a.TryGetColumnSpans<T1, T2>(out var e, out var t1, out var t2))
                 continue;
 
-            _current = new ArchetypeColumnSpans<T1, T2>
-            {
-                EntityIds = e,
-                Col1 = t1,
-                Col2 = t2
-            };
+            _current = new ArchetypeColumnSpans<T1, T2>(a, e, t1, t2);
             return true;
         }
 

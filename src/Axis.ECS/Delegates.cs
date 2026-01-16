@@ -15,10 +15,16 @@ public delegate void QueryEachEntityAction<TContext, T1, T2>(ref TContext contex
     where T1 : unmanaged
     where T2 : unmanaged;
 
-public readonly ref struct Iter(Span<Id> ids, int index)
+public readonly ref struct Iter(Archetype archetype, Span<Id> ids, int index)
 {
+    private readonly Archetype _archetype = archetype;
     private readonly Span<Id> _ids = ids;
     private readonly int _index = index;
 
     public ref Id Id => ref _ids[_index];
+
+    public bool TryGetComponent<T>(out Ref<T> componentRef) where T : unmanaged
+    {
+        return _archetype.TryGetComponentRef<T>(_index, out componentRef);
+    }
 };

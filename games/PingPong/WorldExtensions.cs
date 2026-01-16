@@ -27,8 +27,10 @@ internal static class WorldExtensions
             new Transform2d(position),
             new BasicShape(ShapeType.Rectangle, new Vector2(20f, 100f), color));
 
+        // todo: Extend CreateEntity to accept more components
         Console.WriteLine("WARNING: Need to extend CreateEntity");
         paddle.Set(new PossessedByPlayer(playerNumber));
+        paddle.Set(new Paddle(500));
 
         return paddle;
     }

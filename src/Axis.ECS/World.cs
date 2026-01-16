@@ -288,7 +288,7 @@ public sealed class World : IWorld
         {
             for (int index = 0; index < archetype.EntityIds.Length; index++)
             {
-                Iter iter = new Iter(archetype.EntityIds, index);
+                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
                 action(ref context, ref iter);
             }
         }
@@ -300,7 +300,7 @@ public sealed class World : IWorld
         {
             for (int index = 0; index < archetype.EntityIds.Length; index++)
             {
-                Iter iter = new Iter(archetype.EntityIds, index);
+                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
                 action(ref context, ref iter, ref archetype.Col1[index]);
             }
         }
@@ -314,7 +314,7 @@ public sealed class World : IWorld
         {
             for (int index = 0; index < archetype.EntityIds.Length; index++)
             {
-                Iter iter = new Iter(archetype.EntityIds, index);
+                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
                 action(ref context,
                        ref iter,
                        ref archetype.Col1[index],
