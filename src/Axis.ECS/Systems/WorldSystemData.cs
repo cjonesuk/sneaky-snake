@@ -1,3 +1,3 @@
 namespace Axis.ECS;
 
-public record struct WorldSystemData(IWorld World, float deltaTime);
+public record struct WorldSystemContext(IWorld World, float DeltaTime);

@@ -46,7 +46,7 @@ public sealed class World : IWorld
 
     public void ExecuteSystems(float deltaTime)
     {
-        var data = new WorldSystemData(this, deltaTime);
+        var data = new WorldSystemContext(this, deltaTime);
         var systems = _systemScheduler.GetSystems();
 
         foreach (var system in systems)
@@ -264,48 +264,49 @@ public sealed class World : IWorld
     }
 
 
-    public void QueryAll<T1>(QueryAllEntitiesAction<T1> action) where T1 : unmanaged
+    public void QueryAll<TContext, T1>(ref TContext context, QueryAllEntitiesAction<TContext, T1> action) where T1 : unmanaged
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1>())
         {
-            action(archetype.EntityIds, archetype.Col1);
+            action(ref context, archetype.EntityIds, archetype.Col1);
         }
     }
 
-    public void QueryAll<T1, T2>(QueryAllEntitiesAction<T1, T2> action)
+    public void QueryAll<TContext, T1, T2>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2> action)
         where T1 : unmanaged
         where T2 : unmanaged
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1, T2>())
         {
-            action(archetype.EntityIds, archetype.Col1, archetype.Col2);
+            action(ref context, archetype.EntityIds, archetype.Col1, archetype.Col2);
         }
     }
 
-    public void QueryEach(QueryEachEntityAction action)
+    public void QueryEach<TContext>(ref TContext context, QueryEachEntityAction<TContext> action)
     {
         foreach (var archetype in _archetypes.QueryArchetypes())
         {
             for (int index = 0; index < archetype.EntityIds.Length; index++)
             {
-                action(ref archetype.EntityIds[index]);
+                Iter iter = new Iter(archetype.EntityIds, index);
+                action(ref context, ref iter);
             }
         }
-
     }
 
-    public void QueryEach<T1>(QueryEachEntityAction<T1> action) where T1 : unmanaged
+    public void QueryEach<TContext, T1>(ref TContext context, QueryEachEntityAction<TContext, T1> action) where T1 : unmanaged
     {
         foreach (var archetype in _archetypes.QueryArchetypes<T1>())
         {
             for (int index = 0; index < archetype.EntityIds.Length; index++)
             {
-                action(ref archetype.EntityIds[index], ref archetype.Col1[index]);
+                Iter iter = new Iter(archetype.EntityIds, index);
+                action(ref context, ref iter, ref archetype.Col1[index]);
             }
         }
     }
 
-    public void QueryEach<T1, T2>(QueryEachEntityAction<T1, T2> action)
+    public void QueryEach<TContext, T1, T2>(ref TContext context, QueryEachEntityAction<TContext, T1, T2> action)
         where T1 : unmanaged
         where T2 : unmanaged
     {
@@ -313,7 +314,9 @@ public sealed class World : IWorld
         {
             for (int index = 0; index < archetype.EntityIds.Length; index++)
             {
-                action(ref archetype.EntityIds[index],
+                Iter iter = new Iter(archetype.EntityIds, index);
+                action(ref context,
+                       ref iter,
                        ref archetype.Col1[index],
                        ref archetype.Col2[index]);
             }

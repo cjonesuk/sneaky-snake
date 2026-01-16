@@ -23,14 +23,14 @@ public interface IWorld
     void RemoveComponentFromEntity<T>(Id id) where T : unmanaged;
     ref T GetComponentFromEntity<T>(Id id) where T : unmanaged;
 
-    void QueryAll<T1>(QueryAllEntitiesAction<T1> action) where T1 : unmanaged;
-    void QueryAll<T1, T2>(QueryAllEntitiesAction<T1, T2> action)
+    void QueryAll<TContext, T1>(ref TContext context, QueryAllEntitiesAction<TContext, T1> action) where T1 : unmanaged;
+    void QueryAll<TContext, T1, T2>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2> action)
         where T1 : unmanaged
         where T2 : unmanaged;
 
-    void QueryEach<T1>(QueryEachEntityAction<T1> action)
+    void QueryEach<TContext, T1>(ref TContext context, QueryEachEntityAction<TContext, T1> action)
          where T1 : unmanaged;
-    void QueryEach<T1, T2>(QueryEachEntityAction<T1, T2> action)
+    void QueryEach<TContext, T1, T2>(ref TContext context, QueryEachEntityAction<TContext, T1, T2> action)
         where T1 : unmanaged
         where T2 : unmanaged;
 }

@@ -5,9 +5,10 @@ namespace Axis.Engine.Rendering;
 
 using static CommandQueue<RenderContext, RenderCommand>;
 
-public readonly struct RenderContext(FrameResources frameResources)
+public readonly struct RenderContext(FrameResources frameResources, RenderCommandQueue renderCommands)
 {
     public readonly FrameResources FrameResources = frameResources;
+    public readonly RenderCommandQueue RenderCommands = renderCommands;
 }
 
 public readonly struct RenderCommand(CommandAction apply, int payloadOffset, int zOrder)

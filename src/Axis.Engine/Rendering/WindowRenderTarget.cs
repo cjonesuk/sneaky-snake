@@ -58,8 +58,8 @@ internal sealed class WindowRenderTarget
             ref var viewportInternal = ref _viewportInternals[index];
 
             var renderer = viewport.Renderer;
-            var context = new RenderContext(_frameResources);
-            renderer.GenerateRenderCommands(ref context, _renderCommands, out var renderMode);
+            var context = new RenderContext(_frameResources, _renderCommands);
+            renderer.GenerateRenderCommands(ref context, out var renderMode);
 
             if (renderMode.RenderType == RenderType.None)
             {

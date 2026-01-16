@@ -8,7 +8,6 @@ internal sealed class PingPongUiRenderer : IRenderer
 {
     public void GenerateRenderCommands(
         ref RenderContext context,
-        RenderCommandQueue renderCommands,
         out RenderMode renderMode)
     {
         renderMode = RenderMode.Create2d(
@@ -21,6 +20,6 @@ internal sealed class PingPongUiRenderer : IRenderer
         sb.Write("Ping Pong Game");
         var textIndex = sb.CommitTo(context.FrameResources.TextBuffer, addNull: true);
 
-        renderCommands.AddText(textIndex, new Vector2(10, 10), 20, Color.Red, 1);
+        context.RenderCommands.AddText(textIndex, new Vector2(10, 10), 20, Color.Red, 1);
     }
 }

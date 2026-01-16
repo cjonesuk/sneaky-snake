@@ -27,7 +27,6 @@ public sealed class WorldRenderer : IRenderer
 
     public void GenerateRenderCommands(
         ref RenderContext context,
-        RenderCommandQueue renderCommands,
         out RenderMode renderMode)
     {
         if (!_camera.IsValid())
@@ -52,7 +51,7 @@ public sealed class WorldRenderer : IRenderer
         var world = _camera.World;
 
 
-        world.QueryEach((ref Id id, ref Transform2d transform, ref BasicShape shape) =>
+        world.QueryEach(ref context, (ref RenderContext context, ref Iter iter, ref Transform2d transform, ref BasicShape shape) =>
         {
             var position = transform.Position;
             var halfExtents = shape.HalfExtents;
@@ -63,7 +62,7 @@ public sealed class WorldRenderer : IRenderer
             switch (type)
             {
                 case ShapeType.Circle:
-                    renderCommands.AddCircle(ref position, halfExtents.X, color, 0);
+                    context.RenderCommands.AddCircle(ref position, halfExtents.X, color, 0);
                     return;
 
                 case ShapeType.Rectangle:
@@ -74,7 +73,7 @@ public sealed class WorldRenderer : IRenderer
                         halfExtents.X * 2,
                         halfExtents.Y * 2);
 
-                    renderCommands.AddRectangle(ref rect, ref origin, rotation, color, 0);
+                    context.RenderCommands.AddRectangle(ref rect, ref origin, rotation, color, 0);
                     break;
             }
         });
