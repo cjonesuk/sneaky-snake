@@ -154,6 +154,31 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
                 }
             });
 
+        _world
+            .System<Transform2d, Ball, BasicShape>()
+            .ForEach((ref context, ref iter, ref transform, ref ball, ref shape) =>
+            {
+                float deltaTime = context.DeltaTime;
+                transform.Position += ball.Direction * ball.Speed * deltaTime;
+
+                // Bounce off top and bottom of screen
+                var topY = transform.Position.Y - shape.HalfExtents.Y;
+                var bottomY = transform.Position.Y + shape.HalfExtents.Y;
+                var leftX = transform.Position.X - shape.HalfExtents.X;
+                var rightX = transform.Position.X + shape.HalfExtents.X;
+
+                if (topY < 0 || bottomY > 600)
+                {
+                    ball.Direction.Y = -ball.Direction.Y;
+                }
+
+                // Bounce off screen bounds
+                if (leftX < 0 || rightX > 800)
+                {
+                    ball.Direction.X = -ball.Direction.X;
+                }
+            });
+
     }
 
 
