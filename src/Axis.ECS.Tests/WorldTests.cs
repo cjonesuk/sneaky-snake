@@ -70,7 +70,7 @@ public class WorldTests
         var entity1 = world.CreateEntity(new Position(1.0f, 2.0f), new Velocity(0.5f, 0.25f));
         var entity2 = world.CreateEntity(new Position(3.0f, 4.0f));
 
-        world.ClearAll();
+        world.RemoveAllEntities();
 
         entity1.IsAlive().ShouldBeFalse();
         entity2.IsAlive().ShouldBeFalse();

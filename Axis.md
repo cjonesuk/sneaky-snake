@@ -15,6 +15,8 @@ When rendering, the viewport is cleared and for each pass the render command lis
 
 ## Short term tasks
 
+- Implement clearing a world
+- Implement input action buffering
 - Define basic engine components
 - Define basic PingPong components
 - Populate the scene when game start

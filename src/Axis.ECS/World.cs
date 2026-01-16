@@ -149,7 +149,7 @@ public sealed class World : IWorld
     /// <summary>
     /// Clears all entities and components from the world without removing archetypes or resizing underlying collections.
     /// </summary>
-    public void ClearAll()
+    public void RemoveAllEntities()
     {
         if (_deferredMode)
         {

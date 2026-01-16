@@ -7,6 +7,11 @@ public static class WorldExtensions
         world.Systems.AddSystem(system);
     }
 
+    public static void RemoveAllSystems(this IWorld world)
+    {
+        world.Systems.RemoveAllSystems();
+    }
+
     public static SystemBuilder<T1> System<T1>(this IWorld world) where T1 : unmanaged
     {
         return new SystemBuilder<T1>(world);

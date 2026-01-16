@@ -10,6 +10,7 @@ public interface IWorld
         where T1 : unmanaged
         where T2 : unmanaged;
 
+    void RemoveAllEntities();
     void RemoveEntity(Id id);
     EntityType GetEntityType(Id id);
     bool IsEntityAlive(Id id);

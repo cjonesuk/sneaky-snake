@@ -2,7 +2,8 @@ using System.Diagnostics;
 using Axis.ECS;
 using Axis.Engine;
 using Axis.Engine.Rendering;
-using PingPong.GameModes;
+using PingPong.PlayGame;
+using PingPong.StartMenu;
 namespace PingPong;
 
 internal enum PingPongGameState

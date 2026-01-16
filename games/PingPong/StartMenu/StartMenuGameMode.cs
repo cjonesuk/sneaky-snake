@@ -4,7 +4,7 @@ using Axis.Engine;
 using Axis.Engine.Input;
 using Raylib_cs;
 
-namespace PingPong.GameModes;
+namespace PingPong.StartMenu;
 
 internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
 {
@@ -21,6 +21,8 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
 
     public void Activate()
     {
+        _game.World.RemoveAllEntities();
+
         _camera = _game.World.SpawnCamera2d(new Vector2(400, 300), 1.0f);
 
         _engine.Devices.KeyboardAndMouse.BindContext([

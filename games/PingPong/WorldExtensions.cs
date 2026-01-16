@@ -2,6 +2,7 @@ using System.Numerics;
 using Axis.ECS;
 using Axis.Engine.Components;
 using Engine.Components;
+using PingPong.PlayGame;
 using Raylib_cs;
 namespace PingPong;
 
@@ -20,10 +21,15 @@ internal static class WorldExtensions
             color));
     }
 
-    public static Entity SpawnPaddle(this IWorld world, Vector2 position, Color color)
+    public static Entity SpawnPaddle(this IWorld world, int playerNumber, Vector2 position, Color color)
     {
-        return world.CreateEntity(
+        Entity paddle = world.CreateEntity(
             new Transform2d(position),
             new BasicShape(ShapeType.Rectangle, new Vector2(20f, 100f), color));
+
+        Console.WriteLine("WARNING: Need to extend CreateEntity");
+        paddle.Set(new PossessedByPlayer(playerNumber));
+
+        return paddle;
     }
 }
