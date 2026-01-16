@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Axis.ECS;
 using Axis.Engine;
+using Axis.Engine.Components;
 using Axis.Engine.Input;
 using Engine.Components;
 using Raylib_cs;
@@ -134,6 +135,25 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
 
                 inputBuffer.ClearEvents();
             });
+
+        _world
+            .System<Transform2d, Paddle, BasicShape>()
+            .ForEach((ref context, ref iter, ref transform, ref paddle, ref shape) =>
+            {
+                // Dont let paddles go off screen
+                var topY = transform.Position.Y - shape.HalfExtents.Y;
+                var bottomY = transform.Position.Y + shape.HalfExtents.Y;
+
+                if (topY < 0)
+                {
+                    transform.Position.Y = shape.HalfExtents.Y;
+                }
+                else if (bottomY > 600)
+                {
+                    transform.Position.Y = 600 - shape.HalfExtents.Y;
+                }
+            });
+
     }
 
 
