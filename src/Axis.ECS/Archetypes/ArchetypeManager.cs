@@ -70,6 +70,36 @@ internal sealed class ArchetypeManager
         return new ArchetypeQueryEnumerable<T1, T2>(archetypesSpan);
     }
 
+    public ArchetypeQueryEnumerable<T1, T2, T3> QueryArchetypes<T1, T2, T3>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+    {
+        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeQueryEnumerable<T1, T2, T3>(archetypesSpan);
+    }
+
+    public ArchetypeQueryEnumerable<T1, T2, T3, T4> QueryArchetypes<T1, T2, T3, T4>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+    {
+        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeQueryEnumerable<T1, T2, T3, T4>(archetypesSpan);
+    }
+
+    public ArchetypeQueryEnumerable<T1, T2, T3, T4, T5> QueryArchetypes<T1, T2, T3, T4, T5>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+    {
+        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeQueryEnumerable<T1, T2, T3, T4, T5>(archetypesSpan);
+    }
+
     /// <summary>
     /// Clears all archetypes without removing them or resizing the underlying collections.
     /// </summary>

@@ -282,6 +282,42 @@ public sealed class World : IWorld
         }
     }
 
+    public void QueryAll<TContext, T1, T2, T3>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2, T3> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+    {
+        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3>())
+        {
+            action(ref context, archetype.EntityIds, archetype.Col1, archetype.Col2, archetype.Col3);
+        }
+    }
+
+    public void QueryAll<TContext, T1, T2, T3, T4>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2, T3, T4> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+    {
+        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3, T4>())
+        {
+            action(ref context, archetype.EntityIds, archetype.Col1, archetype.Col2, archetype.Col3, archetype.Col4);
+        }
+    }
+
+    public void QueryAll<TContext, T1, T2, T3, T4, T5>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2, T3, T4, T5> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+    {
+        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3, T4, T5>())
+        {
+            action(ref context, archetype.EntityIds, archetype.Col1, archetype.Col2, archetype.Col3, archetype.Col4, archetype.Col5);
+        }
+    }
+
     public void QueryEach<TContext>(ref TContext context, QueryEachEntityAction<TContext> action)
     {
         foreach (var archetype in _archetypes.QueryArchetypes())
@@ -319,6 +355,69 @@ public sealed class World : IWorld
                        ref iter,
                        ref archetype.Col1[index],
                        ref archetype.Col2[index]);
+            }
+        }
+    }
+
+    public void QueryEach<TContext, T1, T2, T3>(ref TContext context, QueryEachEntityAction<TContext, T1, T2, T3> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+    {
+        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3>())
+        {
+            for (int index = 0; index < archetype.EntityIds.Length; index++)
+            {
+                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
+                action(ref context,
+                       ref iter,
+                       ref archetype.Col1[index],
+                       ref archetype.Col2[index],
+                       ref archetype.Col3[index]);
+            }
+        }
+    }
+
+    public void QueryEach<TContext, T1, T2, T3, T4>(ref TContext context, QueryEachEntityAction<TContext, T1, T2, T3, T4> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+    {
+        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3, T4>())
+        {
+            for (int index = 0; index < archetype.EntityIds.Length; index++)
+            {
+                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
+                action(ref context,
+                       ref iter,
+                       ref archetype.Col1[index],
+                       ref archetype.Col2[index],
+                       ref archetype.Col3[index],
+                       ref archetype.Col4[index]);
+            }
+        }
+    }
+
+    public void QueryEach<TContext, T1, T2, T3, T4, T5>(ref TContext context, QueryEachEntityAction<TContext, T1, T2, T3, T4, T5> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+    {
+        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3, T4, T5>())
+        {
+            for (int index = 0; index < archetype.EntityIds.Length; index++)
+            {
+                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
+                action(ref context,
+                       ref iter,
+                       ref archetype.Col1[index],
+                       ref archetype.Col2[index],
+                       ref archetype.Col3[index],
+                       ref archetype.Col4[index],
+                       ref archetype.Col5[index]);
             }
         }
     }

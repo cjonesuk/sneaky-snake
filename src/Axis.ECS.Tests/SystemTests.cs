@@ -14,12 +14,12 @@ public class SystemTests
         int totalHealth = 0;
         int totalHealing = 0;
 
-        world.System<Health>().ForEach((ref Id id, ref Health health) =>
+        world.System<Health>().ForEach((ref context, ref iter, ref health) =>
         {
             totalHealth += health.Value;
         });
 
-        world.System<Healing>().ForEach((ref Id id, ref Healing healing) =>
+        world.System<Healing>().ForEach((ref context, ref iter, ref healing) =>
         {
             totalHealing += healing.Amount;
         });
@@ -38,7 +38,7 @@ public class SystemTests
         var entity2 = world.CreateEntity(new Health(50), new Healing(20));
         var entity3 = world.CreateEntity(new Health(30));
 
-        world.System<Health, Healing>().ForEach((ref Id id, ref Health health, ref Healing healing) =>
+        world.System<Health, Healing>().ForEach((ref context, ref iter, ref health, ref healing) =>
         {
             health.Value += healing.Amount;
         });
@@ -57,7 +57,7 @@ public class SystemTests
         var entity1 = world.CreateEntity(new Health(10), new Healing(5));
         var entity2 = world.CreateEntity(new Health(20));
 
-        world.System<Health>().ForAll((Span<Id> ids, Span<Health> healths) =>
+        world.System<Health>().ForAll((ref context, ids, healths) =>
         {
             for (int i = 0; i < ids.Length; i++)
             {
@@ -79,7 +79,7 @@ public class SystemTests
         var entity2 = world.CreateEntity(new Health(20), new Healing(10));
         var entity3 = world.CreateEntity(new Health(15));
 
-        world.System<Health, Healing>().ForAll((Span<Id> ids, Span<Health> healths, Span<Healing> healings) =>
+        world.System<Health, Healing>().ForAll((ref context, ids, healths, healings) =>
         {
             for (int i = 0; i < ids.Length; i++)
             {

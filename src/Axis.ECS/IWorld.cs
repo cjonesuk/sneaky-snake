@@ -28,9 +28,45 @@ public interface IWorld
         where T1 : unmanaged
         where T2 : unmanaged;
 
+    void QueryAll<TContext, T1, T2, T3>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2, T3> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged;
+
+    void QueryAll<TContext, T1, T2, T3, T4>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2, T3, T4> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged;
+
+    void QueryAll<TContext, T1, T2, T3, T4, T5>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2, T3, T4, T5> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged;
+
     void QueryEach<TContext, T1>(ref TContext context, QueryEachEntityAction<TContext, T1> action)
          where T1 : unmanaged;
     void QueryEach<TContext, T1, T2>(ref TContext context, QueryEachEntityAction<TContext, T1, T2> action)
         where T1 : unmanaged
         where T2 : unmanaged;
+
+    void QueryEach<TContext, T1, T2, T3>(ref TContext context, QueryEachEntityAction<TContext, T1, T2, T3> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged;
+
+    void QueryEach<TContext, T1, T2, T3, T4>(ref TContext context, QueryEachEntityAction<TContext, T1, T2, T3, T4> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged;
+
+    void QueryEach<TContext, T1, T2, T3, T4, T5>(ref TContext context, QueryEachEntityAction<TContext, T1, T2, T3, T4, T5> action)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged;
 }

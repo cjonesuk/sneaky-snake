@@ -88,9 +88,13 @@ public class EntityTests
         entity.IsAlive().ShouldBeFalse();
     }
 
+    record struct Context();
+
     [Fact]
     public void GetRef_ReturnsComponentReference()
     {
+        var context = new Context();
+
         var world = World.Create();
         var entity = world.CreateEntity();
         entity.Set(new Position(1.0f, 2.0f));
@@ -104,7 +108,7 @@ public class EntityTests
         positionRef.X = 10.0f;
         positionRef.Y = 20.0f;
 
-        var positions = QueryRecorder.QueryEach<Position>(world);
+        var positions = QueryRecorder.QueryEach<Context, Position>(world, ref context);
 
         positions.Count.ShouldBe(1);
         positions[0].ShouldBe((entity.Id, new Position(10.0f, 20.0f)));

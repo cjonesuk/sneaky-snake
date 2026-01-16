@@ -4,6 +4,8 @@ namespace Axis.ECS.Tests;
 
 public class WorldDeferredTests
 {
+    record struct Context();
+
     [Fact]
     public void AddEntity_AddsEntity()
     {
@@ -11,6 +13,8 @@ public class WorldDeferredTests
 
         var CreateEntitiesInDeferredContext = () =>
         {
+            var context = new Context();
+
             using var scope = world.BeginDeferringCommands();
 
             var entity1 = world.CreateEntity();
@@ -21,14 +25,15 @@ public class WorldDeferredTests
             entity2.IsAlive().ShouldBeFalse();
             entity3.IsAlive().ShouldBeFalse();
 
-            QueryRecorder.QueryEach(world).ShouldBeEmpty();
+            QueryRecorder.QueryEach(world, ref context).ShouldBeEmpty();
 
             return (entity1, entity2, entity3);
         };
 
         var (e1, e2, e3) = CreateEntitiesInDeferredContext();
 
-        var allEntities = QueryRecorder.QueryEach(world);
+        var context = new Context();
+        var allEntities = QueryRecorder.QueryEach(world, ref context);
         allEntities.ShouldBe(new List<Id> { e1.Id, e2.Id, e3.Id }, ignoreOrder: true);
 
         e2.GetRef<Position>().ShouldBe(new Position(1.0f, 2.0f));

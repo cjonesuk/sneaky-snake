@@ -137,6 +137,108 @@ public sealed class Archetype
         return true;
     }
 
+    internal bool TryGetColumnSpans<T1, T2, T3>(
+        out Span<Id> entityIds,
+        out Span<T1> column1,
+        out Span<T2> column2,
+        out Span<T3> column3)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+    {
+        if (!TryFindComponentColumn<T1>(out var column1Data) ||
+            !TryFindComponentColumn<T2>(out var column2Data) ||
+            !TryFindComponentColumn<T3>(out var column3Data))
+        {
+            entityIds = null;
+            column1 = null;
+            column2 = null;
+            column3 = null;
+
+            return false;
+        }
+
+        entityIds = _entityIds.AsSpan();
+        column1 = column1Data.AsSpan();
+        column2 = column2Data.AsSpan();
+        column3 = column3Data.AsSpan();
+
+        return true;
+    }
+
+    internal bool TryGetColumnSpans<T1, T2, T3, T4>(
+        out Span<Id> entityIds,
+        out Span<T1> column1,
+        out Span<T2> column2,
+        out Span<T3> column3,
+        out Span<T4> column4)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+    {
+        if (!TryFindComponentColumn<T1>(out var column1Data) ||
+            !TryFindComponentColumn<T2>(out var column2Data) ||
+            !TryFindComponentColumn<T3>(out var column3Data) ||
+            !TryFindComponentColumn<T4>(out var column4Data))
+        {
+            entityIds = null;
+            column1 = null;
+            column2 = null;
+            column3 = null;
+            column4 = null;
+
+            return false;
+        }
+
+        entityIds = _entityIds.AsSpan();
+        column1 = column1Data.AsSpan();
+        column2 = column2Data.AsSpan();
+        column3 = column3Data.AsSpan();
+        column4 = column4Data.AsSpan();
+
+        return true;
+    }
+
+    internal bool TryGetColumnSpans<T1, T2, T3, T4, T5>(
+        out Span<Id> entityIds,
+        out Span<T1> column1,
+        out Span<T2> column2,
+        out Span<T3> column3,
+        out Span<T4> column4,
+        out Span<T5> column5)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+    {
+        if (!TryFindComponentColumn<T1>(out var column1Data) ||
+            !TryFindComponentColumn<T2>(out var column2Data) ||
+            !TryFindComponentColumn<T3>(out var column3Data) ||
+            !TryFindComponentColumn<T4>(out var column4Data) ||
+            !TryFindComponentColumn<T5>(out var column5Data))
+        {
+            entityIds = null;
+            column1 = null;
+            column2 = null;
+            column3 = null;
+            column4 = null;
+            column5 = null;
+
+            return false;
+        }
+
+        entityIds = _entityIds.AsSpan();
+        column1 = column1Data.AsSpan();
+        column2 = column2Data.AsSpan();
+        column3 = column3Data.AsSpan();
+        column4 = column4Data.AsSpan();
+        column5 = column5Data.AsSpan();
+
+        return true;
+    }
+
     private ComponentValues<T> FindComponentColumn<T>() where T : unmanaged
     {
         var type = ComponentTypeInformation<T>.Id;

@@ -114,25 +114,21 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
     private void SetupSystems()
     {
         _world
-            .System<PossessedByPlayer, Transform2d>()
-            .ForEach((ref context, ref iter, ref possessed, ref transform) =>
+            .System<PossessedByPlayer, Transform2d, Paddle>()
+            .ForEach((ref context, ref iter, ref possessed, ref transform, ref paddle) =>
             {
                 float deltaTime = context.DeltaTime;
                 var inputBuffer = _playerInputBuffers[possessed.PlayerNumber];
-                if (!iter.TryGetComponent<Paddle>(out var paddleRef))
-                {
-                    return;
-                }
 
                 foreach (var inputEvent in inputBuffer.GetEvents())
                 {
                     if (inputEvent.Id == PlayGameActions.MovePaddleUp)
                     {
-                        transform.Position.Y -= paddleRef.Value.MaxSpeed * deltaTime;
+                        transform.Position.Y -= paddle.MaxSpeed * deltaTime;
                     }
                     else if (inputEvent.Id == PlayGameActions.MovePaddleDown)
                     {
-                        transform.Position.Y += paddleRef.Value.MaxSpeed * deltaTime;
+                        transform.Position.Y += paddle.MaxSpeed * deltaTime;
                     }
                 }
 

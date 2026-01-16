@@ -31,3 +31,60 @@ internal sealed class ForEachEntitySystem<T1, T2> : IWorldSystem
         context.World.QueryEach(ref context, _action);
     }
 }
+
+internal sealed class ForEachEntitySystem<T1, T2, T3> : IWorldSystem
+    where T1 : unmanaged
+    where T2 : unmanaged
+    where T3 : unmanaged
+{
+    private readonly QueryEachEntityAction<WorldSystemContext, T1, T2, T3> _action;
+
+    public ForEachEntitySystem(QueryEachEntityAction<WorldSystemContext, T1, T2, T3> action)
+    {
+        _action = action;
+    }
+
+    public void Execute(ref WorldSystemContext context)
+    {
+        context.World.QueryEach(ref context, _action);
+    }
+}
+
+internal sealed class ForEachEntitySystem<T1, T2, T3, T4> : IWorldSystem
+    where T1 : unmanaged
+    where T2 : unmanaged
+    where T3 : unmanaged
+    where T4 : unmanaged
+{
+    private readonly QueryEachEntityAction<WorldSystemContext, T1, T2, T3, T4> _action;
+
+    public ForEachEntitySystem(QueryEachEntityAction<WorldSystemContext, T1, T2, T3, T4> action)
+    {
+        _action = action;
+    }
+
+    public void Execute(ref WorldSystemContext context)
+    {
+        context.World.QueryEach(ref context, _action);
+    }
+}
+
+internal sealed class ForEachEntitySystem<T1, T2, T3, T4, T5> : IWorldSystem
+    where T1 : unmanaged
+    where T2 : unmanaged
+    where T3 : unmanaged
+    where T4 : unmanaged
+    where T5 : unmanaged
+{
+    private readonly QueryEachEntityAction<WorldSystemContext, T1, T2, T3, T4, T5> _action;
+
+    public ForEachEntitySystem(QueryEachEntityAction<WorldSystemContext, T1, T2, T3, T4, T5> action)
+    {
+        _action = action;
+    }
+
+    public void Execute(ref WorldSystemContext context)
+    {
+        context.World.QueryEach(ref context, _action);
+    }
+}
