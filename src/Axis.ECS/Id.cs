@@ -51,4 +51,13 @@ public readonly struct Id : IEquatable<Id>
         return !(left == right);
     }
 
+    public static bool operator <(Id left, Id right)
+    {
+        return left._id < right._id;
+    }
+
+    public static bool operator >(Id left, Id right)
+    {
+        return left._id > right._id;
+    }
 }

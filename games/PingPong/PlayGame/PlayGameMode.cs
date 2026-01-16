@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Axis.ECS;
 using Axis.Engine;
+using Axis.Engine.Collision;
 using Axis.Engine.Components;
 using Axis.Engine.Input;
 using Engine.Components;
@@ -178,6 +179,9 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
                     ball.Direction.X = -ball.Direction.X;
                 }
             });
+
+        _world.AddSystem(new CollisionSystem());
+
 
     }
 

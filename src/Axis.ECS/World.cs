@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Axis.ECS.Commands;
+using Axis.ECS.Events;
 
 namespace Axis.ECS;
 
@@ -9,7 +10,8 @@ public sealed class World : IWorld
     private readonly Dictionary<Id, EntityLocation> _entityIndices;
     private readonly ArchetypeManager _archetypes;
     private readonly WorldSystemScheduler _systemScheduler;
-    private WorldCommandQueue _commands;
+    private readonly EventManager _events;
+    private readonly WorldCommandQueue _commands;
     private bool _deferredMode;
 
     internal World()
@@ -17,6 +19,7 @@ public sealed class World : IWorld
         _entityIndices = new Dictionary<Id, EntityLocation>();
         _archetypes = new ArchetypeManager();
         _systemScheduler = new WorldSystemScheduler();
+        _events = new EventManager();
         _commands = new WorldCommandQueue();
         _deferredMode = false;
     }
@@ -26,6 +29,7 @@ public sealed class World : IWorld
         return new World();
     }
 
+    public IEventManager Events => _events;
     public WorldSystemScheduler Systems => _systemScheduler;
 
     public WorldDeferredCommandsScope BeginDeferringCommands()
@@ -46,6 +50,8 @@ public sealed class World : IWorld
 
     public void ExecuteSystems(float deltaTime)
     {
+        _events.ClearAllEvents();
+
         var data = new WorldSystemContext(this, deltaTime);
         var systems = _systemScheduler.GetSystems();
 

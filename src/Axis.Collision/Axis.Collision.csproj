@@ -7,4 +7,9 @@
     <RootNamespace>Axis.Collision</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../Axis.Core/Axis.Core.csproj" />
+    <ProjectReference Include="../Axis.ECS/Axis.ECS.csproj" />
+  </ItemGroup>
+
 </Project>

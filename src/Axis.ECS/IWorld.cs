@@ -1,7 +1,10 @@
+using Axis.ECS.Events;
+
 namespace Axis.ECS;
 
 public interface IWorld
 {
+    IEventManager Events { get; }
     WorldSystemScheduler Systems { get; }
 
     Entity CreateEntity();
