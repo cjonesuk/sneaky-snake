@@ -133,6 +133,210 @@ public sealed class World : IWorld
         _entityIndices[id] = location;
     }
 
+    public Entity CreateEntity<T1, T2, T3>(T1 c1, T2 c2, T3 c3)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+    {
+        Id id = AllocateId();
+
+        CreateEntityWithId(ref id, ref c1, ref c2, ref c3);
+
+        return Entity.Create(this, id);
+    }
+
+    public void CreateEntityWithId<T1, T2, T3>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+    {
+        if (_deferredMode)
+        {
+            _commands.AddEntity(id, ref c1, ref c2, ref c3);
+            return;
+        }
+
+        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3>();
+
+        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3);
+        _entityIndices[id] = location;
+    }
+
+    public Entity CreateEntity<T1, T2, T3, T4>(T1 c1, T2 c2, T3 c3, T4 c4)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+    {
+        Id id = AllocateId();
+
+        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4);
+
+        return Entity.Create(this, id);
+    }
+
+    public void CreateEntityWithId<T1, T2, T3, T4>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+    {
+        if (_deferredMode)
+        {
+            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4);
+            return;
+        }
+
+        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4>();
+
+        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4);
+        _entityIndices[id] = location;
+    }
+
+    public Entity CreateEntity<T1, T2, T3, T4, T5>(T1 c1, T2 c2, T3 c3, T4 c4, T5 c5)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+    {
+        Id id = AllocateId();
+
+        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5);
+
+        return Entity.Create(this, id);
+    }
+
+    public void CreateEntityWithId<T1, T2, T3, T4, T5>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+    {
+        if (_deferredMode)
+        {
+            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5);
+            return;
+        }
+
+        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4, T5>();
+
+        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5);
+        _entityIndices[id] = location;
+    }
+
+    public Entity CreateEntity<T1, T2, T3, T4, T5, T6>(T1 c1, T2 c2, T3 c3, T4 c4, T5 c5, T6 c6)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+        where T6 : unmanaged
+    {
+        Id id = AllocateId();
+
+        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6);
+
+        return Entity.Create(this, id);
+    }
+
+    public void CreateEntityWithId<T1, T2, T3, T4, T5, T6>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+        where T6 : unmanaged
+    {
+        if (_deferredMode)
+        {
+            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6);
+            return;
+        }
+
+        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4, T5, T6>();
+
+        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6);
+        _entityIndices[id] = location;
+    }
+
+    public Entity CreateEntity<T1, T2, T3, T4, T5, T6, T7>(T1 c1, T2 c2, T3 c3, T4 c4, T5 c5, T6 c6, T7 c7)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+        where T6 : unmanaged
+        where T7 : unmanaged
+    {
+        Id id = AllocateId();
+
+        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7);
+
+        return Entity.Create(this, id);
+    }
+
+    public void CreateEntityWithId<T1, T2, T3, T4, T5, T6, T7>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+        where T6 : unmanaged
+        where T7 : unmanaged
+    {
+        if (_deferredMode)
+        {
+            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7);
+            return;
+        }
+
+        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4, T5, T6, T7>();
+
+        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7);
+        _entityIndices[id] = location;
+    }
+
+    public Entity CreateEntity<T1, T2, T3, T4, T5, T6, T7, T8>(T1 c1, T2 c2, T3 c3, T4 c4, T5 c5, T6 c6, T7 c7, T8 c8)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+        where T6 : unmanaged
+        where T7 : unmanaged
+        where T8 : unmanaged
+    {
+        Id id = AllocateId();
+
+        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7, ref c8);
+
+        return Entity.Create(this, id);
+    }
+
+    public void CreateEntityWithId<T1, T2, T3, T4, T5, T6, T7, T8>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7, ref T8 c8)
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+        where T6 : unmanaged
+        where T7 : unmanaged
+        where T8 : unmanaged
+    {
+        if (_deferredMode)
+        {
+            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7, ref c8);
+            return;
+        }
+
+        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4, T5, T6, T7, T8>();
+
+        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7, ref c8);
+        _entityIndices[id] = location;
+    }
+
     public void RemoveEntity(Id id)
     {
         if (_deferredMode)

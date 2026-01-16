@@ -66,6 +66,105 @@ public sealed class Archetype
         return location;
     }
 
+    public EntityLocation AddEntity<T1, T2, T3>(Id id, ref T1 c1, ref T2 c2, ref T3 c3)
+        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged
+    {
+        EntityTypeInformation<T1, T2, T3>.DebugAssertSupports(_entityType);
+
+        EntityLocation location = AppendEntityIdInternal(ref id);
+
+        AppendComponentInternal(ref c1);
+        AppendComponentInternal(ref c2);
+        AppendComponentInternal(ref c3);
+
+        return location;
+    }
+
+    public EntityLocation AddEntity<T1, T2, T3, T4>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4)
+        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged
+    {
+        EntityTypeInformation<T1, T2, T3, T4>.DebugAssertSupports(_entityType);
+
+        EntityLocation location = AppendEntityIdInternal(ref id);
+
+        AppendComponentInternal(ref c1);
+        AppendComponentInternal(ref c2);
+        AppendComponentInternal(ref c3);
+        AppendComponentInternal(ref c4);
+
+        return location;
+    }
+
+    public EntityLocation AddEntity<T1, T2, T3, T4, T5>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5)
+        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged
+    {
+        EntityTypeInformation<T1, T2, T3, T4, T5>.DebugAssertSupports(_entityType);
+
+        EntityLocation location = AppendEntityIdInternal(ref id);
+
+        AppendComponentInternal(ref c1);
+        AppendComponentInternal(ref c2);
+        AppendComponentInternal(ref c3);
+        AppendComponentInternal(ref c4);
+        AppendComponentInternal(ref c5);
+
+        return location;
+    }
+
+    public EntityLocation AddEntity<T1, T2, T3, T4, T5, T6>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6)
+        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged
+    {
+        EntityTypeInformation<T1, T2, T3, T4, T5, T6>.DebugAssertSupports(_entityType);
+
+        EntityLocation location = AppendEntityIdInternal(ref id);
+
+        AppendComponentInternal(ref c1);
+        AppendComponentInternal(ref c2);
+        AppendComponentInternal(ref c3);
+        AppendComponentInternal(ref c4);
+        AppendComponentInternal(ref c5);
+        AppendComponentInternal(ref c6);
+
+        return location;
+    }
+
+    public EntityLocation AddEntity<T1, T2, T3, T4, T5, T6, T7>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7)
+        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged
+    {
+        EntityTypeInformation<T1, T2, T3, T4, T5, T6, T7>.DebugAssertSupports(_entityType);
+
+        EntityLocation location = AppendEntityIdInternal(ref id);
+
+        AppendComponentInternal(ref c1);
+        AppendComponentInternal(ref c2);
+        AppendComponentInternal(ref c3);
+        AppendComponentInternal(ref c4);
+        AppendComponentInternal(ref c5);
+        AppendComponentInternal(ref c6);
+        AppendComponentInternal(ref c7);
+
+        return location;
+    }
+
+    public EntityLocation AddEntity<T1, T2, T3, T4, T5, T6, T7, T8>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7, ref T8 c8)
+        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged where T8 : unmanaged
+    {
+        EntityTypeInformation<T1, T2, T3, T4, T5, T6, T7, T8>.DebugAssertSupports(_entityType);
+
+        EntityLocation location = AppendEntityIdInternal(ref id);
+
+        AppendComponentInternal(ref c1);
+        AppendComponentInternal(ref c2);
+        AppendComponentInternal(ref c3);
+        AppendComponentInternal(ref c4);
+        AppendComponentInternal(ref c5);
+        AppendComponentInternal(ref c6);
+        AppendComponentInternal(ref c7);
+        AppendComponentInternal(ref c8);
+
+        return location;
+    }
+
     public void SetComponent<T>(int entityIndex, T component) where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;

@@ -17,8 +17,8 @@ internal static class WorldExtensions
     {
         return world.CreateEntity(
             new Transform2d(position),
-            new BasicShape(ShapeType.Circle, new Vector2(20f, 20f),
-            color));
+            new BasicShape(ShapeType.Circle, new Vector2(20f, 20f), color),
+            new Ball(400f, Vector2.Normalize(new Vector2(1, 0))));
     }
 
     public static Entity SpawnPaddle(this IWorld world, int playerNumber, Vector2 position, Color color)

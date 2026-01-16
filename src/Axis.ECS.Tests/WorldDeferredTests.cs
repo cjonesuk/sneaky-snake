@@ -88,4 +88,37 @@ public class WorldDeferredTests
         entity.GetRef<Position>().ShouldBe(new Position(10.0f, 20.0f));
         entity.GetRef<Velocity>().ShouldBe(new Velocity(5.0f, 2.5f));
     }
+
+    [Fact]
+    public void AddEntity_AddsEntityWithManyComponents()
+    {
+        var world = World.Create();
+
+        Entity entity;
+
+        using (var scope = world.BeginDeferringCommands())
+        {
+            entity = world.CreateEntity(
+                new Position(1.0f, 2.0f),
+                new Velocity(0.5f, 0.25f),
+                new Health(10),
+                new Healing(3),
+                new Armor(50),
+                new Mana(100),
+                new Stamina(75),
+                new PlayerTag());
+
+            entity.IsAlive().ShouldBeFalse();
+        }
+
+        entity.IsAlive().ShouldBeTrue();
+        entity.GetRef<Position>().ShouldBe(new Position(1.0f, 2.0f));
+        entity.GetRef<Velocity>().ShouldBe(new Velocity(0.5f, 0.25f));
+        entity.GetRef<Health>().ShouldBe(new Health(10));
+        entity.GetRef<Healing>().ShouldBe(new Healing(3));
+        entity.GetRef<Armor>().ShouldBe(new Armor(50));
+        entity.GetRef<Mana>().ShouldBe(new Mana(100));
+        entity.GetRef<Stamina>().ShouldBe(new Stamina(75));
+        entity.Has<PlayerTag>().ShouldBeTrue();
+    }
 }

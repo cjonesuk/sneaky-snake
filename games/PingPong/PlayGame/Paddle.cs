@@ -1,6 +1,6 @@
 namespace PingPong.PlayGame;
 
-internal struct Paddle(int maxSpeed)
+internal struct Paddle(float maxSpeed)
 {
-    public int MaxSpeed = maxSpeed;
+    public float MaxSpeed = maxSpeed;
 }
