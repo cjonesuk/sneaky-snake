@@ -77,6 +77,8 @@ public sealed class GameEngine : IGameEngine
         {
             float deltaTime = Raylib.GetFrameTime();
 
+            _world?.ClearAllEvents();
+
             _devices.Poll();
 
             _world?.ExecuteSystems(deltaTime);

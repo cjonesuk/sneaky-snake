@@ -1,62 +1,83 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Axis.ECS.Events;
-
-public interface IEventStream
-{
-    void Clear();
-    void Debug();
-}
-
-public sealed class EventStream<TEvent> : IEventStream
-{
-    private const int InitialCapacity = 16;
-    private TEvent[] _events;
-    private int _count;
-
-    public EventStream()
-    {
-        _events = new TEvent[InitialCapacity];
-        _count = 0;
-    }
-
-    public void AddEvent(TEvent @event)
-    {
-        if (_count == _events.Length)
-        {
-            Array.Resize(ref _events, _events.Length * 2);
-        }
-
-        _events[_count++] = @event;
-    }
-
-    public Span<TEvent> AsSpan()
-    {
-        return _events.AsSpan(0, _count);
-    }
-
-    public void Clear()
-    {
-        _count = 0;
-    }
-
-    public void Debug()
-    {
-        for (int i = 0; i < _count; i++)
-        {
-            Console.WriteLine($"Event: {_events[i]}");
-        }
-    }
-}
 
 
 public sealed class EventManager : IEventManager
 {
-    private readonly Dictionary<Type, IEventStream> _streams = new();
+    private const int InitialStreamCapacity = 8;
+    private readonly Dictionary<Type, IEventStream> _streams;
+    private readonly Dictionary<Type, Dictionary<Id, IEventStream>> _entityStreams;
 
-    public void Raise<TEvent>(TEvent @event)
+    public EventManager()
     {
-        EventStream<TEvent> stream = GetEventStream<TEvent>();
+        _streams = new Dictionary<Type, IEventStream>();
+        _entityStreams = new Dictionary<Type, Dictionary<Id, IEventStream>>();
+    }
+
+    public void AddEvent<TEvent>(ref TEvent @event)
+    {
+        var stream = GetEventStream<TEvent>();
         stream.AddEvent(@event);
+    }
+
+    public void AddEvent<TEvent>(Id id, ref TEvent @event)
+    {
+        var stream = GetEventStream<TEvent>(id);
+        stream.AddEvent(@event);
+    }
+
+    public bool TryGetEventStream<TEvent>([MaybeNullWhen(false)] out EventStream<TEvent> stream)
+    {
+        Type eventType = typeof(TEvent);
+
+        if (_streams.TryGetValue(eventType, out var existingStream))
+        {
+            stream = (EventStream<TEvent>)existingStream;
+            return true;
+        }
+
+        stream = null!;
+        return false;
+    }
+
+    public bool TryGetEventStream<TEvent>(Id id, [MaybeNullWhen(false)] out EventStream<TEvent> stream)
+    {
+        Type eventType = typeof(TEvent);
+
+        if (_entityStreams.TryGetValue(eventType, out var entityStreams))
+        {
+            if (entityStreams.TryGetValue(id, out var existingStream))
+            {
+                stream = (EventStream<TEvent>)existingStream;
+                return true;
+            }
+        }
+
+        stream = null!;
+        return false;
+    }
+
+    public EventStream<TEvent> GetEventStream<TEvent>(Id id)
+    {
+        Type eventType = typeof(TEvent);
+
+        // todo: investigate CollectionsMarshal.GetValueRefOrAddDefault
+        if (!_entityStreams.TryGetValue(eventType, out var entityStreams))
+        {
+            entityStreams = new Dictionary<Id, IEventStream>();
+            _entityStreams[eventType] = entityStreams;
+        }
+
+        if (entityStreams.TryGetValue(id, out var stream))
+        {
+            return (EventStream<TEvent>)stream;
+        }
+
+        EventStream<TEvent> newStream = new EventStream<TEvent>(InitialStreamCapacity);
+        entityStreams[id] = newStream;
+        return newStream;
     }
 
     public EventStream<TEvent> GetEventStream<TEvent>()
@@ -68,38 +89,40 @@ public sealed class EventManager : IEventManager
             return (EventStream<TEvent>)stream;
         }
 
-        EventStream<TEvent> newStream = new EventStream<TEvent>();
+        EventStream<TEvent> newStream = new EventStream<TEvent>(InitialStreamCapacity);
         _streams[eventType] = newStream;
         return newStream;
     }
 
     public void ClearAllEvents()
     {
-        foreach (var stream in _streams.Values)
+        // todo: investigate performance improvements
+        // todo: investigate cleaning up unused streams (e.g. for entities that have been deleted)
+
+        if (_streams.Count != 0)
         {
-            stream.Clear();
+            foreach (var stream in _streams.Values)
+            {
+                stream.Clear();
+            }
         }
-    }
 
-    public void Debug<T>()
-    {
-        Type eventType = typeof(T);
-        LogEventsForType(eventType);
-    }
-
-    public void DebugAll()
-    {
-        foreach (var stream in _streams.Values)
+        if (_entityStreams.Count == 0)
         {
-            stream.Debug();
+            return;
         }
-    }
 
-    private void LogEventsForType(Type eventType)
-    {
-        if (_streams.TryGetValue(eventType, out var stream))
+        foreach (var entityStreams in _entityStreams.Values)
         {
-            stream.Debug();
+            if (entityStreams.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (var stream in entityStreams.Values)
+            {
+                stream.Clear();
+            }
         }
     }
 }

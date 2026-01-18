@@ -30,7 +30,7 @@ internal static class WorldExtensions
         // todo: Extend CreateEntity to accept more components
         Console.WriteLine("WARNING: Need to extend CreateEntity");
         paddle.Set(new PossessedByPlayer(playerNumber));
-        paddle.Set(new Paddle(500));
+        paddle.Set(new Paddle(500, 0));
 
         return paddle;
     }

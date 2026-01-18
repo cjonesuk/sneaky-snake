@@ -83,5 +83,10 @@ public static class EntityWorldExtensions
     {
         return ExportedEntity.Create(entity.World, entity.Id);
     }
+
+    public static void AddEvent<TEvent>(this Entity entity, ref TEvent @event)
+    {
+        entity.World.Events.AddEvent(entity.Id, @event);
+    }
 }
 

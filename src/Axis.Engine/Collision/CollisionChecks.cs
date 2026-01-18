@@ -1,5 +1,6 @@
 using System.Numerics;
-namespace Axis.Engine.Collision
+
+namespace Axis.Engine.Collision;
 
 internal static class CollisionChecks
 {

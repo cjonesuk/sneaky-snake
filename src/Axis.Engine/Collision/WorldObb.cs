@@ -1,7 +1,7 @@
 using System.Numerics;
 using Axis.ECS;
 
-namespace Axis.Engine.Collision
+namespace Axis.Engine.Collision;
 
 internal readonly struct WorldObb
 {

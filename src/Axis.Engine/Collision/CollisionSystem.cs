@@ -17,7 +17,7 @@ public sealed class CollisionSystem : IWorldSystem
 
     public void Execute(ref WorldSystemContext data)
     {
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
     }
 
     public void Update(IWorld world, float deltaTime)

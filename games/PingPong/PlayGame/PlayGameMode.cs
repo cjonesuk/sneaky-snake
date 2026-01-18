@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Axis.ECS;
 using Axis.Engine;
 using Axis.Engine.Collision;
@@ -10,31 +9,36 @@ using Raylib_cs;
 
 namespace PingPong.PlayGame;
 
-internal sealed class PlayerInputBuffer : IInputReceiver
+
+internal sealed class EntityInputReceiver : IInputReceiver
 {
-    private readonly int _playerNumber;
-    private readonly List<InputEvent> _inputEvents;
+    private Entity _entity;
 
-    public PlayerInputBuffer(int playerNumber)
+    public EntityInputReceiver()
     {
-        _playerNumber = playerNumber;
-        _inputEvents = new List<InputEvent>();
+        _entity = Entity.Invalid;
     }
 
-    public Span<InputEvent> GetEvents()
+    public EntityInputReceiver(Entity entity)
     {
-        return CollectionsMarshal.AsSpan(_inputEvents);
+        _entity = entity;
     }
 
-    public void ClearEvents()
+    public void SetEntity(Entity entity)
     {
-        _inputEvents.Clear();
+        // Note: This method allows changing the entity associated with this receiver.
+        // Ensure that the new entity is valid and has the necessary components to handle input events.
+        _entity = entity;
     }
 
     public void ReceiveInput(InputEvent inputEvent)
     {
-        Console.WriteLine($"Player {_playerNumber} received input: {inputEvent.Id}");
-        _inputEvents.Add(inputEvent);
+        if (!_entity.IsValid())
+        {
+            return;
+        }
+
+        _entity.World.Events.AddEvent(_entity.Id, ref inputEvent);
     }
 }
 
@@ -47,17 +51,16 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
     private Entity _ball;
     private Entity _player1Paddle;
     private Entity _player2Paddle;
-    private readonly Dictionary<int, PlayerInputBuffer> _playerInputBuffers;
-
-
+    private readonly EntityInputReceiver _player1InputReceiver;
+    private readonly EntityInputReceiver _player2InputReceiver;
 
     public PlayGameMode(IPingPongGame game)
     {
         _game = game;
         _engine = game.Engine;
         _world = game.World;
-
-        _playerInputBuffers = new Dictionary<int, PlayerInputBuffer>();
+        _player1InputReceiver = new EntityInputReceiver(_player1Paddle);
+        _player2InputReceiver = new EntityInputReceiver(_player2Paddle);
     }
 
     public void Activate()
@@ -70,9 +73,8 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
         _player1Paddle = _world.SpawnPaddle(1, new Vector2(50, 300), Color.Blue);
         _player2Paddle = _world.SpawnPaddle(2, new Vector2(750, 300), Color.Green);
 
-        _playerInputBuffers.Clear();
-        _playerInputBuffers[1] = new PlayerInputBuffer(1);
-        _playerInputBuffers[2] = new PlayerInputBuffer(2);
+        _player1InputReceiver.SetEntity(_player1Paddle);
+        _player2InputReceiver.SetEntity(_player2Paddle);
 
         var globalContext = new KeyboardInputContext(
                 this,
@@ -83,7 +85,7 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
             );
 
         var player1Context = new KeyboardInputContext(
-                _playerInputBuffers[1],
+                _player1InputReceiver,
                 keyDown: [
                     new KeyboardInputMapping(KeyboardKey.W, PlayGameActions.MovePaddleUp),
                     new KeyboardInputMapping(KeyboardKey.S, PlayGameActions.MovePaddleDown)
@@ -92,7 +94,7 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
             );
 
         var player2Context = new KeyboardInputContext(
-                _playerInputBuffers[2],
+                _player2InputReceiver,
                 keyDown: [
                     new KeyboardInputMapping(KeyboardKey.Up, PlayGameActions.MovePaddleUp),
                     new KeyboardInputMapping(KeyboardKey.Down, PlayGameActions.MovePaddleDown)
@@ -116,25 +118,37 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
     private void SetupSystems()
     {
         _world
-            .System<PossessedByPlayer, Transform2d, Paddle>()
-            .ForEach((ref context, ref iter, ref possessed, ref transform, ref paddle) =>
+            .System<PossessedByPlayer, Paddle>()
+            .ForEach(static (ref context, ref iter, ref possessed, ref paddle) =>
             {
-                float deltaTime = context.DeltaTime;
-                var inputBuffer = _playerInputBuffers[possessed.PlayerNumber];
+                if (!context.World.Events.TryGetEventStream<InputEvent>(iter.Id, out var inputBuffer))
+                {
+                    return;
+                }
 
-                foreach (var inputEvent in inputBuffer.GetEvents())
+                float deltaTime = context.DeltaTime;
+                paddle.Speed = 0;
+
+                foreach (var inputEvent in inputBuffer.AsSpan())
                 {
                     if (inputEvent.Id == PlayGameActions.MovePaddleUp)
                     {
-                        transform.Position.Y -= paddle.MaxSpeed * deltaTime;
+                        paddle.Speed = -paddle.MaxSpeed;
                     }
                     else if (inputEvent.Id == PlayGameActions.MovePaddleDown)
                     {
-                        transform.Position.Y += paddle.MaxSpeed * deltaTime;
+                        paddle.Speed = paddle.MaxSpeed;
                     }
                 }
+            });
 
-                inputBuffer.ClearEvents();
+        _world
+            .System<Transform2d, Paddle>()
+            .ForEach(static (ref context, ref iter, ref transform, ref paddle) =>
+            {
+                float deltaTime = context.DeltaTime;
+
+                transform.Position.Y += paddle.Speed * deltaTime;
             });
 
         _world
@@ -181,8 +195,6 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
             });
 
         _world.AddSystem(new CollisionSystem());
-
-
     }
 
 

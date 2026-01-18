@@ -48,10 +48,13 @@ public sealed class World : IWorld
         _commands.ApplyAndClear(this);
     }
 
-    public void ExecuteSystems(float deltaTime)
+    public void ClearAllEvents()
     {
         _events.ClearAllEvents();
+    }
 
+    public void ExecuteSystems(float deltaTime)
+    {
         var data = new WorldSystemContext(this, deltaTime);
         var systems = _systemScheduler.GetSystems();
 
