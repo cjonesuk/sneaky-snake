@@ -35,7 +35,7 @@ internal sealed class PingPongUiRenderer : IRenderer
             sb.Write("Ping Pong Game");
             var textIndex = sb.CommitTo(context.FrameResources.TextBuffer, addNull: true);
 
-            context.RenderCommands.AddText(textIndex, new Vector2(0, 0), 20, Color.Red, 1);
+            context.RenderCommands.AddText(textIndex, new Vector2(400, 300), TextAlignment.Center, TextVerticalAlignment.Center, 50, Color.Red, 1);
         }
         else if (gameMode is PlayGameMode playGameMode)
         {
@@ -44,7 +44,7 @@ internal sealed class PingPongUiRenderer : IRenderer
             sb.Write($"Player 1: {playGameMode.Player1Score}   Player 2: {playGameMode.Player2Score}");
             var textIndex = sb.CommitTo(context.FrameResources.TextBuffer, addNull: true);
 
-            context.RenderCommands.AddText(textIndex, new Vector2(0, 0), 20, Color.White, 1);
+            context.RenderCommands.AddText(textIndex, new Vector2(400, 0), TextAlignment.Center, TextVerticalAlignment.Top, 20, Color.White, 1);
         }
     }
 }
