@@ -2,5 +2,5 @@ namespace Axis.ECS;
 
 public interface IWorldSystem
 {
-    void Execute(ref WorldSystemData data);
+    void Execute(ref WorldSystemContext data);
 }

@@ -3,6 +3,12 @@ using System.Runtime.InteropServices;
 
 namespace Axis.Core.Memory;
 
+public readonly struct NativeSlice(int offset, int length)
+{
+    public readonly int Offset = offset;
+    public readonly int Length = length;
+}
+
 /// <summary>
 /// Stores raw bytes in unmanaged memory, ensuring proper alignment
 /// for each allocation.
@@ -63,6 +69,27 @@ public unsafe sealed class NativeBuffer : IDisposable
 
         _used = newUsed;
         return alignedUsed;
+    }
+
+    public NativeSlice WriteBytes(ReadOnlySpan<byte> bytes, bool addNull = false)
+    {
+        int aligned = _used;
+
+        EnsureCapacity(bytes.Length + (addNull ? 1 : 0));
+
+        byte* dest = _ptr + aligned;
+
+        bytes.CopyTo(new Span<byte>(dest, bytes.Length));
+
+        _used += bytes.Length;
+
+        if (addNull)
+        {
+            _ptr[_used++] = 0;
+            return new NativeSlice(aligned, bytes.Length + 1);
+        }
+
+        return new NativeSlice(aligned, bytes.Length);
     }
 
     /// <summary>

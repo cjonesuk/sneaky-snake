@@ -1,5 +1,9 @@
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
 namespace Axis.ECS;
 
+[DebuggerDisplay("{_id}")]
 public readonly struct Id : IEquatable<Id>
 {
     private readonly ulong _id;
@@ -11,6 +15,12 @@ public readonly struct Id : IEquatable<Id>
     public Id(uint id)
     {
         _id = id;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsValid()
+    {
+        return _id != 0; // tbd
     }
 
     public bool HasFlags(ulong flags)
@@ -43,4 +53,18 @@ public readonly struct Id : IEquatable<Id>
         return !(left == right);
     }
 
+    public static bool operator <(Id left, Id right)
+    {
+        return left._id < right._id;
+    }
+
+    public static bool operator >(Id left, Id right)
+    {
+        return left._id > right._id;
+    }
+
+    public override string ToString()
+    {
+        return _id.ToString();
+    }
 }

@@ -2,31 +2,28 @@ using System.Numerics;
 using Axis.ECS;
 using Axis.Engine;
 using Axis.Engine.Input;
-using Axis.Engine.Rendering;
 using Raylib_cs;
-namespace PingPong;
+
+namespace PingPong.StartMenu;
 
 internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
 {
     private readonly IPingPongGame _game;
     private readonly IGameEngine _engine;
-    private readonly IWorld _world;
-    private readonly Entity _camera;
-    private readonly Entity _ball;
+    private Entity _camera;
 
 
-    public StartMenuGameMode(IPingPongGame game, IGameEngine engine)
+    public StartMenuGameMode(IPingPongGame game)
     {
         _game = game;
-        _engine = engine;
-        _world = World.Create();
-        _camera = _world.SpawnCamera2d(new Vector2(400, 300), 1.0f);
-        _ball = _world.SpawnBall(new Vector2(400, 300), Color.Red);
+        _engine = game.Engine;
     }
 
     public void Activate()
     {
-        _engine.SetWorld(_world);
+        _game.World.RemoveAllEntities();
+
+        _camera = _game.World.SpawnCamera2d(new Vector2(400, 300), 1.0f);
 
         _engine.Devices.KeyboardAndMouse.BindContext([
             new KeyboardInputContext(
@@ -38,10 +35,7 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
             )
         ]);
 
-        _engine.SetViewports(
-        [
-            Viewport.Fullscreen(_camera)
-        ]);
+        _game.SetCamera(_camera);
 
         Console.WriteLine("Start Menu Activated");
     }
@@ -49,7 +43,6 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
     public void Deactivate()
     {
         _engine.Devices.KeyboardAndMouse.ClearContext();
-        _engine.ClearWorld();
 
         Console.WriteLine("Start Menu Deactivated");
     }
@@ -59,6 +52,7 @@ internal sealed class StartMenuGameMode : IGameMode, IInputReceiver
         if (inputEvent.Id == StartMenuActions.StartGame)
         {
             Console.WriteLine("Start Game action received!");
+            _game.StartGame();
         }
     }
 }

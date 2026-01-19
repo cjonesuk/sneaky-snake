@@ -35,6 +35,75 @@ internal sealed class ArchetypeManager
         return GetOrCreate(entityType);
     }
 
+    public Archetype GetOrCreate<T1, T2, T3>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+    {
+        EntityType entityType = EntityTypeInformation<T1, T2, T3>.EntityType;
+        return GetOrCreate(entityType);
+    }
+
+    public Archetype GetOrCreate<T1, T2, T3, T4>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+    {
+        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4>.EntityType;
+        return GetOrCreate(entityType);
+    }
+
+    public Archetype GetOrCreate<T1, T2, T3, T4, T5>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+    {
+        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4, T5>.EntityType;
+        return GetOrCreate(entityType);
+    }
+
+    public Archetype GetOrCreate<T1, T2, T3, T4, T5, T6>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+        where T6 : unmanaged
+    {
+        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4, T5, T6>.EntityType;
+        return GetOrCreate(entityType);
+    }
+
+    public Archetype GetOrCreate<T1, T2, T3, T4, T5, T6, T7>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+        where T6 : unmanaged
+        where T7 : unmanaged
+    {
+        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4, T5, T6, T7>.EntityType;
+        return GetOrCreate(entityType);
+    }
+
+    public Archetype GetOrCreate<T1, T2, T3, T4, T5, T6, T7, T8>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+        where T6 : unmanaged
+        where T7 : unmanaged
+        where T8 : unmanaged
+    {
+        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4, T5, T6, T7, T8>.EntityType;
+        return GetOrCreate(entityType);
+    }
+
     public Archetype GetOrCreate(EntityType entityType)
     {
         if (_archetypesByEntityType.TryGetValue(entityType, out Archetype? archetype))
@@ -68,6 +137,36 @@ internal sealed class ArchetypeManager
     {
         Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
         return new ArchetypeQueryEnumerable<T1, T2>(archetypesSpan);
+    }
+
+    public ArchetypeQueryEnumerable<T1, T2, T3> QueryArchetypes<T1, T2, T3>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+    {
+        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeQueryEnumerable<T1, T2, T3>(archetypesSpan);
+    }
+
+    public ArchetypeQueryEnumerable<T1, T2, T3, T4> QueryArchetypes<T1, T2, T3, T4>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+    {
+        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeQueryEnumerable<T1, T2, T3, T4>(archetypesSpan);
+    }
+
+    public ArchetypeQueryEnumerable<T1, T2, T3, T4, T5> QueryArchetypes<T1, T2, T3, T4, T5>()
+        where T1 : unmanaged
+        where T2 : unmanaged
+        where T3 : unmanaged
+        where T4 : unmanaged
+        where T5 : unmanaged
+    {
+        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeQueryEnumerable<T1, T2, T3, T4, T5>(archetypesSpan);
     }
 
     /// <summary>

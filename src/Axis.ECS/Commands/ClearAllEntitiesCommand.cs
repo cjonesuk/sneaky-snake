@@ -18,6 +18,6 @@ internal static class ClearAllEntitiesCommand
 
     private static void ApplyClearAllEntities(ref World world, CommandPayload payload)
     {
-        world.ClearAll();
+        world.RemoveAllEntities();
     }
 }

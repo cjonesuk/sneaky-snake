@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Axis.ECS;
 
 public readonly struct Entity
@@ -5,14 +7,27 @@ public readonly struct Entity
     private readonly IWorld _world;
     private readonly Id _id;
 
+    public static readonly Entity Invalid = new Entity(null!, Id.Invalid);
+
     public Id Id => _id;
 
     public IWorld World => _world;
 
-    public Entity(IWorld world, Id id)
+    private Entity(IWorld world, Id id)
     {
         _world = world;
         _id = id;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Entity Create(IWorld world, Id id)
+    {
+        return new Entity(world, id);
+    }
+
+    public bool IsValid()
+    {
+        return _world != null && _id.IsValid();
     }
 }
 
@@ -67,6 +82,11 @@ public static class EntityWorldExtensions
     public static ExportedEntity DebugExport(this Entity entity)
     {
         return ExportedEntity.Create(entity.World, entity.Id);
+    }
+
+    public static void AddEvent<TEvent>(this Entity entity, ref TEvent @event)
+    {
+        entity.World.Events.AddEvent(entity.Id, @event);
     }
 }
 

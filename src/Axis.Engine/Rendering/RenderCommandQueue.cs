@@ -1,19 +1,24 @@
 using Axis.Core.Collections;
+using Axis.Engine.Resources;
 
 namespace Axis.Engine.Rendering;
 
 using static CommandQueue<RenderContext, RenderCommand>;
 
-struct RenderContext { }
+public readonly struct RenderContext(FrameResources frameResources, RenderCommandQueue renderCommands)
+{
+    public readonly FrameResources FrameResources = frameResources;
+    public readonly RenderCommandQueue RenderCommands = renderCommands;
+}
 
-internal readonly struct RenderCommand(CommandAction apply, int payloadOffset, int zOrder)
+public readonly struct RenderCommand(CommandAction apply, int payloadOffset, int zOrder)
 {
     public readonly CommandAction Apply = apply;
     public readonly int PayloadOffset = payloadOffset;
     public readonly int ZOrder = zOrder;
 }
 
-internal sealed class RenderCommandQueue : CommandQueue<RenderContext, RenderCommand>
+public sealed class RenderCommandQueue : CommandQueue<RenderContext, RenderCommand>
 {
     public RenderCommandQueue()
     {
@@ -26,7 +31,7 @@ internal sealed class RenderCommandQueue : CommandQueue<RenderContext, RenderCom
         _commands.Add(new RenderCommand(action, offset, zOrder));
     }
 
-    public unsafe void ApplyAndClear(RenderContext context)
+    public unsafe void ApplyAndClear(ref RenderContext context)
     {
         if (_commands.Count == 0)
             return;

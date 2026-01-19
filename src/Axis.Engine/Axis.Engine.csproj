@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Axis.Collision/Axis.Collision.csproj" />
     <ProjectReference Include="../Axis.Core/Axis.Core.csproj" />
     <ProjectReference Include="../Axis.ECS/Axis.ECS.csproj" />
   </ItemGroup>

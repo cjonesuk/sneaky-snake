@@ -16,6 +16,11 @@ public sealed class WorldSystemScheduler
         _systems.Add(system);
     }
 
+    public void RemoveAllSystems()
+    {
+        _systems.Clear();
+    }
+
     public Span<IWorldSystem> GetSystems()
     {
         return CollectionsMarshal.AsSpan(_systems);

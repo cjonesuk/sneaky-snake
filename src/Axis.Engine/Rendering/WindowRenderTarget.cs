@@ -1,5 +1,6 @@
 
 using System.Numerics;
+using Axis.Engine.Resources;
 using Raylib_cs;
 
 namespace Axis.Engine.Rendering;
@@ -11,12 +12,16 @@ internal struct ViewportInternal
 
 internal sealed class WindowRenderTarget
 {
+    private readonly RenderCommandQueue _renderCommands;
+    private readonly FrameResources _frameResources;
     private Viewport[] _viewports;
     private ViewportInternal[] _viewportInternals;
     private Color _clearColor;
 
     public WindowRenderTarget(Color clearColor)
     {
+        _renderCommands = new RenderCommandQueue();
+        _frameResources = new FrameResources();
         _clearColor = clearColor;
         _viewports = [];
         _viewportInternals = [];
@@ -38,6 +43,8 @@ internal sealed class WindowRenderTarget
 
     public void Render()
     {
+        _frameResources.Reset();
+
         Raylib.BeginDrawing();
 
         int renderWidth = Raylib.GetRenderWidth();
@@ -45,15 +52,24 @@ internal sealed class WindowRenderTarget
 
         Raylib.ClearBackground(_clearColor);
 
-        var renderCommands = new RenderCommandQueue();
-        var worldRenderer = new WorldRenderManager();
-
         for (int index = 0; index < _viewports.Length; index++)
         {
             ref var viewport = ref _viewports[index];
             ref var viewportInternal = ref _viewportInternals[index];
 
-            var cameraView = worldRenderer.GenerateRenderCommands(viewport.Camera, renderCommands);
+            var renderer = viewport.Renderer;
+            var context = new RenderContext(_frameResources, _renderCommands);
+            renderer.GenerateRenderCommands(ref context, out var renderMode);
+
+            if (renderMode.RenderType == RenderType.None)
+            {
+                continue;
+            }
+
+            if (renderMode.RenderType == RenderType.Render3d)
+            {
+                throw new NotImplementedException();
+            }
 
             int x = (int)(viewport.X * renderWidth);
             int y = (int)(viewport.Y * renderHeight);
@@ -64,12 +80,12 @@ internal sealed class WindowRenderTarget
 
             Vector2 viewportOffset = new Vector2(centerX, centerY);
 
-            Camera2D camera2d = new Camera2D(viewportOffset, cameraView.Target, cameraView.Rotation, cameraView.Zoom);
+            Camera2D camera2d = new Camera2D(viewportOffset, renderMode.Mode2d.Target, renderMode.Mode2d.Rotation, renderMode.Mode2d.Zoom);
 
             Raylib.BeginMode2D(camera2d);
             Raylib.BeginScissorMode(x, y, width, height);
 
-            renderCommands.ApplyAndClear(new RenderContext());
+            _renderCommands.ApplyAndClear(ref context);
 
             Raylib.EndScissorMode();
             Raylib.EndMode2D();

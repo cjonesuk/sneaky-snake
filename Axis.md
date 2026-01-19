@@ -15,8 +15,8 @@ When rendering, the viewport is cleared and for each pass the render command lis
 
 ## Short term tasks
 
-- Create a world when starting game
-- Update the worlds during frame
+- Implement clearing a world
+- Implement input action buffering
 - Define basic engine components
 - Define basic PingPong components
 - Populate the scene when game start
@@ -28,6 +28,7 @@ Strech Goal: Move paddle up and down with keyboard
 
 ## Medium term tasks
 
+- Queries should take context and provide access to world and also reading other components of same entity
 - Reuse removed entity Ids
 - Expand Add entity with more values
 - Expand Query entities with more selections
