@@ -6,7 +6,7 @@ namespace Axis.Engine.Rendering;
 
 using static CommandQueue<RenderContext, RenderCommand>;
 
-internal static class RectangleRenderCommand
+public static class RectangleRenderCommand
 {
     public static void AddRectangle(
         this RenderCommandQueue queue,

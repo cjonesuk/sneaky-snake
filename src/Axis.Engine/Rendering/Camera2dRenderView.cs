@@ -23,7 +23,7 @@ public readonly struct RenderMode3d
     // Placeholder for future 3D rendering parameters
 }
 
-public enum RenderType { None, Render2d, Render3d }
+public enum RenderType { None, Render2d, Render3d, ScreenSpace }
 
 [StructLayout(LayoutKind.Explicit)]
 public readonly struct RenderMode
@@ -55,5 +55,10 @@ public readonly struct RenderMode
     public static RenderMode Create3d(RenderMode3d mode3d)
     {
         return new RenderMode(RenderType.Render3d, default, mode3d);
+    }
+
+    public static RenderMode CreateScreenSpace()
+    {
+        return new RenderMode(RenderType.ScreenSpace, default, default);
     }
 }
