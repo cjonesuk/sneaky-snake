@@ -16,6 +16,10 @@ internal static class CollisionChecks
 
     internal static bool AabbVsAabb(in WorldAabb aabbA, in WorldAabb aabbB)
     {
-        throw new NotImplementedException();
+        Vector2 delta = aabbB.Center - aabbA.Center;
+        Vector2 totalHalfExtents = aabbA.HalfExtents + aabbB.HalfExtents;
+
+        return MathF.Abs(delta.X) <= totalHalfExtents.X &&
+               MathF.Abs(delta.Y) <= totalHalfExtents.Y;
     }
 }

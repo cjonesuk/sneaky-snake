@@ -17,11 +17,8 @@ public sealed class CollisionSystem : IWorldSystem
 
     public void Execute(ref WorldSystemContext data)
     {
-        //throw new NotImplementedException();
-    }
+        var world = data.World;
 
-    public void Update(IWorld world, float deltaTime)
-    {
         ComputeWorldspace(world);
 
         ComputeCollisions();
@@ -84,6 +81,24 @@ public sealed class CollisionSystem : IWorldSystem
                 }
             }
         }
+
+        var aabbs = _worldSpace.GetAabbsSpan();
+
+        for (int indexA = 0; indexA < aabbs.Length; indexA++)
+        {
+            ref var aabbA = ref aabbs[indexA];
+
+            for (int indexB = indexA + 1; indexB < aabbs.Length; indexB++)
+            {
+                ref var aabbB = ref aabbs[indexB];
+
+                if (CollisionChecks.AabbVsAabb(in aabbA, in aabbB))
+                {
+                    var pair = CreateOrderedPair(aabbA.EntityId, aabbB.EntityId);
+                    _currentCollisions.Add(pair);
+                }
+            }
+        }
     }
 
     private void EmitCollisionEvents(IWorld world)
@@ -97,9 +112,13 @@ public sealed class CollisionSystem : IWorldSystem
             if (!_previousCollisions.Contains(pair))
             {
                 startedEvents.AddEvent(new CollisionStartedEvent(pair.EntityA, pair.EntityB));
+                world.Events.GetEventStream<CollisionStartedWithEvent>(pair.EntityA).AddEvent(new CollisionStartedWithEvent(pair.EntityB));
+                world.Events.GetEventStream<CollisionStartedWithEvent>(pair.EntityB).AddEvent(new CollisionStartedWithEvent(pair.EntityA));
             }
 
             ongoingEvents.AddEvent(new CollisionEvent(pair.EntityA, pair.EntityB));
+            world.Events.GetEventStream<CollisionWithEvent>(pair.EntityA).AddEvent(new CollisionWithEvent(pair.EntityB));
+            world.Events.GetEventStream<CollisionWithEvent>(pair.EntityB).AddEvent(new CollisionWithEvent(pair.EntityA));
         }
 
         foreach (var pair in _previousCollisions)
@@ -107,6 +126,8 @@ public sealed class CollisionSystem : IWorldSystem
             if (!_currentCollisions.Contains(pair))
             {
                 endedEvents.AddEvent(new CollisionEndedEvent(pair.EntityA, pair.EntityB));
+                world.Events.GetEventStream<CollisionEndedWithEvent>(pair.EntityA).AddEvent(new CollisionEndedWithEvent(pair.EntityB));
+                world.Events.GetEventStream<CollisionEndedWithEvent>(pair.EntityB).AddEvent(new CollisionEndedWithEvent(pair.EntityA));
             }
         }
     }

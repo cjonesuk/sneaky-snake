@@ -118,8 +118,8 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
     private void SetupSystems()
     {
         _world
-            .System<PossessedByPlayer, Paddle>()
-            .ForEach(static (ref context, ref iter, ref possessed, ref paddle) =>
+            .System<Transform2d, Paddle>()
+            .ForEach(static (ref context, ref iter, ref transform, ref paddle) =>
             {
                 if (!context.World.Events.TryGetEventStream<InputEvent>(iter.Id, out var inputBuffer))
                 {
@@ -140,61 +140,66 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
                         paddle.Speed = paddle.MaxSpeed;
                     }
                 }
-            });
-
-        _world
-            .System<Transform2d, Paddle>()
-            .ForEach(static (ref context, ref iter, ref transform, ref paddle) =>
-            {
-                float deltaTime = context.DeltaTime;
 
                 transform.Position.Y += paddle.Speed * deltaTime;
             });
 
         _world
-            .System<Transform2d, Paddle, BasicShape>()
-            .ForEach((ref context, ref iter, ref transform, ref paddle, ref shape) =>
+            .System<Transform2d, Ball>()
+            .ForEach(static (ref context, ref iter, ref transform, ref ball) =>
+            {
+                // Move the ball
+                float deltaTime = context.DeltaTime;
+                transform.Position += ball.Direction * ball.Speed * deltaTime;
+            });
+
+        _world.AddSystem(new CollisionSystem());
+
+        _world
+            .System<Transform2d, Paddle, CollisionBody>()
+            .ForEach((ref context, ref iter, ref transform, ref paddle, ref body) =>
             {
                 // Dont let paddles go off screen
-                var topY = transform.Position.Y - shape.HalfExtents.Y;
-                var bottomY = transform.Position.Y + shape.HalfExtents.Y;
+                var topY = transform.Position.Y - body.HalfExtents.Y;
+                var bottomY = transform.Position.Y + body.HalfExtents.Y;
 
                 if (topY < 0)
                 {
-                    transform.Position.Y = shape.HalfExtents.Y;
+                    transform.Position.Y = body.HalfExtents.Y;
                 }
                 else if (bottomY > 600)
                 {
-                    transform.Position.Y = 600 - shape.HalfExtents.Y;
+                    transform.Position.Y = 600 - body.HalfExtents.Y;
                 }
             });
 
         _world
-            .System<Transform2d, Ball, BasicShape>()
-            .ForEach((ref context, ref iter, ref transform, ref ball, ref shape) =>
+            .System<Transform2d, Ball, CollisionBody>()
+            .ForEach((ref context, ref iter, ref transform, ref ball, ref body) =>
             {
-                float deltaTime = context.DeltaTime;
-                transform.Position += ball.Direction * ball.Speed * deltaTime;
+                var collisionStarted = context.World.Events.GetEventStream<CollisionStartedWithEvent>(iter.Id);
+
+                foreach (var ev in collisionStarted.AsSpan())
+                {
+                    Console.WriteLine($"Ball collided with entity {ev.EntityId}");
+                    if (context.World.EntityHasComponent<Paddle>(ev.EntityId))
+                    {
+                        // Bounce off paddle
+                        ball.Direction.X = -ball.Direction.X;
+                    }
+                }
 
                 // Bounce off top and bottom of screen
-                var topY = transform.Position.Y - shape.HalfExtents.Y;
-                var bottomY = transform.Position.Y + shape.HalfExtents.Y;
-                var leftX = transform.Position.X - shape.HalfExtents.X;
-                var rightX = transform.Position.X + shape.HalfExtents.X;
+                var topY = transform.Position.Y - body.HalfExtents.Y;
+                var bottomY = transform.Position.Y + body.HalfExtents.Y;
+                var leftX = transform.Position.X - body.HalfExtents.X;
+                var rightX = transform.Position.X + body.HalfExtents.X;
 
                 if (topY < 0 || bottomY > 600)
                 {
                     ball.Direction.Y = -ball.Direction.Y;
                 }
-
-                // Bounce off screen bounds
-                if (leftX < 0 || rightX > 800)
-                {
-                    ball.Direction.X = -ball.Direction.X;
-                }
             });
-
-        _world.AddSystem(new CollisionSystem());
     }
 
 
