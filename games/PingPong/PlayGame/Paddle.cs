@@ -1,5 +1,3 @@
-using System.Numerics;
-
 namespace PingPong.PlayGame;
 
 internal struct Paddle(float maxSpeed, float speed)

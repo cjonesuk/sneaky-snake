@@ -58,6 +58,8 @@ public interface IWorld
         where T7 : unmanaged
         where T8 : unmanaged;
 
+    Entity GetEntity(Id id);
+
     void RemoveAllEntities();
     void RemoveEntity(Id id);
     EntityType GetEntityType(Id id);

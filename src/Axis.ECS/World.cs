@@ -346,6 +346,11 @@ public sealed class World : IWorld
         _entityIndices[id] = location;
     }
 
+    public Entity GetEntity(Id id)
+    {
+        return Entity.Create(this, id);
+    }
+
     public void RemoveEntity(Id id)
     {
         if (_deferredMode)

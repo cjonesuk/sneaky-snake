@@ -2,45 +2,11 @@ using System.Numerics;
 using Axis.ECS;
 using Axis.Engine;
 using Axis.Engine.Collision;
-using Axis.Engine.Components;
 using Axis.Engine.Input;
 using Engine.Components;
 using Raylib_cs;
 
 namespace PingPong.PlayGame;
-
-
-internal sealed class EntityInputReceiver : IInputReceiver
-{
-    private Entity _entity;
-
-    public EntityInputReceiver()
-    {
-        _entity = Entity.Invalid;
-    }
-
-    public EntityInputReceiver(Entity entity)
-    {
-        _entity = entity;
-    }
-
-    public void SetEntity(Entity entity)
-    {
-        // Note: This method allows changing the entity associated with this receiver.
-        // Ensure that the new entity is valid and has the necessary components to handle input events.
-        _entity = entity;
-    }
-
-    public void ReceiveInput(InputEvent inputEvent)
-    {
-        if (!_entity.IsValid())
-        {
-            return;
-        }
-
-        _entity.World.Events.AddEvent(_entity.Id, ref inputEvent);
-    }
-}
 
 internal sealed class PlayGameMode : IGameMode, IInputReceiver
 {
@@ -51,6 +17,8 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
     private Entity _ball;
     private Entity _player1Paddle;
     private Entity _player2Paddle;
+    private Entity _player1Goal;
+    private Entity _player2Goal;
     private readonly EntityInputReceiver _player1InputReceiver;
     private readonly EntityInputReceiver _player2InputReceiver;
 
@@ -72,6 +40,8 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
         _ball = _world.SpawnBall(new Vector2(400, 300), Color.Red);
         _player1Paddle = _world.SpawnPaddle(1, new Vector2(50, 300), Color.Blue);
         _player2Paddle = _world.SpawnPaddle(2, new Vector2(750, 300), Color.Green);
+        _player1Goal = _world.SpawnGoal(1, new Vector2(0, 300));
+        _player2Goal = _world.SpawnGoal(2, new Vector2(800, 300));
 
         _player1InputReceiver.SetEntity(_player1Paddle);
         _player2InputReceiver.SetEntity(_player2Paddle);
@@ -181,7 +151,6 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
 
                 foreach (var ev in collisionStarted.AsSpan())
                 {
-                    Console.WriteLine($"Ball collided with entity {ev.EntityId}");
                     if (context.World.EntityHasComponent<Paddle>(ev.EntityId))
                     {
                         // Bounce off paddle
@@ -198,6 +167,28 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
                 if (topY < 0 || bottomY > 600)
                 {
                     ball.Direction.Y = -ball.Direction.Y;
+                }
+            });
+
+        _world
+            .System<Goal>()
+            .ForEach((ref context, ref iter, ref goal) =>
+            {
+                var collisionStarted = context.World.Events.GetEventStream<CollisionStartedWithEvent>(iter.Id);
+
+                foreach (var ev in collisionStarted.AsSpan())
+                {
+                    var entity = context.World.GetEntity(ev.EntityId);
+                    if (entity.Has<Ball>() && entity.Has<Transform2d>())
+                    {
+                        Console.WriteLine($"Player {goal.PlayerNumber} scored!");
+
+                        // Reset ball position 
+                        ref var ball = ref entity.GetRef<Ball>();
+                        ref var ballTransform = ref entity.GetRef<Transform2d>();
+
+                        ballTransform.Position = new Vector2(400, 300);
+                    }
                 }
             });
     }
