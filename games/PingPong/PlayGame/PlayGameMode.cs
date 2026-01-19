@@ -37,11 +37,11 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
         _game.World.RemoveAllSystems();
 
         _camera = _world.SpawnCamera2d(new Vector2(400, 300), 1.0f);
-        _ball = _world.SpawnBall(new Vector2(400, 300), Color.Red);
+        _ball = _world.SpawnBall(new Vector2(400, 300), new Vector2(1, 0), Color.Red);
         _player1Paddle = _world.SpawnPaddle(1, new Vector2(50, 300), Color.Blue);
         _player2Paddle = _world.SpawnPaddle(2, new Vector2(750, 300), Color.Green);
-        _player1Goal = _world.SpawnGoal(1, new Vector2(0, 300));
-        _player2Goal = _world.SpawnGoal(2, new Vector2(800, 300));
+        _player1Goal = _world.SpawnGoal(1, new Vector2(0, 300), new Vector2(10, 300));
+        _player2Goal = _world.SpawnGoal(2, new Vector2(800, 300), new Vector2(10, 300));
 
         _world.SpawnWall(new Vector2(400, 0), new Vector2(400, 10));
         _world.SpawnWall(new Vector2(400, 600), new Vector2(400, 10));
@@ -132,8 +132,7 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
             .System<Transform2d, Paddle, CollisionBody>()
             .ForEach(static (ref context, ref iter, ref transform, ref paddle, ref body) =>
             {
-                // Dont let paddles go past the walls (top or bottom agnostic)
-
+                // Dont let paddles go past the walls
                 var collisions = context.World.Events.GetEventStream<CollisionWithEvent>(iter.Id);
 
                 foreach (var ev in collisions.AsSpan())
@@ -144,8 +143,6 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
                     {
                         continue;
                     }
-
-                    Console.WriteLine("Paddle collided with wall");
 
                     ref var wall = ref wallEntity.GetRef<Wall>();
                     ref var wallTransform = ref wallEntity.GetRef<Transform2d>();
@@ -163,20 +160,6 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
                         transform.Position.Y = wallTransform.Position.Y - wallBody.HalfExtents.Y - body.HalfExtents.Y;
                     }
                 }
-
-
-
-                // var topY = transform.Position.Y - body.HalfExtents.Y;
-                // var bottomY = transform.Position.Y + body.HalfExtents.Y;
-
-                // if (topY < 0)
-                // {
-                //     transform.Position.Y = body.HalfExtents.Y;
-                // }
-                // else if (bottomY > 600)
-                // {
-                //     transform.Position.Y = 600 - body.HalfExtents.Y;
-                // }
             });
 
         _world
@@ -187,22 +170,25 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
 
                 foreach (var ev in collisionStarted.AsSpan())
                 {
-                    if (context.World.EntityHasComponent<Paddle>(ev.EntityId))
+                    var entity = context.World.GetEntity(ev.EntityId);
+
+                    if (entity.Has<Paddle>())
                     {
-                        // Bounce off paddle
-                        ball.Direction.X = -ball.Direction.X;
+                        // Bounce off paddle, using the paddle's position to influence direction
+                        ref var paddleTransform = ref entity.GetRef<Transform2d>();
+                        float relativeIntersectY = (paddleTransform.Position.Y + 0) - (transform.Position.Y + 0);
+                        float normalizedRelativeIntersectionY = (relativeIntersectY / (body.HalfExtents.Y + entity.GetRef<CollisionBody>().HalfExtents.Y));
+                        float bounceAngle = normalizedRelativeIntersectionY * (5 * (float)(Math.PI / 12));
+
+                        ball.Direction.X = MathF.Cos(bounceAngle) * (ball.Direction.X < 0 ? 1 : -1);
+                        ball.Direction.Y = -MathF.Sin(bounceAngle);
+                        ball.Direction = Vector2.Normalize(ball.Direction);
                     }
-                }
-
-                // Bounce off top and bottom of screen
-                var topY = transform.Position.Y - body.HalfExtents.Y;
-                var bottomY = transform.Position.Y + body.HalfExtents.Y;
-                var leftX = transform.Position.X - body.HalfExtents.X;
-                var rightX = transform.Position.X + body.HalfExtents.X;
-
-                if (topY < 0 || bottomY > 600)
-                {
-                    ball.Direction.Y = -ball.Direction.Y;
+                    else if (entity.Has<Wall>())
+                    {
+                        // Bounce off wall
+                        ball.Direction.Y = -ball.Direction.Y;
+                    }
                 }
             });
 
