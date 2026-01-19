@@ -14,7 +14,7 @@ internal enum Player
     Player2 = 2,
 }
 
-internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldObserver
+internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
 {
     private const int MaxScore = 3;
 
@@ -45,7 +45,6 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldObserver
     {
         _world.RemoveAllEntities();
         _world.RemoveAllSystems();
-        _world.RegisterObserver(this);
 
         ResetScores();
 
@@ -227,6 +226,8 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldObserver
                     }
                 }
             });
+
+        _world.AddSystem(this);
     }
 
 
@@ -246,8 +247,9 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldObserver
         }
     }
 
-    void IWorldObserver.Tick(IWorld world, float deltaTime)
+    void IWorldSystem.Execute(ref WorldSystemContext data)
     {
+        var world = data.World;
         var goals = world.Events.GetEventStream<PlayerGoalHit>();
         foreach (var goal in goals.AsSpan())
         {
