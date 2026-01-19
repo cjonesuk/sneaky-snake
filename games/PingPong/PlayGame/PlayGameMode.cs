@@ -43,6 +43,9 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
         _player1Goal = _world.SpawnGoal(1, new Vector2(0, 300));
         _player2Goal = _world.SpawnGoal(2, new Vector2(800, 300));
 
+        _world.SpawnWall(new Vector2(400, 0), new Vector2(400, 10));
+        _world.SpawnWall(new Vector2(400, 600), new Vector2(400, 10));
+
         _player1InputReceiver.SetEntity(_player1Paddle);
         _player2InputReceiver.SetEntity(_player2Paddle);
 
@@ -127,25 +130,58 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
 
         _world
             .System<Transform2d, Paddle, CollisionBody>()
-            .ForEach((ref context, ref iter, ref transform, ref paddle, ref body) =>
+            .ForEach(static (ref context, ref iter, ref transform, ref paddle, ref body) =>
             {
-                // Dont let paddles go off screen
-                var topY = transform.Position.Y - body.HalfExtents.Y;
-                var bottomY = transform.Position.Y + body.HalfExtents.Y;
+                // Dont let paddles go past the walls (top or bottom agnostic)
 
-                if (topY < 0)
+                var collisions = context.World.Events.GetEventStream<CollisionWithEvent>(iter.Id);
+
+                foreach (var ev in collisions.AsSpan())
                 {
-                    transform.Position.Y = body.HalfExtents.Y;
+                    var wallEntity = context.World.GetEntity(ev.EntityId);
+
+                    if (!wallEntity.Has<Wall>())
+                    {
+                        continue;
+                    }
+
+                    Console.WriteLine("Paddle collided with wall");
+
+                    ref var wall = ref wallEntity.GetRef<Wall>();
+                    ref var wallTransform = ref wallEntity.GetRef<Transform2d>();
+                    ref var wallBody = ref wallEntity.GetRef<CollisionBody>();
+
+                    // Simple collision response: stop the paddle from moving further
+                    if (paddle.Speed < 0)
+                    {
+                        // Moving up
+                        transform.Position.Y = wallTransform.Position.Y + wallBody.HalfExtents.Y + body.HalfExtents.Y;
+                    }
+                    else if (paddle.Speed > 0)
+                    {
+                        // Moving down
+                        transform.Position.Y = wallTransform.Position.Y - wallBody.HalfExtents.Y - body.HalfExtents.Y;
+                    }
                 }
-                else if (bottomY > 600)
-                {
-                    transform.Position.Y = 600 - body.HalfExtents.Y;
-                }
+
+
+
+                // var topY = transform.Position.Y - body.HalfExtents.Y;
+                // var bottomY = transform.Position.Y + body.HalfExtents.Y;
+
+                // if (topY < 0)
+                // {
+                //     transform.Position.Y = body.HalfExtents.Y;
+                // }
+                // else if (bottomY > 600)
+                // {
+                //     transform.Position.Y = 600 - body.HalfExtents.Y;
+                // }
             });
 
         _world
             .System<Transform2d, Ball, CollisionBody>()
-            .ForEach((ref context, ref iter, ref transform, ref ball, ref body) =>
+            .ForEach(static (ref context, ref iter, ref transform, ref ball, ref body) =>
             {
                 var collisionStarted = context.World.Events.GetEventStream<CollisionStartedWithEvent>(iter.Id);
 
@@ -172,23 +208,19 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
 
         _world
             .System<Goal>()
-            .ForEach((ref context, ref iter, ref goal) =>
+            .ForEach(static (ref context, ref iter, ref goal) =>
             {
                 var collisionStarted = context.World.Events.GetEventStream<CollisionStartedWithEvent>(iter.Id);
 
                 foreach (var ev in collisionStarted.AsSpan())
                 {
                     var entity = context.World.GetEntity(ev.EntityId);
-                    if (entity.Has<Ball>() && entity.Has<Transform2d>())
+                    if (!entity.Has<Ball>())
                     {
-                        Console.WriteLine($"Player {goal.PlayerNumber} scored!");
-
-                        // Reset ball position 
-                        ref var ball = ref entity.GetRef<Ball>();
-                        ref var ballTransform = ref entity.GetRef<Transform2d>();
-
-                        ballTransform.Position = new Vector2(400, 300);
+                        continue;
                     }
+
+                    Console.WriteLine($"Player {goal.PlayerNumber} scored!");
                 }
             });
     }

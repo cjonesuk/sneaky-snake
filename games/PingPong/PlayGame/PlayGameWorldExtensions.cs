@@ -46,4 +46,15 @@ internal static class PlayGameWorldExtensions
 
         return goal;
     }
+
+    public static Entity SpawnWall(this IWorld world, Vector2 position, Vector2 halfExtents)
+    {
+        Entity wall = world.CreateEntity(
+            new Transform2d(position),
+            new CollisionBody(CollisionShape.Aabb, halfExtents, Vector2.Zero),
+            new BasicShape(ShapeType.Rectangle, halfExtents, Color.Gray),
+            new Wall());
+
+        return wall;
+    }
 }
