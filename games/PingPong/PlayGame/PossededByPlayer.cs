@@ -1,6 +1,6 @@
 namespace PingPong.PlayGame;
 
-internal struct PossessedByPlayer(int playerNumber)
+internal struct PossessedByPlayer(Player playerNumber)
 {
-    public int PlayerNumber = playerNumber;
+    public Player PlayerNumber = playerNumber;
 }

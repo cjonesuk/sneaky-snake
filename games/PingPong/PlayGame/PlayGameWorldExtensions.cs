@@ -27,7 +27,7 @@ internal static class PlayGameWorldExtensions
             new CollisionBody(CollisionShape.Aabb, halfExtents, Vector2.Zero));
     }
 
-    public static Entity SpawnPaddle(this IWorld world, int playerNumber, Vector2 position, Color color)
+    public static Entity SpawnPaddle(this IWorld world, Player playerNumber, Vector2 position, Color color)
     {
         var halfExtents = new Vector2(PaddleWidth / 2, PaddleHeight / 2);
 
@@ -41,7 +41,7 @@ internal static class PlayGameWorldExtensions
         return paddle;
     }
 
-    public static Entity SpawnGoal(this IWorld world, int playerNumber, Vector2 position, Vector2 halfExtents)
+    public static Entity SpawnGoal(this IWorld world, Player playerNumber, Vector2 position, Vector2 halfExtents)
     {
 
         Entity goal = world.CreateEntity(

@@ -12,6 +12,7 @@ public sealed class World : IWorld
     private readonly WorldSystemScheduler _systemScheduler;
     private readonly EventManager _events;
     private readonly WorldCommandQueue _commands;
+    private IWorldObserver? _observer;
     private bool _deferredMode;
 
     internal World()
@@ -31,6 +32,11 @@ public sealed class World : IWorld
 
     public IEventManager Events => _events;
     public WorldSystemScheduler Systems => _systemScheduler;
+
+    public void RegisterObserver(IWorldObserver observer)
+    {
+        _observer = observer;
+    }
 
     public WorldDeferredCommandsScope BeginDeferringCommands()
     {
@@ -63,6 +69,8 @@ public sealed class World : IWorld
             using var deferredMode = BeginDeferringCommands();
             system.Execute(ref data);
         }
+
+        _observer?.Tick(this, deltaTime);
     }
 
     private Id AllocateId()

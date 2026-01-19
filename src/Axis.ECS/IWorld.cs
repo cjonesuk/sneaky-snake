@@ -1,11 +1,19 @@
+using System.Runtime.Serialization;
 using Axis.ECS.Events;
 
 namespace Axis.ECS;
+
+public interface IWorldObserver
+{
+    void Tick(IWorld world, float deltaTime);
+}
 
 public interface IWorld
 {
     IEventManager Events { get; }
     WorldSystemScheduler Systems { get; }
+
+    void RegisterObserver(IWorldObserver observer);
 
     Entity CreateEntity();
     Entity CreateEntity<T1>(T1 c1) where T1 : unmanaged;

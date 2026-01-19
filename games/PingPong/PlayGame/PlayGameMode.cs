@@ -8,8 +8,16 @@ using Raylib_cs;
 
 namespace PingPong.PlayGame;
 
-internal sealed class PlayGameMode : IGameMode, IInputReceiver
+internal enum Player
 {
+    Player1 = 1,
+    Player2 = 2,
+}
+
+internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldObserver
+{
+    private const int MaxScore = 3;
+
     private readonly IPingPongGame _game;
     private readonly IGameEngine _engine;
     private readonly IWorld _world;
@@ -21,6 +29,7 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
     private Entity _player2Goal;
     private readonly EntityInputReceiver _player1InputReceiver;
     private readonly EntityInputReceiver _player2InputReceiver;
+    private readonly Dictionary<Player, int> _scores;
 
     public PlayGameMode(IPingPongGame game)
     {
@@ -29,19 +38,23 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
         _world = game.World;
         _player1InputReceiver = new EntityInputReceiver(_player1Paddle);
         _player2InputReceiver = new EntityInputReceiver(_player2Paddle);
+        _scores = new Dictionary<Player, int>();
     }
 
     public void Activate()
     {
-        _game.World.RemoveAllEntities();
-        _game.World.RemoveAllSystems();
+        _world.RemoveAllEntities();
+        _world.RemoveAllSystems();
+        _world.RegisterObserver(this);
+
+        ResetScores();
 
         _camera = _world.SpawnCamera2d(new Vector2(400, 300), 1.0f);
         _ball = _world.SpawnBall(new Vector2(400, 300), new Vector2(1, 0), Color.Red);
-        _player1Paddle = _world.SpawnPaddle(1, new Vector2(50, 300), Color.Blue);
-        _player2Paddle = _world.SpawnPaddle(2, new Vector2(750, 300), Color.Green);
-        _player1Goal = _world.SpawnGoal(1, new Vector2(0, 300), new Vector2(10, 300));
-        _player2Goal = _world.SpawnGoal(2, new Vector2(800, 300), new Vector2(10, 300));
+        _player1Paddle = _world.SpawnPaddle(Player.Player1, new Vector2(50, 300), Color.Blue);
+        _player2Paddle = _world.SpawnPaddle(Player.Player2, new Vector2(750, 300), Color.Green);
+        _player1Goal = _world.SpawnGoal(Player.Player1, new Vector2(0, 300), new Vector2(10, 300));
+        _player2Goal = _world.SpawnGoal(Player.Player2, new Vector2(800, 300), new Vector2(10, 300));
 
         _world.SpawnWall(new Vector2(400, 0), new Vector2(400, 10));
         _world.SpawnWall(new Vector2(400, 600), new Vector2(400, 10));
@@ -87,6 +100,13 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
 
         Console.WriteLine("Start Menu Activated");
     }
+
+    private void ResetScores()
+    {
+        _scores[Player.Player1] = 0;
+        _scores[Player.Player2] = 0;
+    }
+
 
     private void SetupSystems()
     {
@@ -201,12 +221,10 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
                 foreach (var ev in collisionStarted.AsSpan())
                 {
                     var entity = context.World.GetEntity(ev.EntityId);
-                    if (!entity.Has<Ball>())
+                    if (entity.Has<Ball>())
                     {
-                        continue;
+                        context.World.Events.GetEventStream<PlayerGoalHit>().AddEvent(new PlayerGoalHit(goal.PlayerNumber));
                     }
-
-                    Console.WriteLine($"Player {goal.PlayerNumber} scored!");
                 }
             });
     }
@@ -225,6 +243,47 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver
         {
             Console.WriteLine("Quit Game action received!");
             _game.QuitGame();
+        }
+    }
+
+    void IWorldObserver.Tick(IWorld world, float deltaTime)
+    {
+        var goals = world.Events.GetEventStream<PlayerGoalHit>();
+        foreach (var goal in goals.AsSpan())
+        {
+            // Determine which player scored
+            var playerWhoScored = goal.PlayerNumber == Player.Player1 ? Player.Player2 : Player.Player1;
+
+            int currentScore = _scores[playerWhoScored];
+            int newScore = currentScore + 1;
+            _scores[playerWhoScored] = newScore;
+
+            var playerWins = newScore >= MaxScore;
+
+            Console.WriteLine($"Player {playerWhoScored} scored a goal!");
+            Console.WriteLine($"Scores: Player 1 = {_scores[Player.Player1]}, Player 2 = {_scores[Player.Player2]}");
+
+            // Reset ball position
+            ref var ballTransform = ref _ball.GetRef<Transform2d>();
+            ballTransform.Position = new Vector2(400, 300);
+
+            // Reset ball direction
+            ref var ball = ref _ball.GetRef<Ball>();
+
+            if (playerWins)
+            {
+                ball.Direction = Vector2.Normalize(new Vector2(1, 0));
+
+                Console.WriteLine("***********************************************");
+                Console.WriteLine($"Player {playerWhoScored} wins the game!");
+                Console.WriteLine("***********************************************");
+                ResetScores();
+                continue;
+            }
+            else
+            {
+                ball.Direction = Vector2.Normalize(new Vector2(playerWhoScored == Player.Player1 ? 1 : -1, 0));
+            }
         }
     }
 }

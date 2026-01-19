@@ -1,6 +1,6 @@
 namespace PingPong.PlayGame;
 
-internal struct Goal(int playerNumber)
+internal struct Goal(Player playerNumber)
 {
-    public int PlayerNumber = playerNumber;
+    public Player PlayerNumber = playerNumber;
 }
