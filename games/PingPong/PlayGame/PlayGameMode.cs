@@ -270,19 +270,16 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldObserver
             // Reset ball direction
             ref var ball = ref _ball.GetRef<Ball>();
 
+            var newDirection = new Vector2(playerWhoScored == Player.Player2 || playerWins ? 1 : -1, 0);
+            ball.Direction = Vector2.Normalize(newDirection);
+
             if (playerWins)
             {
-                ball.Direction = Vector2.Normalize(new Vector2(1, 0));
-
                 Console.WriteLine("***********************************************");
                 Console.WriteLine($"Player {playerWhoScored} wins the game!");
                 Console.WriteLine("***********************************************");
                 ResetScores();
                 continue;
-            }
-            else
-            {
-                ball.Direction = Vector2.Normalize(new Vector2(playerWhoScored == Player.Player1 ? 1 : -1, 0));
             }
         }
     }
