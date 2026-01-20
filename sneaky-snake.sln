@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sneaky-snake", "cs\sneaky-snake.csproj", "{C2B9A492-D5E2-4F2E-6856-CE8104140E99}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Axis", "Axis", "{F2D65B4B-7FA8-1078-9BA1-935957737EF4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.ECS", "src\Axis.ECS\Axis.ECS.csproj", "{0986A0C6-0899-4324-8FFF-C95FE798457F}"
@@ -23,8 +21,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.Engine.Tests", "src\Ax
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingPong", "games\PingPong\PingPong.csproj", "{77678D65-A41F-40DD-A6EE-99BCEB39594C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.Collision", "src\Axis.Collision\Axis.Collision.csproj", "{B7C5D5DD-5C78-40B7-9FCC-4BF2A861AC2F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.Collision.Tests", "src\Axis.Collision.Tests\Axis.Collision.Tests.csproj", "{4EFF9687-B0BE-4F5D-BD95-0308001F1E71}"
@@ -39,18 +35,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Debug|x64.Build.0 = Debug|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Debug|x86.Build.0 = Debug|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Release|x64.ActiveCfg = Release|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Release|x64.Build.0 = Release|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Release|x86.ActiveCfg = Release|Any CPU
-		{C2B9A492-D5E2-4F2E-6856-CE8104140E99}.Release|x86.Build.0 = Release|Any CPU
 		{0986A0C6-0899-4324-8FFF-C95FE798457F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0986A0C6-0899-4324-8FFF-C95FE798457F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0986A0C6-0899-4324-8FFF-C95FE798457F}.Debug|x64.ActiveCfg = Debug|Any CPU
