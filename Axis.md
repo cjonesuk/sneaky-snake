@@ -15,8 +15,7 @@ When rendering, the viewport is cleared and for each pass the render command lis
 
 ## Short term tasks
 
-- Clean up old snake game and engine code
-- Rename repo?
+-
 
 ## Medium term tasks
 
