@@ -6,60 +6,33 @@ namespace Axis.ECS;
 
 public readonly struct EntityType : IEquatable<EntityType>
 {
-    public readonly static EntityType Empty = new EntityType(SortedArray<ComponentTypeId>.Empty);
+    public readonly static EntityType Empty = new EntityType(SortedArray<Id>.Empty);
 
-    private readonly SortedArray<ComponentTypeId> _componentTypeIds;
+    private readonly SortedArray<Id> _componentIds;
 
-    private EntityType(SortedArray<ComponentTypeId> componentTypeIds)
+    private EntityType(SortedArray<Id> componentIds)
     {
-        _componentTypeIds = componentTypeIds;
+        _componentIds = componentIds;
     }
 
-    public static EntityType Create(Span<ComponentTypeId> componentTypeIds)
+    public static EntityType Create(ReadOnlySpan<Id> componentIds)
     {
-        var sortedArray = SortedArray<ComponentTypeId>.Create(componentTypeIds);
+        var sortedArray = SortedArray<Id>.Create(componentIds);
         return new EntityType(sortedArray);
     }
 
-    public static EntityType From<T1>()
-        where T1 : unmanaged
-    {
-        return Create([
-            ComponentTypeInformation<T1>.Id
-        ]);
-    }
-
-    public static EntityType From<T1, T2>()
-        where T1 : unmanaged where T2 : unmanaged
-    {
-        return Create([
-            ComponentTypeInformation<T1>.Id,
-            ComponentTypeInformation<T2>.Id
-        ]);
-    }
-
-    public static EntityType From<T1, T2, T3>()
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged
-    {
-        return Create([
-            ComponentTypeInformation<T1>.Id,
-            ComponentTypeInformation<T2>.Id,
-            ComponentTypeInformation<T3>.Id
-        ]);
-    }
-
-    public Span<ComponentTypeId> ComponentTypeIds => _componentTypeIds.AsSpan();
+    public Span<Id> ComponentIds => _componentIds.AsSpan();
 
     public bool HasSubset(EntityType other)
     {
-        return _componentTypeIds.HasSubset(other._componentTypeIds);
+        return _componentIds.HasSubset(other._componentIds);
     }
 
-    public bool With(ComponentTypeId componentTypeId, [MaybeNullWhen(false)] out EntityType extendedType)
+    public bool With(Id componentId, [MaybeNullWhen(false)] out EntityType extendedType)
     {
-        if (_componentTypeIds.With(componentTypeId, out var extendedComponentTypeIds))
+        if (_componentIds.With(componentId, out var extendedComponentIds))
         {
-            extendedType = new EntityType(extendedComponentTypeIds);
+            extendedType = new EntityType(extendedComponentIds);
             return true;
         }
 
@@ -67,11 +40,11 @@ public readonly struct EntityType : IEquatable<EntityType>
         return false;
     }
 
-    public bool Without(ComponentTypeId componentTypeId, [MaybeNullWhen(false)] out EntityType reducedType)
+    public bool Without(Id componentId, [MaybeNullWhen(false)] out EntityType reducedType)
     {
-        if (_componentTypeIds.Without(componentTypeId, out var reducedComponentTypeIds))
+        if (_componentIds.Without(componentId, out var reducedComponentIds))
         {
-            reducedType = new EntityType(reducedComponentTypeIds);
+            reducedType = new EntityType(reducedComponentIds);
             return true;
         }
 
@@ -81,7 +54,7 @@ public readonly struct EntityType : IEquatable<EntityType>
 
     public bool Equals(EntityType other)
     {
-        return _componentTypeIds.Equals(other._componentTypeIds);
+        return _componentIds.Equals(other._componentIds);
     }
 
     [Conditional("DEBUG")]
@@ -95,7 +68,7 @@ public readonly struct EntityType : IEquatable<EntityType>
 
     public override int GetHashCode()
     {
-        return _componentTypeIds.GetHashCode();
+        return _componentIds.GetHashCode();
     }
 
     public override bool Equals(object? obj)
@@ -110,6 +83,6 @@ public readonly struct EntityType : IEquatable<EntityType>
 
     public override string ToString()
     {
-        return $"EntityType[{_componentTypeIds}]";
+        return $"EntityType[{_componentIds}]";
     }
 }

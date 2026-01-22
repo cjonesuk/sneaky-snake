@@ -2,15 +2,18 @@ using System.Runtime.InteropServices;
 
 namespace Axis.ECS;
 
+
 internal sealed class ArchetypeManager
 {
+    private readonly ComponentEntityManager _components;
     private readonly Archetype _emptyArchetype;
     private readonly List<Archetype> _archetypes;
     private readonly Dictionary<EntityType, Archetype> _archetypesByEntityType;
 
-    public ArchetypeManager()
+    public ArchetypeManager(ComponentEntityManager components)
     {
-        _emptyArchetype = new Archetype(EntityType.Empty);
+        _components = components;
+        _emptyArchetype = new Archetype(_components, EntityType.Empty);
         _archetypes = new List<Archetype>() { _emptyArchetype };
         _archetypesByEntityType = new Dictionary<EntityType, Archetype>()
         {
@@ -23,7 +26,7 @@ internal sealed class ArchetypeManager
     public Archetype GetOrCreate<T1>()
         where T1 : unmanaged
     {
-        EntityType entityType = EntityTypeInformation<T1>.EntityType;
+        EntityType entityType = _components.GetEntityType<T1>();
         return GetOrCreate(entityType);
     }
 
@@ -31,7 +34,7 @@ internal sealed class ArchetypeManager
         where T1 : unmanaged
         where T2 : unmanaged
     {
-        EntityType entityType = EntityTypeInformation<T1, T2>.EntityType;
+        EntityType entityType = _components.GetEntityType<T1, T2>();
         return GetOrCreate(entityType);
     }
 
@@ -40,7 +43,7 @@ internal sealed class ArchetypeManager
         where T2 : unmanaged
         where T3 : unmanaged
     {
-        EntityType entityType = EntityTypeInformation<T1, T2, T3>.EntityType;
+        EntityType entityType = _components.GetEntityType<T1, T2, T3>();
         return GetOrCreate(entityType);
     }
 
@@ -50,7 +53,7 @@ internal sealed class ArchetypeManager
         where T3 : unmanaged
         where T4 : unmanaged
     {
-        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4>.EntityType;
+        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4>();
         return GetOrCreate(entityType);
     }
 
@@ -61,7 +64,7 @@ internal sealed class ArchetypeManager
         where T4 : unmanaged
         where T5 : unmanaged
     {
-        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4, T5>.EntityType;
+        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4, T5>();
         return GetOrCreate(entityType);
     }
 
@@ -73,7 +76,7 @@ internal sealed class ArchetypeManager
         where T5 : unmanaged
         where T6 : unmanaged
     {
-        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4, T5, T6>.EntityType;
+        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4, T5, T6>();
         return GetOrCreate(entityType);
     }
 
@@ -86,7 +89,7 @@ internal sealed class ArchetypeManager
         where T6 : unmanaged
         where T7 : unmanaged
     {
-        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4, T5, T6, T7>.EntityType;
+        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4, T5, T6, T7>();
         return GetOrCreate(entityType);
     }
 
@@ -100,7 +103,7 @@ internal sealed class ArchetypeManager
         where T7 : unmanaged
         where T8 : unmanaged
     {
-        EntityType entityType = EntityTypeInformation<T1, T2, T3, T4, T5, T6, T7, T8>.EntityType;
+        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4, T5, T6, T7, T8>();
         return GetOrCreate(entityType);
     }
 
@@ -111,7 +114,7 @@ internal sealed class ArchetypeManager
             return archetype;
         }
 
-        archetype = new Archetype(entityType);
+        archetype = new Archetype(_components, entityType);
         _archetypesByEntityType[entityType] = archetype;
         _archetypes.Add(archetype);
 

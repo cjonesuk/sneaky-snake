@@ -37,7 +37,9 @@ public class EntityTests
         var world = World.Create();
         var entity = world.CreateEntity(new Position(1.0f, 2.0f));
         var debug = entity.DebugExport();
-        debug.EntityType.ShouldBe(EntityType.From<Position>());
+        debug.EntityType.ShouldBe(EntityType.Create([
+            world.Components.GetId<Position>()
+        ]));
         debug.ComponentCount.ShouldBe(1);
         debug.GetComponent<Position>().ShouldBe(new Position(1.0f, 2.0f));
     }
@@ -48,7 +50,10 @@ public class EntityTests
         var world = World.Create();
         var entity = world.CreateEntity(new Position(1.0f, 2.0f), new Velocity(0.5f, 0.25f));
         var debug = entity.DebugExport();
-        debug.EntityType.ShouldBe(EntityType.From<Position, Velocity>());
+        debug.EntityType.ShouldBe(EntityType.Create([
+            world.Components.GetId<Position>(),
+            world.Components.GetId<Velocity>()
+        ]));
         debug.ComponentCount.ShouldBe(2);
         debug.GetComponent<Position>().ShouldBe(new Position(1.0f, 2.0f));
         debug.GetComponent<Velocity>().ShouldBe(new Velocity(0.5f, 0.25f));
@@ -146,8 +151,8 @@ public class EntityTests
         var entityType = world.GetEntityType(entity.Id);
 
         entityType.ShouldBe(EntityType.Create([
-            ComponentTypeInformation<Position>.Id,
-            ComponentTypeInformation<Velocity>.Id
+            world.Components.GetId<Position>(),
+            world.Components.GetId<Velocity>()
         ]));
     }
 }

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace Axis.ECS;
 
 [DebuggerDisplay("{_id}")]
-public readonly struct Id : IEquatable<Id>
+public readonly struct Id : IEquatable<Id>, IComparable<Id>
 {
     private readonly ulong _id;
 
@@ -67,4 +67,12 @@ public readonly struct Id : IEquatable<Id>
     {
         return _id.ToString();
     }
+
+    public int CompareTo(Id other)
+    {
+        return Value.CompareTo(other.Value);
+    }
+
+    // uint?
+    public static implicit operator int(Id id) => (int)id.Value;
 }

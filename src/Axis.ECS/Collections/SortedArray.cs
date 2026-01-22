@@ -11,7 +11,7 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
 
     public static readonly SortedArray<T> Empty = new SortedArray<T>(Array.Empty<T>());
 
-    public static SortedArray<T> Create(Span<T> items)
+    public static SortedArray<T> Create(ReadOnlySpan<T> items)
     {
         if (items.IsEmpty)
         {

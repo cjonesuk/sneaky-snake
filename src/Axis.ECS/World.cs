@@ -4,11 +4,30 @@ using Axis.ECS.Events;
 
 namespace Axis.ECS;
 
+internal sealed class EntityIdManager
+{
+    private const uint ComponentIdStart = 1 << 24;
+    private const uint EntityIdStart = 1;
+    private uint _nextEntityId = EntityIdStart;
+    private uint _nextComponentId = ComponentIdStart;
+
+    public Id AllocateComponentId()
+    {
+        return new Id(_nextComponentId++);
+    }
+
+    public Id AllocateEntityId()
+    {
+        return new Id(_nextEntityId++);
+    }
+}
+
 public sealed class World : IWorld
 {
-    private uint _nextId = 1;
+    private readonly EntityIdManager _entityIds;
     private readonly Dictionary<Id, EntityLocation> _entityIndices;
     private readonly ArchetypeManager _archetypes;
+    private readonly ComponentEntityManager _components;
     private readonly WorldSystemScheduler _systemScheduler;
     private readonly EventManager _events;
     private readonly WorldCommandQueue _commands;
@@ -16,8 +35,10 @@ public sealed class World : IWorld
 
     internal World()
     {
+        _entityIds = new EntityIdManager();
         _entityIndices = new Dictionary<Id, EntityLocation>();
-        _archetypes = new ArchetypeManager();
+        _components = new ComponentEntityManager(_entityIds);
+        _archetypes = new ArchetypeManager(_components);
         _systemScheduler = new WorldSystemScheduler();
         _events = new EventManager();
         _commands = new WorldCommandQueue();
@@ -31,6 +52,7 @@ public sealed class World : IWorld
 
     public IEventManager Events => _events;
     public WorldSystemScheduler Systems => _systemScheduler;
+    public ComponentEntityManager Components => _components;
 
     public WorldDeferredCommandsScope BeginDeferringCommands()
     {
@@ -65,14 +87,14 @@ public sealed class World : IWorld
         }
     }
 
-    private Id AllocateId()
+    private Id AllocateEntityId()
     {
-        return new Id(_nextId++);
+        return _entityIds.AllocateEntityId();
     }
 
     public Entity CreateEntity()
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(id);
 
@@ -94,7 +116,7 @@ public sealed class World : IWorld
 
     public Entity CreateEntity<T1>(T1 c1) where T1 : unmanaged
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(ref id, ref c1);
 
@@ -119,7 +141,7 @@ public sealed class World : IWorld
         where T1 : unmanaged
         where T2 : unmanaged
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(ref id, ref c1, ref c2);
 
@@ -147,7 +169,7 @@ public sealed class World : IWorld
         where T2 : unmanaged
         where T3 : unmanaged
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(ref id, ref c1, ref c2, ref c3);
 
@@ -177,7 +199,7 @@ public sealed class World : IWorld
         where T3 : unmanaged
         where T4 : unmanaged
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4);
 
@@ -209,7 +231,7 @@ public sealed class World : IWorld
         where T4 : unmanaged
         where T5 : unmanaged
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5);
 
@@ -243,7 +265,7 @@ public sealed class World : IWorld
         where T5 : unmanaged
         where T6 : unmanaged
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6);
 
@@ -279,7 +301,7 @@ public sealed class World : IWorld
         where T6 : unmanaged
         where T7 : unmanaged
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7);
 
@@ -317,7 +339,7 @@ public sealed class World : IWorld
         where T7 : unmanaged
         where T8 : unmanaged
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7, ref c8);
 
@@ -388,13 +410,10 @@ public sealed class World : IWorld
 
         EntityLocation location = FindEntity(id);
 
-        if (location.Archetype.SupportsComponentType<T>())
+        if (!location.Archetype.TrySetComponent(location.Index, component))
         {
-            location.Archetype.SetComponent(location.Index, component);
-            return;
+            AddComponentToEntityInternal(id, component, location);
         }
-
-        AddComponentToEntityInternal(id, component, location);
     }
 
     private EntityLocation FindEntity(Id id)
@@ -436,10 +455,10 @@ public sealed class World : IWorld
             return;
         }
 
-        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
+        Id componentId = _components.GetId<T>();
         EntityLocation location = FindEntity(id);
 
-        if (!location.Archetype.EntityType.Without(componentTypeId, out var nextEntityType))
+        if (!location.Archetype.EntityType.Without(componentId, out var nextEntityType))
         {
             // Component not present, nothing to do.
             return;
@@ -467,9 +486,9 @@ public sealed class World : IWorld
 
     private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : unmanaged
     {
-        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
+        Id componentId = _components.GetId<T>();
 
-        if (!location.Archetype.EntityType.With(componentTypeId, out var nextEntityType))
+        if (!location.Archetype.EntityType.With(componentId, out var nextEntityType))
         {
             throw new InvalidOperationException("Failed to extend entity: resulting EntityType is the same as the current one.");
         }

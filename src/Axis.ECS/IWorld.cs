@@ -7,6 +7,7 @@ public interface IWorld
 {
     IEventManager Events { get; }
     WorldSystemScheduler Systems { get; }
+    ComponentEntityManager Components { get; }
 
     Entity CreateEntity();
     Entity CreateEntity<T1>(T1 c1) where T1 : unmanaged;

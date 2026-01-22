@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Axis.ECS;
 
-internal interface IComponentValues
+public interface IComponentValues
 {
     void Add<TInput>(ref TInput value) where TInput : unmanaged;
     void RemoveAndFillHoleAt(int index);
