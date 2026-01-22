@@ -24,6 +24,7 @@ interface IPingPongGame
 {
     IGameEngine Engine { get; }
     IWorld World { get; }
+    IGameMode? CurrentGameMode { get; }
 
     void SetCamera(Entity camera);
 
@@ -47,12 +48,13 @@ internal sealed class PingPongGame : IPingPongGame, IGameInstance
         _state = PingPongGameState.Initialisation;
 
         _worldRenderer = WorldRenderer.Create();
-        _uiRenderer = new PingPongUiRenderer();
+        _uiRenderer = new PingPongUiRenderer(this);
         _world = Axis.ECS.World.Create();
     }
 
     public IGameEngine Engine => _engine!;
     public IWorld World => _world;
+    public IGameMode? CurrentGameMode => _gameMode;
 
     public void SetCamera(Entity camera)
     {

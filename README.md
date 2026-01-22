@@ -69,4 +69,5 @@ GameEngine -> Game Instance
 
 ## References & Articles
 
+- [A roadmap to entity relationships](https://ajmmertens.medium.com/a-roadmap-to-entity-relationships-5b1d11ebb4eb)
 - [The 5 Golden Rules of Input](https://www.gamedeveloper.com/design/the-5-golden-rules-of-input)

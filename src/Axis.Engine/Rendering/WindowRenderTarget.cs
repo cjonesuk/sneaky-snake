@@ -57,8 +57,12 @@ internal sealed class WindowRenderTarget
             ref var viewport = ref _viewports[index];
             ref var viewportInternal = ref _viewportInternals[index];
 
+            int x = (int)(viewport.X * renderWidth);
+            int y = (int)(viewport.Y * renderHeight);
+            int width = (int)(viewport.Width * renderWidth);
+            int height = (int)(viewport.Height * renderHeight);
             var renderer = viewport.Renderer;
-            var context = new RenderContext(_frameResources, _renderCommands);
+            var context = new RenderContext(new Resolution(width, height), _frameResources, _renderCommands);
             renderer.GenerateRenderCommands(ref context, out var renderMode);
 
             if (renderMode.RenderType == RenderType.None)
@@ -71,24 +75,29 @@ internal sealed class WindowRenderTarget
                 throw new NotImplementedException();
             }
 
-            int x = (int)(viewport.X * renderWidth);
-            int y = (int)(viewport.Y * renderHeight);
-            int width = (int)(viewport.Width * renderWidth);
-            int height = (int)(viewport.Height * renderHeight);
-            int centerX = x + (width / 2);
-            int centerY = y + (height / 2);
 
-            Vector2 viewportOffset = new Vector2(centerX, centerY);
+            if (renderMode.RenderType == RenderType.Render2d)
+            {
+                int centerX = x + (width / 2);
+                int centerY = y + (height / 2);
 
-            Camera2D camera2d = new Camera2D(viewportOffset, renderMode.Mode2d.Target, renderMode.Mode2d.Rotation, renderMode.Mode2d.Zoom);
+                Vector2 viewportOffset = new Vector2(centerX, centerY);
 
-            Raylib.BeginMode2D(camera2d);
+                Camera2D camera2d = new Camera2D(viewportOffset, renderMode.Mode2d.Target, renderMode.Mode2d.Rotation, renderMode.Mode2d.Zoom);
+
+                Raylib.BeginMode2D(camera2d);
+            }
+
             Raylib.BeginScissorMode(x, y, width, height);
 
             _renderCommands.ApplyAndClear(ref context);
 
             Raylib.EndScissorMode();
-            Raylib.EndMode2D();
+
+            if (renderMode.RenderType == RenderType.Render2d)
+            {
+                Raylib.EndMode2D();
+            }
         }
 
         Raylib.EndDrawing();

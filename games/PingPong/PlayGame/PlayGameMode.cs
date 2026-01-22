@@ -25,8 +25,6 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
     private Entity _ball;
     private Entity _player1Paddle;
     private Entity _player2Paddle;
-    private Entity _player1Goal;
-    private Entity _player2Goal;
     private readonly EntityInputReceiver _player1InputReceiver;
     private readonly EntityInputReceiver _player2InputReceiver;
     private readonly Dictionary<Player, int> _scores;
@@ -41,7 +39,15 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
         _scores = new Dictionary<Player, int>();
     }
 
-    public void Activate()
+    public int Player1Score => GetPlayerScore(Player.Player1);
+    public int Player2Score => GetPlayerScore(Player.Player2);
+
+    private int GetPlayerScore(Player player)
+    {
+        return _scores.TryGetValue(player, out var score) ? score : 0;
+    }
+
+    void IGameMode.Activate()
     {
         _world.RemoveAllEntities();
         _world.RemoveAllSystems();
@@ -49,11 +55,14 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
         ResetScores();
 
         _camera = _world.SpawnCamera2d(new Vector2(400, 300), 1.0f);
+
         _ball = _world.SpawnBall(new Vector2(400, 300), new Vector2(1, 0), Color.Red);
+
         _player1Paddle = _world.SpawnPaddle(Player.Player1, new Vector2(50, 300), Color.Blue);
         _player2Paddle = _world.SpawnPaddle(Player.Player2, new Vector2(750, 300), Color.Green);
-        _player1Goal = _world.SpawnGoal(Player.Player1, new Vector2(0, 300), new Vector2(10, 300));
-        _player2Goal = _world.SpawnGoal(Player.Player2, new Vector2(800, 300), new Vector2(10, 300));
+
+        _world.SpawnGoal(Player.Player1, new Vector2(0, 300), new Vector2(10, 300));
+        _world.SpawnGoal(Player.Player2, new Vector2(800, 300), new Vector2(10, 300));
 
         _world.SpawnWall(new Vector2(400, 0), new Vector2(400, 10));
         _world.SpawnWall(new Vector2(400, 600), new Vector2(400, 10));
@@ -105,7 +114,6 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
         _scores[Player.Player1] = 0;
         _scores[Player.Player2] = 0;
     }
-
 
     private void SetupSystems()
     {
@@ -231,7 +239,7 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
     }
 
 
-    public void Deactivate()
+    void IGameMode.Deactivate()
     {
         _engine.Devices.KeyboardAndMouse.ClearContext();
 

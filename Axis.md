@@ -15,24 +15,11 @@ When rendering, the viewport is cleared and for each pass the render command lis
 
 ## Short term tasks
 
-- Implement clearing a world
-- Implement input action buffering
-- Define basic engine components
-- Define basic PingPong components
-- Populate the scene when game start
-- Create concept of world renderer which queries ECS world and generates render commands
-- Render to the screen
-
-End Goal: Rendering the ball and paddles for PingPong
-Strech Goal: Move paddle up and down with keyboard
+-
 
 ## Medium term tasks
 
-- Queries should take context and provide access to world and also reading other components of same entity
 - Reuse removed entity Ids
-- Expand Add entity with more values
-- Expand Query entities with more selections
-- Replace old ECS in snake game with Axis.ECS
 - Cloning an entity
 - Investigate using Id's instead of component type ids
 - Handle resizable windows
@@ -41,19 +28,6 @@ Strech Goal: Move paddle up and down with keyboard
 
 ### Pong
 
-- Create project
-- Bootstrap engine and show window
-- Start menu page - press button to start
-- 2 Player game mode
-- Add 2 paddles
-- Add ball
-- Add bounds
-- Player input controller -> actions
-- Paddle movement
-- Ball movement
-- Ball collision
-- Goal collision
-- Reset ball position on goal
 - Points tracking
 - Rendering points
 - End game when points reached
