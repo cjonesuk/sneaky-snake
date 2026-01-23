@@ -4,24 +4,6 @@ using Axis.ECS.Events;
 
 namespace Axis.ECS;
 
-internal sealed class EntityIdManager
-{
-    private const uint ComponentIdStart = 1 << 24;
-    private const uint EntityIdStart = 1;
-    private uint _nextEntityId = EntityIdStart;
-    private uint _nextComponentId = ComponentIdStart;
-
-    public Id AllocateComponentId()
-    {
-        return new Id(_nextComponentId++);
-    }
-
-    public Id AllocateEntityId()
-    {
-        return new Id(_nextEntityId++);
-    }
-}
-
 public sealed class World : IWorld
 {
     private readonly EntityIdManager _entityIds;
@@ -87,7 +69,7 @@ public sealed class World : IWorld
         }
     }
 
-    private Id AllocateEntityId()
+    public Id AllocateEntityId()
     {
         return _entityIds.AllocateEntityId();
     }

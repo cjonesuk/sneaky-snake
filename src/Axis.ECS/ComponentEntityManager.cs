@@ -17,6 +17,19 @@ public sealed class ComponentEntityManager
         _componentMetadata = new Dictionary<Id, ComponentEntityMetadata>();
     }
 
+
+    public Id Register<T>() where T : unmanaged
+    {
+        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
+
+        if (_componentTypeToEntityId.ContainsKey(componentTypeId))
+        {
+            throw new InvalidOperationException($"Component type {typeof(T)} is already registered.");
+        }
+
+        return RegisterInternal<T>();
+    }
+
     public Id GetId<T>() where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
@@ -26,14 +39,7 @@ public sealed class ComponentEntityManager
             return entityId;
         }
 
-        Type componentType = typeof(T);
-        Type componentValuesType = typeof(ComponentValues<T>);
-
-        Id id = _entityIds.AllocateComponentId();
-        _componentTypeToEntityId[componentTypeId] = id;
-        _componentMetadata[id] = new ComponentEntityMetadata(componentTypeId, componentType, componentValuesType);
-
-        return id;
+        return RegisterInternal<T>();
     }
 
     public ComponentEntityMetadata GetMetadata(Id componentId)
@@ -47,6 +53,21 @@ public sealed class ComponentEntityManager
         Type componentValuesType = metadata.ComponentValuesType;
 
         return (IComponentValues)(Activator.CreateInstance(componentValuesType) ?? throw new InvalidOperationException($"Could not create list of type {componentValuesType}"));
+    }
+
+
+    private Id RegisterInternal<T>() where T : unmanaged
+    {
+        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
+
+        Type componentType = typeof(T);
+        Type componentValuesType = typeof(ComponentValues<T>);
+
+        Id id = _entityIds.AllocateComponentId();
+        _componentTypeToEntityId[componentTypeId] = id;
+        _componentMetadata[id] = new ComponentEntityMetadata(componentTypeId, componentType, componentValuesType);
+
+        return id;
     }
 }
 

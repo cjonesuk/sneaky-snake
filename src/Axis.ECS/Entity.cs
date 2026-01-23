@@ -38,6 +38,11 @@ public static class EntityWorldExtensions
         entity.World.SetComponentOnEntity(entity.Id, component);
     }
 
+    public static void Set<T>(this Entity entity, (Entity relationship, Entity target) pair, T component) where T : unmanaged
+    {
+        throw new NotImplementedException();
+    }
+
     public static void Add<T>(this Entity entity) where T : unmanaged
     {
         entity.World.AddComponentToEntity<T>(entity.Id);

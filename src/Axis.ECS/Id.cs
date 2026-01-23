@@ -12,21 +12,29 @@ public readonly struct Id : IEquatable<Id>, IComparable<Id>
 
     public static readonly Id Invalid = new Id();
 
-    public Id(uint id)
+    private Id(ulong id)
     {
         _id = id;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsValid()
+    public static Id Make(uint index, byte generation)
     {
-        return _id != 0; // tbd
+        ulong id = IdSpace.MakeEntity(index, generation);
+        return new Id(id);
     }
 
-    public bool HasFlags(ulong flags)
+    public static Id Pair(Id left, Id right)
     {
-        return (_id & Constants.IdFlagsMask) == flags;
+        ulong id = IdSpace.MakePair(left._id, right._id);
+        return new Id(id);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsPair() => IdSpace.IsPair(_id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsValid() => IdSpace.IsValid(_id);
+
 
     public bool Equals(Id other)
     {
