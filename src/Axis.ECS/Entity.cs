@@ -35,12 +35,13 @@ public static class EntityWorldExtensions
 {
     public static void Set<T>(this Entity entity, T component) where T : unmanaged
     {
-        entity.World.SetComponentOnEntity(entity.Id, component);
+        Id componentId = entity.World.Components.GetId<T>();
+        entity.World.SetComponentOnEntity(entity.Id, componentId, ref component);
     }
 
-    public static void Set<T>(this Entity entity, (Entity relationship, Entity target) pair, T component) where T : unmanaged
+    public static void SetPair<T>(this Entity entity, T component, Entity target) where T : unmanaged
     {
-        throw new NotImplementedException();
+        entity.World.SetRelationshipOnEntity(entity.Id, target.Id, ref component);
     }
 
     public static void Add<T>(this Entity entity) where T : unmanaged

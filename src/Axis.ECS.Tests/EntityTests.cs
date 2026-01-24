@@ -155,4 +155,21 @@ public class EntityTests
             world.Components.GetId<Velocity>()
         ]));
     }
+
+    struct Likes(float amount) { public float Amount = amount; }
+
+    [Fact]
+    public void AddPair_AddsComponent()
+    {
+        var world = World.Create();
+
+        world.RegisterComponent<Likes>();
+
+        var entity = world.CreateEntity();
+        var apples = world.CreateEntity();
+        var bananas = world.CreateEntity();
+
+        entity.SetPair(new Likes(42.0f), apples);
+        entity.SetPair<Likes>(new(33.0f), bananas);
+    }
 }

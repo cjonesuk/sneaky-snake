@@ -40,6 +40,7 @@ public sealed class World : IWorld
     public void RegisterComponent<T>() where T : unmanaged
     {
         Id id = _components.Register<T>();
+        Console.WriteLine($"Registered component {typeof(T).Name} with Id {id}");
 
         CreateEntityWithId(id);
     }
@@ -391,19 +392,33 @@ public sealed class World : IWorld
         _entityIndices.Clear();
     }
 
-    public void SetComponentOnEntity<T>(Id id, T component) where T : unmanaged
+    public void SetComponentOnEntity<T>(Id id, ref T component) where T : unmanaged
+    {
+        Id componentId = _components.GetId<T>();
+        SetComponentOnEntity(id, componentId, ref component);
+    }
+
+    public void SetRelationshipOnEntity<TRelationship>(Id id, Id target, ref TRelationship component) where TRelationship : unmanaged
+    {
+        Id relationshipId = _components.GetId<TRelationship>();
+        Id componentId = Id.Pair(relationshipId, target);
+
+        SetComponentOnEntity(id, componentId, ref component);
+    }
+
+    public void SetComponentOnEntity<T>(Id id, Id componentId, ref T component) where T : unmanaged
     {
         if (_deferredMode)
         {
-            _commands.SetComponent(ref id, ref component);
+            _commands.SetComponent(id, componentId, ref component);
             return;
         }
 
         EntityLocation location = FindEntity(id);
 
-        if (!location.Archetype.TrySetComponent(location.Index, component))
+        if (!location.Archetype.TrySetComponent(location.Index, componentId, ref component))
         {
-            AddComponentToEntityInternal(id, component, location);
+            AddComponentToEntityInternal(id, componentId, ref component, location);
         }
     }
 
@@ -434,8 +449,10 @@ public sealed class World : IWorld
         }
 
         EntityLocation location = FindEntity(id);
+        Id componentId = _components.GetId<T>();
+        T value = default;
 
-        AddComponentToEntityInternal<T>(id, default, location);
+        AddComponentToEntityInternal(id, componentId, ref value, location);
     }
 
     public void RemoveComponentFromEntity<T>(Id id) where T : unmanaged
@@ -457,7 +474,7 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        EntityLocation nextLocation = nextArchetype.MigrateEntity(location);
+        EntityLocation nextLocation = nextArchetype.MigrateEntityDown(location);
 
         _entityIndices[id] = nextLocation;
     }
@@ -475,10 +492,8 @@ public sealed class World : IWorld
         return location.Archetype.EntityType;
     }
 
-    private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : unmanaged
+    private void AddComponentToEntityInternal<T>(Id id, Id componentId, ref T component, EntityLocation location) where T : unmanaged
     {
-        Id componentId = _components.GetId<T>();
-
         if (!location.Archetype.EntityType.With(componentId, out var nextEntityType))
         {
             throw new InvalidOperationException("Failed to extend entity: resulting EntityType is the same as the current one.");
@@ -486,7 +501,7 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        EntityLocation nextLocation = nextArchetype.MigrateEntity(location, ref component);
+        EntityLocation nextLocation = nextArchetype.MigrateEntityUp(location, componentId, ref component);
 
         _entityIndices[id] = nextLocation;
     }

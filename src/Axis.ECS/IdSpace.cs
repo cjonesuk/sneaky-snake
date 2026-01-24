@@ -59,16 +59,16 @@ public static class IdSpace
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte Generation(ulong id) => (byte)((id & GenerationMask) >> GenerationShift);
+    public static byte GetGeneration(ulong id) => (byte)((id & GenerationMask) >> GenerationShift);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint Relationship(ulong pair)
+    public static uint GetRelationship(ulong pair)
     {
         return (uint)((pair & RelationshipEntityMask) >> LowerBits);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint Target(ulong pair)
+    public static uint GetTarget(ulong pair)
     {
         return (uint)(pair & LowerMask);
     }

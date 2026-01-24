@@ -32,6 +32,13 @@ public readonly struct Id : IEquatable<Id>, IComparable<Id>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsPair() => IdSpace.IsPair(_id);
 
+    public Id GetRelationship()
+    {
+        Debug.Assert(IsPair());
+        ulong relationshipId = IdSpace.GetRelationship(_id);
+        return new Id(relationshipId);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsValid() => IdSpace.IsValid(_id);
 

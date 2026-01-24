@@ -49,7 +49,10 @@ public sealed class ComponentEntityManager
 
     public IComponentValues CreateComponentStorage(Id componentId)
     {
-        var metadata = _componentMetadata[componentId];
+        Id componentStorageId = componentId.IsPair() ? componentId.GetRelationship() : componentId;
+
+        Console.WriteLine($"Creating component storage for componentId {componentId} (using storageId {componentStorageId})");
+        var metadata = _componentMetadata[componentStorageId];
         Type componentValuesType = metadata.ComponentValuesType;
 
         return (IComponentValues)(Activator.CreateInstance(componentValuesType) ?? throw new InvalidOperationException($"Could not create list of type {componentValuesType}"));

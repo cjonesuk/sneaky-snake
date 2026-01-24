@@ -162,9 +162,9 @@ public sealed class Archetype
         return location;
     }
 
-    public bool TrySetComponent<T>(int entityIndex, T component) where T : unmanaged
+    public bool TrySetComponent<T>(int entityIndex, Id componentId, ref T component) where T : unmanaged
     {
-        if (!TryFindComponentColumn<T>(out var column))
+        if (!TryFindComponentColumnById<T>(componentId, out var column))
         {
             return false;
         }
@@ -182,7 +182,14 @@ public sealed class Archetype
 
     private void AppendComponentInternal<T>(ref T component) where T : unmanaged
     {
-        var column = FindComponentColumn<T>();
+        Id componentId = _components.GetId<T>();
+        var column = FindComponentColumn<T>(componentId);
+        column.Add(ref component);
+    }
+
+    private void AppendComponentInternal<T>(Id componentId, ref T component) where T : unmanaged
+    {
+        var column = FindComponentColumn<T>(componentId);
         column.Add(ref component);
     }
 
@@ -337,11 +344,22 @@ public sealed class Archetype
         return true;
     }
 
-    private ComponentValues<T> FindComponentColumn<T>() where T : unmanaged
+    private ComponentValues<T> FindComponentColumn<T>(Id componentId) where T : unmanaged
     {
-        var id = _components.GetId<T>();
-        int columnIndex = _componentIdToColumnIndex[id];
+        int columnIndex = _componentIdToColumnIndex[componentId];
         return (ComponentValues<T>)_componentColumns[columnIndex];
+    }
+
+    private bool TryFindComponentColumnById<T>(Id componentId, [NotNullWhen(true)] out ComponentValues<T>? column) where T : unmanaged
+    {
+        if (!_componentIdToColumnIndex.TryGetValue(componentId, out int columnIndex))
+        {
+            column = null;
+            return false;
+        }
+
+        column = (ComponentValues<T>)_componentColumns[columnIndex];
+        return true;
     }
 
     private bool TryFindComponentColumn<T>([NotNullWhen(true)] out ComponentValues<T>? column) where T : unmanaged
@@ -361,7 +379,7 @@ public sealed class Archetype
     /// <summary>
     /// Remove an entities components by migrating it to a simpler archetype.
     /// </summary>
-    internal EntityLocation MigrateEntity(EntityLocation source)
+    internal EntityLocation MigrateEntityDown(EntityLocation source)
     {
         int sourceIndex = source.Index;
 
@@ -389,7 +407,7 @@ public sealed class Archetype
     /// <summary>
     /// Migrate an entity to a more complex archetype, adding in the new component.
     /// </summary> 
-    internal EntityLocation MigrateEntity<T>(EntityLocation source, ref T c1) where T : unmanaged
+    internal EntityLocation MigrateEntityUp<T>(EntityLocation source, Id componentId, ref T c1) where T : unmanaged
     {
         int sourceIndex = source.Index;
 
@@ -413,7 +431,7 @@ public sealed class Archetype
         }
 
         // Add the new component
-        AppendComponentInternal(ref c1);
+        AppendComponentInternal(componentId, ref c1);
 
         return new EntityLocation(this, targetIndex);
     }
@@ -426,13 +444,16 @@ public sealed class Archetype
 
     internal ref T GetComponentRef<T>(int index) where T : unmanaged
     {
-        var column = FindComponentColumn<T>().AsSpan();
+        Id componentId = _components.GetId<T>();
+        var column = FindComponentColumn<T>(componentId).AsSpan();
         return ref column[index];
     }
 
     internal bool TryGetComponentRef<T>(int index, [NotNullWhen(true)] out Ref<T> component) where T : unmanaged
     {
-        if (!TryFindComponentColumn<T>(out var column))
+        Id componentId = _components.GetId<T>();
+
+        if (!TryFindComponentColumnById<T>(componentId, out var column))
         {
             component = default;
             return false;

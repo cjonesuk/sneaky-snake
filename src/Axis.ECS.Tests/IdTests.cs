@@ -69,8 +69,8 @@ public class IdTests
         Id right = Id.Make(52, 0);
         Id pair = Id.Pair(left, right);
 
-        ulong relationship = IdSpace.Relationship(pair.Value);
-        ulong target = IdSpace.Target(pair.Value);
+        ulong relationship = IdSpace.GetRelationship(pair.Value);
+        ulong target = IdSpace.GetTarget(pair.Value);
 
         relationship.ShouldBe(17ul);
         target.ShouldBe(52ul);
