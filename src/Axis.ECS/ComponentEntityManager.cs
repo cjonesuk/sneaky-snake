@@ -55,16 +55,15 @@ public sealed class ComponentEntityManager
         return (IComponentValues)(Activator.CreateInstance(componentValuesType) ?? throw new InvalidOperationException($"Could not create list of type {componentValuesType}"));
     }
 
-
     private Id RegisterInternal<T>() where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
 
-        Type componentType = typeof(T);
-        Type componentValuesType = typeof(ComponentValues<T>);
-
         Id id = _entityIds.AllocateComponentId();
         _componentTypeToEntityId[componentTypeId] = id;
+
+        Type componentType = typeof(T);
+        Type componentValuesType = typeof(ComponentValues<T>);
         _componentMetadata[id] = new ComponentEntityMetadata(componentTypeId, componentType, componentValuesType);
 
         return id;

@@ -36,6 +36,14 @@ public sealed class World : IWorld
     public WorldSystemScheduler Systems => _systemScheduler;
     public ComponentEntityManager Components => _components;
 
+
+    public void RegisterComponent<T>() where T : unmanaged
+    {
+        Id id = _components.Register<T>();
+
+        CreateEntityWithId(id);
+    }
+
     public WorldDeferredCommandsScope BeginDeferringCommands()
     {
         Debug.Assert(!_deferredMode, "World is already in deferred command mode.");
@@ -68,6 +76,7 @@ public sealed class World : IWorld
             system.Execute(ref data);
         }
     }
+
 
     public Id AllocateEntityId()
     {
@@ -646,3 +655,4 @@ public sealed class World : IWorld
         return _entityIndices.ContainsKey(id);
     }
 }
+
