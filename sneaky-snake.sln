@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.Collision", "src\Axis.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.Collision.Tests", "src\Axis.Collision.Tests\Axis.Collision.Tests.csproj", "{4EFF9687-B0BE-4F5D-BD95-0308001F1E71}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axis.ECS.Generators", "src\Axis.ECS.Generators\Axis.ECS.Generators.csproj", "{BF1992A9-4B07-4189-A65B-E40903B259A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -143,6 +145,18 @@ Global
 		{4EFF9687-B0BE-4F5D-BD95-0308001F1E71}.Release|x64.Build.0 = Release|Any CPU
 		{4EFF9687-B0BE-4F5D-BD95-0308001F1E71}.Release|x86.ActiveCfg = Release|Any CPU
 		{4EFF9687-B0BE-4F5D-BD95-0308001F1E71}.Release|x86.Build.0 = Release|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Debug|x64.Build.0 = Debug|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Debug|x86.Build.0 = Debug|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Release|x64.ActiveCfg = Release|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Release|x64.Build.0 = Release|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Release|x86.ActiveCfg = Release|Any CPU
+		{BF1992A9-4B07-4189-A65B-E40903B259A8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -157,6 +171,7 @@ Global
 		{77678D65-A41F-40DD-A6EE-99BCEB39594C} = {04252BA6-B404-FD3B-81B5-D989EEE58EED}
 		{B7C5D5DD-5C78-40B7-9FCC-4BF2A861AC2F} = {F2D65B4B-7FA8-1078-9BA1-935957737EF4}
 		{4EFF9687-B0BE-4F5D-BD95-0308001F1E71} = {F2D65B4B-7FA8-1078-9BA1-935957737EF4}
+		{BF1992A9-4B07-4189-A65B-E40903B259A8} = {F2D65B4B-7FA8-1078-9BA1-935957737EF4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6025212C-DC75-44AC-96EB-F80D7DCB1FCC}

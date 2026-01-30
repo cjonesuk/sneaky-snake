@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Axis.ECS.Generators/Axis.ECS.Generators.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="../Axis.ECS/Axis.ECS.csproj" />
   </ItemGroup>
 

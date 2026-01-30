@@ -1,8 +1,126 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Axis.ECS.Commands;
 using Axis.ECS.Events;
 
 namespace Axis.ECS;
+
+
+internal interface IArchetypeQuery
+{
+
+}
+
+public record struct QueryTerm(Id ComponentId);
+
+/// <summary>
+///  
+/// </summary>
+public sealed class QueryContainer : IArchetypeQuery
+{
+    /// QueryContainer needs to support:
+    /// - Storing archetypes that match the query
+    /// - Storing the filter criteria
+    /// - Iterating over matching entities
+
+
+    private readonly World _world;
+    private readonly List<Archetype> _archetypes;
+    private readonly List<QueryTerm> _terms;
+    private bool _valid;
+
+    internal QueryContainer(World world)
+    {
+        _world = world;
+        _archetypes = new List<Archetype>();
+        _terms = new List<QueryTerm>();
+        _valid = false;
+    }
+
+    public void AddTerm(QueryTerm term)
+    {
+        _terms.Add(term);
+        _valid = false;
+    }
+
+    public void Add<T>() where T : unmanaged
+    {
+        Id componentId = _world.Components.GetId<T>();
+        AddTerm(new QueryTerm(componentId));
+    }
+
+    public ArchetypeEnumerable Run()
+    {
+        if (!_valid)
+        {
+            RefreshArchetypes();
+        }
+
+        var archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
+        return new ArchetypeEnumerable(archetypesSpan);
+    }
+
+    private void RefreshArchetypes()
+    {
+        _valid = true;
+        _archetypes.Clear();
+
+        foreach (var archetype in _world.Archetypes.GetAllArchetypes())
+        {
+            foreach (var term in _terms)
+            {
+                if (!archetype.EntityType.ComponentIds.Contains(term.ComponentId))
+                {
+                    continue;
+                }
+            }
+
+            _archetypes.Add(archetype);
+        }
+    }
+}
+
+public ref struct ArchetypeEnumerable
+{
+    private readonly Span<Archetype> _archetypes;
+
+    public ArchetypeEnumerable(Span<Archetype> archetypes)
+    {
+        _archetypes = archetypes;
+    }
+
+    public ArchetypeEnumerator GetEnumerator()
+    {
+        return new ArchetypeEnumerator(_archetypes);
+    }
+}
+
+public ref struct ArchetypeEnumerator
+{
+    private ReadOnlySpan<Archetype> _archetypes;
+    private int _index;
+    private Archetype? _current;
+
+    public ArchetypeEnumerator(ReadOnlySpan<Archetype> archetypes)
+    {
+        _archetypes = archetypes;
+        _index = -1;
+        _current = default;
+    }
+
+    public Archetype Current => _current!;
+
+    public bool MoveNext()
+    {
+        while (++_index < _archetypes.Length)
+        {
+            _current = _archetypes[_index];
+            return true;
+        }
+
+        return false;
+    }
+}
 
 public sealed class World : IWorld
 {
@@ -14,6 +132,7 @@ public sealed class World : IWorld
     private readonly EventManager _events;
     private readonly WorldCommandQueue _commands;
     private bool _deferredMode;
+    private List<IArchetypeQuery> _activeQueries;
 
     internal World()
     {
@@ -25,6 +144,7 @@ public sealed class World : IWorld
         _events = new EventManager();
         _commands = new WorldCommandQueue();
         _deferredMode = false;
+        _activeQueries = new List<IArchetypeQuery>();
     }
 
     public static World Create()
@@ -36,6 +156,14 @@ public sealed class World : IWorld
     public WorldSystemScheduler Systems => _systemScheduler;
     public ComponentEntityManager Components => _components;
 
+    internal ArchetypeManager Archetypes => _archetypes;
+
+    public QueryContainer CreateQuery()
+    {
+        var query = new QueryContainer(this);
+        _activeQueries.Add(query);
+        return query;
+    }
 
     public void RegisterComponent<T>() where T : unmanaged
     {

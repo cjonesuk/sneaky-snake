@@ -121,6 +121,11 @@ internal sealed class ArchetypeManager
         return archetype;
     }
 
+    public IReadOnlyList<Archetype> GetAllArchetypes()
+    {
+        return _archetypes;
+    }
+
     public ArchetypeQueryEnumerable QueryArchetypes()
     {
         Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
