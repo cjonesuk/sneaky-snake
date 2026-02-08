@@ -193,6 +193,26 @@ public sealed class Archetype
         column.Add(ref component);
     }
 
+    public Span<Id> GetEntityIds()
+    {
+        return _entityIds.AsSpan();
+    }
+
+    internal bool TryGetColumnSpan<T1>(
+        out Span<T1> column1)
+        where T1 : unmanaged
+    {
+        if (!TryFindComponentColumn<T1>(out var column1Data))
+        {
+            column1 = null;
+            return false;
+        }
+
+        column1 = column1Data.AsSpan();
+
+        return true;
+    }
+
     internal bool TryGetColumnSpans(
         out Span<Id> entityIds)
     {

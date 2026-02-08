@@ -41,7 +41,7 @@ public static class EntityWorldExtensions
 
     public static void SetPair<T>(this Entity entity, T component, Entity target) where T : unmanaged
     {
-        entity.World.SetRelationshipOnEntity(entity.Id, target.Id, ref component);
+        entity.World.SetPairOnEntity(entity.Id, target.Id, ref component);
     }
 
     public static void Add<T>(this Entity entity) where T : unmanaged
