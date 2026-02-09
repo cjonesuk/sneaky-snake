@@ -57,6 +57,12 @@ public sealed class Archetype
         return new EntityLocation(this, index);
     }
 
+    internal unsafe void WriteComponent(int entityIndex, Id componentId, byte* data, int size)
+    {
+        var column = FindComponentColumn(componentId);
+        column.Write(entityIndex, data, size);
+    }
+
     internal void AppendComponentInternal<T>(Id componentId, in T component) where T : unmanaged
     {
         var column = FindComponentColumn<T>(componentId);
@@ -81,6 +87,12 @@ public sealed class Archetype
         column1 = column1Data.AsSpan();
 
         return true;
+    }
+
+    private IComponentValues FindComponentColumn(Id componentId)
+    {
+        int columnIndex = _componentIdToColumnIndex[componentId];
+        return _componentColumns[columnIndex];
     }
 
     private ComponentValues<T> FindComponentColumn<T>(Id componentId) where T : unmanaged

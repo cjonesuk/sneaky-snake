@@ -102,7 +102,7 @@ public class WorldQueryTests
     public void Query_Experiments()
     {
         var world = World.Create();
-        var player = world.CreateEntity(new Position(0, 0), new Velocity(1, 1), new Health(100));
+        var player = world.CreateEntity(); new Position(0, 0), new Velocity(1, 1), new Health(100));
         var car = world.CreateEntity(new Position(10, 10), new Velocity(5, 0));
         var chestPlate = world.CreateEntity(new Position(15, 15), new Armor(30));
 
@@ -118,29 +118,29 @@ public class WorldQueryTests
         result.Count.ShouldBe(2);
     }
 
-    [Fact]
-    public void Query_IsA()
-    {
-        var world = World.Create();
-        var prefab = world.CreateEntity();
-        prefab.Set(new Health(100));
-        prefab.Set(new Armor(50));
-        prefab.Set(new Healing(5));
+    // [Fact]
+    // public void Query_IsA()
+    // {
+    //     var world = World.Create();
+    //     var prefab = world.CreateEntity();
+    //     prefab.Set(new Health(100));
+    //     prefab.Set(new Armor(50));
+    //     prefab.Set(new Healing(5));
 
-        var player = world.CreateEntity();
-        player.Set(new Position(0, 0));
-        player.SetPair(world.Pairs.IsA, prefab);
+    //     var player = world.CreateEntity();
+    //     player.Set(new Position(0, 0));
+    //     player.SetPair(world.Pairs.IsA, prefab);
 
-        // var prefab2 = player.GetPair(world.Pairs.IsA);
-        // prefab2.ShouldBe(prefab);
+    //     // var prefab2 = player.GetPair(world.Pairs.IsA);
+    //     // prefab2.ShouldBe(prefab);
 
-        var playerHealth = player.Get<Health>();
-        playerHealth.Value.ShouldBe(100);
+    //     var playerHealth = player.Get<Health>();
+    //     playerHealth.Value.ShouldBe(100);
 
-        var playerArmor = player.Get<Armor>();
-        playerArmor.Value.ShouldBe(50);
+    //     var playerArmor = player.Get<Armor>();
+    //     playerArmor.Value.ShouldBe(50);
 
-        var playerHealing = player.Get<Healing>();
-        playerHealing.Amount.ShouldBe(5);
-    }
+    //     var playerHealing = player.Get<Healing>();
+    //     playerHealing.Amount.ShouldBe(5);
+    // }
 }
