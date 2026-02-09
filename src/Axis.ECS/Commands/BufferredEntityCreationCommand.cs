@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Axis.Core.Collections;
 using Axis.Core.Memory;
@@ -35,6 +36,7 @@ public ref struct EntityBuilder
     private readonly Id _entityId;
     private readonly int _payloadStart;
     private int _componentCount;
+    private bool _built;
 
     internal EntityBuilder(
         World world,
@@ -46,6 +48,7 @@ public ref struct EntityBuilder
         _entityId = entityId;
         _payloadStart = queue.Payload.Used;
         _componentCount = 0;
+        _built = false;
 
         queue.Payload.WritePacked(
             new CreateEntityPayload(entityId, 0));
@@ -54,6 +57,8 @@ public ref struct EntityBuilder
     public void With<T>(in T component)
         where T : unmanaged
     {
+        ThrowIfBuilt();
+
         Id componentId = _world.Components.GetId<T>();
 
         int size = NativeType<T>.Size;
@@ -66,8 +71,10 @@ public ref struct EntityBuilder
         _componentCount++;
     }
 
-    public unsafe void Build()
+    public unsafe Entity Build()
     {
+        ThrowIfBuilt();
+
         *(CreateEntityPayload*)
             (_queue.Payload.Ptr + _payloadStart) =
             new CreateEntityPayload(
@@ -77,6 +84,22 @@ public ref struct EntityBuilder
         _queue.Enqueue(
             ApplyCreateEntity.Apply,
             _payloadStart);
+
+        var entity = Entity.Create(_world, _entityId);
+
+        _world.FlushCommands();
+
+        return entity;
+    }
+
+    [Conditional("DEBUG")]
+    private void ThrowIfBuilt()
+    {
+        if (_built)
+        {
+            throw new InvalidOperationException(
+                "EntityBuilder has already been built.");
+        }
     }
 
     internal static unsafe class ApplyCreateEntity

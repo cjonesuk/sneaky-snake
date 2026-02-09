@@ -92,6 +92,16 @@ public sealed class World : IWorld
         _commands.ApplyAndClear(this);
     }
 
+    internal void FlushCommands()
+    {
+        if (_deferredMode)
+        {
+            return;
+        }
+
+        _commands.ApplyAndClear(this);
+    }
+
     public void ClearAllEvents()
     {
         _events.ClearAllEvents();
