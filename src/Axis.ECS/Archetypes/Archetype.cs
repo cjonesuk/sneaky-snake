@@ -32,137 +32,8 @@ public sealed class Archetype
 
     public EntityType EntityType => _entityType;
 
-    public EntityLocation AddEntity(Id id)
-    {
-        _components.DebugAssertSupportsEmpty(_entityType);
 
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1>(Id id, ref T1 c1) where T1 : unmanaged
-    {
-        _components.DebugAssertSupports<T1>(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2>(Id id, ref T1 c1, ref T2 c2) where T1 : unmanaged where T2 : unmanaged
-    {
-        _components.DebugAssertSupports<T1, T2>(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3>(Id id, ref T1 c1, ref T2 c2, ref T3 c3)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged
-    {
-        _components.DebugAssertSupports<T1, T2, T3>(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged
-    {
-        _components.DebugAssertSupports<T1, T2, T3, T4>(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4, T5>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged
-    {
-        _components.DebugAssertSupports<T1, T2, T3, T4, T5>(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-        AppendComponentInternal(ref c5);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4, T5, T6>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged
-    {
-        _components.DebugAssertSupports<T1, T2, T3, T4, T5, T6>(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-        AppendComponentInternal(ref c5);
-        AppendComponentInternal(ref c6);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4, T5, T6, T7>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged
-    {
-        _components.DebugAssertSupports<T1, T2, T3, T4, T5, T6, T7>(_entityType);
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-        AppendComponentInternal(ref c5);
-        AppendComponentInternal(ref c6);
-        AppendComponentInternal(ref c7);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4, T5, T6, T7, T8>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7, ref T8 c8)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged where T8 : unmanaged
-    {
-        _components.DebugAssertSupports<T1, T2, T3, T4, T5, T6, T7, T8>(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-        AppendComponentInternal(ref c5);
-        AppendComponentInternal(ref c6);
-        AppendComponentInternal(ref c7);
-        AppendComponentInternal(ref c8);
-
-        return location;
-    }
-
-    public bool TrySetComponent<T>(int entityIndex, Id componentId, ref T component) where T : unmanaged
+    public bool TrySetComponent<T>(int entityIndex, Id componentId, in T component) where T : unmanaged
     {
         if (!TryFindComponentColumnById<T>(componentId, out var column))
         {
@@ -174,23 +45,22 @@ public sealed class Archetype
         return true;
     }
 
-    private EntityLocation AppendEntityIdInternal(ref Id id)
+    internal EntityLocation AllocateEntity(in Id id)
     {
-        int index = _entityIds.Add(ref id);
+        int index = _entityIds.Add(in id);
+
+        foreach (var column in _componentColumns)
+        {
+            column.AddDefault();
+        }
+
         return new EntityLocation(this, index);
     }
 
-    private void AppendComponentInternal<T>(ref T component) where T : unmanaged
-    {
-        Id componentId = _components.GetId<T>();
-        var column = FindComponentColumn<T>(componentId);
-        column.Add(ref component);
-    }
-
-    private void AppendComponentInternal<T>(Id componentId, ref T component) where T : unmanaged
+    internal void AppendComponentInternal<T>(Id componentId, in T component) where T : unmanaged
     {
         var column = FindComponentColumn<T>(componentId);
-        column.Add(ref component);
+        column.Add(in component);
     }
 
     public Span<Id> GetEntityIds()
@@ -209,157 +79,6 @@ public sealed class Archetype
         }
 
         column1 = column1Data.AsSpan();
-
-        return true;
-    }
-
-    internal bool TryGetColumnSpans(
-        out Span<Id> entityIds)
-    {
-        entityIds = _entityIds.AsSpan();
-        return true;
-    }
-
-    internal bool TryGetColumnSpans<T1>(
-        out Span<Id> entityIds,
-        out Span<T1> column1)
-        where T1 : unmanaged
-    {
-        if (!TryFindComponentColumn<T1>(out var column1Data))
-        {
-            entityIds = null;
-            column1 = null;
-            return false;
-        }
-
-        entityIds = _entityIds.AsSpan();
-        column1 = column1Data.AsSpan();
-
-        return true;
-    }
-
-    internal bool TryGetColumnSpans<T1, T2>(
-        out Span<Id> entityIds,
-        out Span<T1> column1,
-        out Span<T2> column2)
-        where T1 : unmanaged
-        where T2 : unmanaged
-    {
-        if (!TryFindComponentColumn<T1>(out var column1Data) ||
-            !TryFindComponentColumn<T2>(out var column2Data))
-        {
-            entityIds = null;
-            column1 = null;
-            column2 = null;
-
-            return false;
-        }
-
-        entityIds = _entityIds.AsSpan();
-        column1 = column1Data.AsSpan();
-        column2 = column2Data.AsSpan();
-
-        return true;
-    }
-
-    internal bool TryGetColumnSpans<T1, T2, T3>(
-        out Span<Id> entityIds,
-        out Span<T1> column1,
-        out Span<T2> column2,
-        out Span<T3> column3)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-    {
-        if (!TryFindComponentColumn<T1>(out var column1Data) ||
-            !TryFindComponentColumn<T2>(out var column2Data) ||
-            !TryFindComponentColumn<T3>(out var column3Data))
-        {
-            entityIds = null;
-            column1 = null;
-            column2 = null;
-            column3 = null;
-
-            return false;
-        }
-
-        entityIds = _entityIds.AsSpan();
-        column1 = column1Data.AsSpan();
-        column2 = column2Data.AsSpan();
-        column3 = column3Data.AsSpan();
-
-        return true;
-    }
-
-    internal bool TryGetColumnSpans<T1, T2, T3, T4>(
-        out Span<Id> entityIds,
-        out Span<T1> column1,
-        out Span<T2> column2,
-        out Span<T3> column3,
-        out Span<T4> column4)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-    {
-        if (!TryFindComponentColumn<T1>(out var column1Data) ||
-            !TryFindComponentColumn<T2>(out var column2Data) ||
-            !TryFindComponentColumn<T3>(out var column3Data) ||
-            !TryFindComponentColumn<T4>(out var column4Data))
-        {
-            entityIds = null;
-            column1 = null;
-            column2 = null;
-            column3 = null;
-            column4 = null;
-
-            return false;
-        }
-
-        entityIds = _entityIds.AsSpan();
-        column1 = column1Data.AsSpan();
-        column2 = column2Data.AsSpan();
-        column3 = column3Data.AsSpan();
-        column4 = column4Data.AsSpan();
-
-        return true;
-    }
-
-    internal bool TryGetColumnSpans<T1, T2, T3, T4, T5>(
-        out Span<Id> entityIds,
-        out Span<T1> column1,
-        out Span<T2> column2,
-        out Span<T3> column3,
-        out Span<T4> column4,
-        out Span<T5> column5)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-    {
-        if (!TryFindComponentColumn<T1>(out var column1Data) ||
-            !TryFindComponentColumn<T2>(out var column2Data) ||
-            !TryFindComponentColumn<T3>(out var column3Data) ||
-            !TryFindComponentColumn<T4>(out var column4Data) ||
-            !TryFindComponentColumn<T5>(out var column5Data))
-        {
-            entityIds = null;
-            column1 = null;
-            column2 = null;
-            column3 = null;
-            column4 = null;
-            column5 = null;
-
-            return false;
-        }
-
-        entityIds = _entityIds.AsSpan();
-        column1 = column1Data.AsSpan();
-        column2 = column2Data.AsSpan();
-        column3 = column3Data.AsSpan();
-        column4 = column4Data.AsSpan();
-        column5 = column5Data.AsSpan();
 
         return true;
     }

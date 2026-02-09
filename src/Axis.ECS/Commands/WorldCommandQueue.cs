@@ -1,4 +1,5 @@
 using Axis.Core.Collections;
+using Axis.Core.Memory;
 
 namespace Axis.ECS.Commands;
 
@@ -6,6 +7,20 @@ internal sealed class WorldCommandQueue : CommandQueue<World, WorldCommand>
 {
     public WorldCommandQueue()
     {
+    }
+
+    public NativeBuffer Payload => _payload;
+
+    public int BeginPayload()
+    {
+        return _payload.Used;
+    }
+
+    public void Enqueue(
+        CommandAction action,
+        int payloadOffset)
+    {
+        _commands.Add(new WorldCommand(action, payloadOffset));
     }
 
     public void Write<T>(ref T value, CommandAction action)

@@ -92,6 +92,37 @@ public unsafe sealed class NativeBuffer : IDisposable
         return new NativeSlice(aligned, bytes.Length);
     }
 
+    public int WritePacked<T>(in T value) where T : unmanaged
+    {
+        int offset = _used;
+        int size = Unsafe.SizeOf<T>();
+
+        EnsureCapacity(size);
+
+        void* dest = _ptr + offset;
+        Unsafe.CopyBlockUnaligned(
+            dest,
+            Unsafe.AsPointer(ref Unsafe.AsRef(in value)),
+            (uint)size);
+
+        _used += size;
+        return offset;
+    }
+
+    public int WritePackedRaw(void* src, int size)
+    {
+        int offset = _used;
+        EnsureCapacity(size);
+
+        Unsafe.CopyBlockUnaligned(
+            _ptr + offset,
+            src,
+            (uint)size);
+
+        _used += size;
+        return offset;
+    }
+
     /// <summary>
     /// Returns a pointer to the object stored at offset.
     /// </summary>

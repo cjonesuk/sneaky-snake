@@ -18,7 +18,7 @@ public sealed class ComponentEntityManager
     }
 
 
-    public Id Register<T>() where T : unmanaged
+    internal Id Register<T>() where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
 
@@ -30,7 +30,7 @@ public sealed class ComponentEntityManager
         return RegisterInternal<T>();
     }
 
-    public Id GetId<T>() where T : unmanaged
+    internal Id GetId<T>() where T : unmanaged
     {
         ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
 
@@ -42,12 +42,12 @@ public sealed class ComponentEntityManager
         return RegisterInternal<T>();
     }
 
-    public ComponentEntityMetadata GetMetadata(Id componentId)
+    internal ComponentEntityMetadata GetMetadata(Id componentId)
     {
         return _componentMetadata[componentId];
     }
 
-    public IComponentValues CreateComponentStorage(Id componentId)
+    internal IComponentValues CreateComponentStorage(Id componentId)
     {
         Id componentStorageId = componentId.IsPair() ? componentId.GetRelationship() : componentId;
 

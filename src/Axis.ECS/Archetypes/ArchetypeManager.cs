@@ -10,7 +10,7 @@ internal sealed class ArchetypeManager
     private readonly List<Archetype> _archetypes;
     private readonly Dictionary<EntityType, Archetype> _archetypesByEntityType;
 
-    public ArchetypeManager(ComponentEntityManager components)
+    internal ArchetypeManager(ComponentEntityManager components)
     {
         _components = components;
         _emptyArchetype = new Archetype(_components, EntityType.Empty);
@@ -21,93 +21,9 @@ internal sealed class ArchetypeManager
         };
     }
 
-    public Archetype EmptyArchetype => _emptyArchetype;
+    internal Archetype EmptyArchetype => _emptyArchetype;
 
-    public Archetype GetOrCreate<T1>()
-        where T1 : unmanaged
-    {
-        EntityType entityType = _components.GetEntityType<T1>();
-        return GetOrCreate(entityType);
-    }
-
-    public Archetype GetOrCreate<T1, T2>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-    {
-        EntityType entityType = _components.GetEntityType<T1, T2>();
-        return GetOrCreate(entityType);
-    }
-
-    public Archetype GetOrCreate<T1, T2, T3>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-    {
-        EntityType entityType = _components.GetEntityType<T1, T2, T3>();
-        return GetOrCreate(entityType);
-    }
-
-    public Archetype GetOrCreate<T1, T2, T3, T4>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-    {
-        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4>();
-        return GetOrCreate(entityType);
-    }
-
-    public Archetype GetOrCreate<T1, T2, T3, T4, T5>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-    {
-        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4, T5>();
-        return GetOrCreate(entityType);
-    }
-
-    public Archetype GetOrCreate<T1, T2, T3, T4, T5, T6>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-        where T6 : unmanaged
-    {
-        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4, T5, T6>();
-        return GetOrCreate(entityType);
-    }
-
-    public Archetype GetOrCreate<T1, T2, T3, T4, T5, T6, T7>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-        where T6 : unmanaged
-        where T7 : unmanaged
-    {
-        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4, T5, T6, T7>();
-        return GetOrCreate(entityType);
-    }
-
-    public Archetype GetOrCreate<T1, T2, T3, T4, T5, T6, T7, T8>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-        where T6 : unmanaged
-        where T7 : unmanaged
-        where T8 : unmanaged
-    {
-        EntityType entityType = _components.GetEntityType<T1, T2, T3, T4, T5, T6, T7, T8>();
-        return GetOrCreate(entityType);
-    }
-
-    public Archetype GetOrCreate(EntityType entityType)
+    internal Archetype GetOrCreate(EntityType entityType)
     {
         if (_archetypesByEntityType.TryGetValue(entityType, out Archetype? archetype))
         {
@@ -121,66 +37,15 @@ internal sealed class ArchetypeManager
         return archetype;
     }
 
-    public IReadOnlyList<Archetype> GetAllArchetypes()
+    internal Span<Archetype> GetAllArchetypes()
     {
-        return _archetypes;
-    }
-
-    public ArchetypeQueryEnumerable QueryArchetypes()
-    {
-        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
-        return new ArchetypeQueryEnumerable(archetypesSpan);
-    }
-
-    public ArchetypeQueryEnumerable<T1> QueryArchetypes<T1>()
-        where T1 : unmanaged
-    {
-        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
-        return new ArchetypeQueryEnumerable<T1>(archetypesSpan);
-    }
-
-    public ArchetypeQueryEnumerable<T1, T2> QueryArchetypes<T1, T2>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-    {
-        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
-        return new ArchetypeQueryEnumerable<T1, T2>(archetypesSpan);
-    }
-
-    public ArchetypeQueryEnumerable<T1, T2, T3> QueryArchetypes<T1, T2, T3>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-    {
-        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
-        return new ArchetypeQueryEnumerable<T1, T2, T3>(archetypesSpan);
-    }
-
-    public ArchetypeQueryEnumerable<T1, T2, T3, T4> QueryArchetypes<T1, T2, T3, T4>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-    {
-        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
-        return new ArchetypeQueryEnumerable<T1, T2, T3, T4>(archetypesSpan);
-    }
-
-    public ArchetypeQueryEnumerable<T1, T2, T3, T4, T5> QueryArchetypes<T1, T2, T3, T4, T5>()
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-    {
-        Span<Archetype> archetypesSpan = CollectionsMarshal.AsSpan(_archetypes);
-        return new ArchetypeQueryEnumerable<T1, T2, T3, T4, T5>(archetypesSpan);
+        return CollectionsMarshal.AsSpan(_archetypes);
     }
 
     /// <summary>
     /// Clears all archetypes without removing them or resizing the underlying collections.
     /// </summary>
-    public void ClearAll()
+    internal void ClearAll()
     {
         foreach (var archetype in _archetypes)
         {

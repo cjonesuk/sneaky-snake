@@ -1,20 +1,22 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Axis.Core.Memory;
 
 namespace Axis.ECS;
 
-public interface IComponentValues
+/// <summary>
+/// Operations for managing a single column of component data for an archetype.
+/// These operations should not be used during iteration.
+/// </summary>
+internal interface IComponentValues
 {
+    void AddDefault();
     void Add<TInput>(ref TInput value) where TInput : unmanaged;
     void RemoveAndFillHoleAt(int index);
     void Migrate(IComponentValues source, int sourceIndex);
-
-    /// <summary>
-    /// Clears all values from the collection without resizing the underlying array.
-    /// </summary>
     void Clear();
+    unsafe void Write(int entityIndex, byte* data, int size);
 }
-
 
 internal sealed class ComponentValues<T> : IComponentValues where T : unmanaged
 {
@@ -30,39 +32,15 @@ internal sealed class ComponentValues<T> : IComponentValues where T : unmanaged
         _values = new T[DefaultInitialCapacity];
     }
 
-    public Span<T> AsSpan()
+    internal Span<T> AsSpan()
     {
         return _values.AsSpan(0, _count);
-    }
-
-    void IComponentValues.Add<TInput>(ref TInput value)
-    {
-        AssertTypeMatch<TInput>();
-
-        if (_count == _values.Length)
-        {
-            Array.Resize(ref _values, _values.Length * 2);
-        }
-
-        _values[_count++] = Unsafe.As<TInput, T>(ref value);
-    }
-
-    public void RemoveAndFillHoleAt(int index)
-    {
-        int last = --_count;
-
-        if (index != last)
-        {
-            _values[index] = _values[last];
-        }
-
-        _values[last] = default!;
     }
 
     /// <summary>
     /// Adds the given value to the end of the collection and returns its index.
     /// </summary> 
-    public int Add(ref T value)
+    internal int Add(in T value)
     {
         if (_count == _values.Length)
         {
@@ -76,25 +54,92 @@ internal sealed class ComponentValues<T> : IComponentValues where T : unmanaged
         return index;
     }
 
-    public void Set(int index, T value)
+
+
+    internal void RemoveAndFillHoleAt(int index)
     {
+        int last = --_count;
+
+        if (index != last)
+        {
+            _values[index] = _values[last];
+        }
+
+        _values[last] = default!;
+    }
+
+    unsafe void IComponentValues.Write(int entityIndex, byte* data, int size)
+    {
+#if DEBUG
+        if (size != NativeType<T>.Size)
+        {
+            throw new InvalidOperationException("Component size mismatch.");
+        }
+#endif
+
+        ref T destination = ref _values[entityIndex];
+
+        Unsafe.CopyBlockUnaligned(
+            Unsafe.AsPointer(ref destination),
+            data,
+            (uint)size);
+    }
+
+    internal void Set(int index, T value)
+    {
+        if (index >= _count || index < 0)
+        {
+            throw new IndexOutOfRangeException($"Index {index} is out of range for ComponentValues with count {_count}");
+        }
+
         _values[index] = value;
     }
 
-    public void Migrate(IComponentValues source, int sourceIndex)
+    void IComponentValues.AddDefault()
+    {
+        Add(default!);
+    }
+
+    void IComponentValues.Add<TInput>(ref TInput value)
+    {
+        AssertTypeMatch<TInput>();
+
+        ref T castedRef = ref Unsafe.As<TInput, T>(ref value);
+
+        Add(in castedRef);
+    }
+
+    void IComponentValues.Clear() => Clear();
+
+    void IComponentValues.RemoveAndFillHoleAt(int index)
+    {
+        RemoveAndFillHoleAt(index);
+    }
+
+    void IComponentValues.Migrate(IComponentValues source, int sourceIndex)
     {
         var sourceValues = (ComponentValues<T>)source;
+        Migrate(sourceValues, sourceIndex);
+    }
 
+
+    internal void Migrate(ComponentValues<T> sourceValues, int sourceIndex)
+    {
         // Append the source value to this collection
-        Add(ref sourceValues._values[sourceIndex]);
+        Add(in sourceValues._values[sourceIndex]);
 
         // Remove the source value by replacing it with the last value to maintain density
         sourceValues.RemoveAndFillHoleAt(sourceIndex);
     }
 
-    internal ref T GetRef(int index)
+    internal void Clear()
     {
-        return ref _values[index];
+        for (int index = 0; index < _count; index++)
+        {
+            _values[index] = default!;
+        }
+
+        _count = 0;
     }
 
     [Conditional("DEBUG")]
@@ -104,18 +149,5 @@ internal sealed class ComponentValues<T> : IComponentValues where T : unmanaged
         {
             throw new InvalidOperationException($"Invalid type {typeof(TActual)} for ComponentValues of type {typeof(T)}");
         }
-    }
-
-    /// <summary>
-    /// Clears all values from the collection without resizing the underlying array.
-    /// </summary>
-    public void Clear()
-    {
-        for (int index = 0; index < _count; index++)
-        {
-            _values[index] = default!;
-        }
-
-        _count = 0;
     }
 }

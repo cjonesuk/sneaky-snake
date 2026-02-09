@@ -2,7 +2,7 @@ namespace Axis.ECS;
 
 public sealed class ExportedEntity
 {
-    private readonly IWorld _world;
+    private readonly World _world;
     private readonly Id _id;
     private readonly EntityType _entityType;
     private readonly Dictionary<Id, object> _components;
@@ -12,7 +12,7 @@ public sealed class ExportedEntity
     public EntityType EntityType => _entityType;
     public IReadOnlyDictionary<Id, object> Components => _components;
 
-    internal ExportedEntity(Id id, IWorld world, EntityType entityType, Dictionary<Id, object> components)
+    internal ExportedEntity(Id id, World world, EntityType entityType, Dictionary<Id, object> components)
     {
         _id = id;
         _world = world;
@@ -20,7 +20,7 @@ public sealed class ExportedEntity
         _components = components;
     }
 
-    public static ExportedEntity Create(IWorld world, Id id)
+    public static ExportedEntity Create(World world, Id id)
     {
         EntityType entityType = world.GetEntityType(id);
 
