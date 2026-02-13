@@ -148,9 +148,15 @@ public sealed class World : IWorld
             return;
         }
 
-        Archetype archetype = _archetypes.EmptyArchetype;
+        AllocateEntity(EntityType.Empty, id);
+    }
+
+    internal EntityLocation AllocateEntity(EntityType entityType, Id id)
+    {
+        Archetype archetype = _archetypes.GetOrCreate(entityType);
         EntityLocation location = archetype.AllocateEntity(in id);
         _entityIndices[id] = location;
+        return location;
     }
 
     public Entity GetEntity(Id id)

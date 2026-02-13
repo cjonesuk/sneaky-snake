@@ -54,7 +54,7 @@ public ref struct EntityBuilder
             new CreateEntityPayload(entityId, 0));
     }
 
-    public void With<T>(in T component)
+    public EntityBuilder With<T>(in T component)
         where T : unmanaged
     {
         ThrowIfBuilt();
@@ -69,6 +69,7 @@ public ref struct EntityBuilder
         _queue.Payload.WritePacked(component);
 
         _componentCount++;
+        return this;
     }
 
     public unsafe Entity Build()
@@ -89,6 +90,8 @@ public ref struct EntityBuilder
 
         _world.FlushCommands();
 
+        _built = true;
+
         return entity;
     }
 
@@ -104,48 +107,48 @@ public ref struct EntityBuilder
 
     internal static unsafe class ApplyCreateEntity
     {
-        public static readonly WorldCommandQueue.CommandAction Apply = (ref World world, CommandPayload payload) =>
-         {
-             byte* p = (byte*)payload.Ptr;
+        public static readonly WorldCommandQueue.CommandAction Apply = static (ref world, payload) =>
+        {
+            byte* p = (byte*)payload.Ptr;
 
-             // Header
-             ref var header = ref Unsafe.AsRef<CreateEntityPayload>(p);
-             p += sizeof(CreateEntityPayload);
+            // Header
+            ref var header = ref Unsafe.AsRef<CreateEntityPayload>(p);
+            p += sizeof(CreateEntityPayload);
 
-             Span<Id> componentIds = stackalloc Id[header.ComponentCount];
+            Span<Id> componentIds = stackalloc Id[header.ComponentCount];
 
-             // First pass: read component ids
-             for (int i = 0; i < header.ComponentCount; i++)
-             {
-                 ref var entry = ref Unsafe.AsRef<ComponentEntry>(p);
-                 p += sizeof(ComponentEntry);
+            // First pass: read component ids
+            for (int i = 0; i < header.ComponentCount; i++)
+            {
+                ref var entry = ref Unsafe.AsRef<ComponentEntry>(p);
+                p += sizeof(ComponentEntry);
 
-                 componentIds[i] = entry.ComponentId;
-                 p += entry.Size;
-             }
+                componentIds[i] = entry.ComponentId;
+                p += entry.Size;
+            }
 
-             EntityType entityType = EntityType.Create(componentIds);
+            // Todo: investigate 0 allocation approach
+            EntityType entityType = EntityType.Create(componentIds);
 
-             Archetype archetype = world.Archetypes.GetOrCreate(entityType);
+            EntityLocation location = world.AllocateEntity(entityType, header.EntityId);
+            Archetype archetype = location.Archetype;
 
-             EntityLocation location = archetype.AllocateEntity(in header.EntityId);
+            // Second pass: copy component data
+            p = (byte*)payload.Ptr + sizeof(CreateEntityPayload);
 
-             // Second pass: copy component data
-             p = (byte*)payload.Ptr + sizeof(CreateEntityPayload);
+            for (int i = 0; i < header.ComponentCount; i++)
+            {
+                ref var entry = ref Unsafe.AsRef<ComponentEntry>(p);
+                p += sizeof(ComponentEntry);
 
-             for (int i = 0; i < header.ComponentCount; i++)
-             {
-                 ref var entry = ref Unsafe.AsRef<ComponentEntry>(p);
-                 p += sizeof(ComponentEntry);
+                archetype.WriteComponent(
+                    location.Index,
+                    entry.ComponentId,
+                    p,
+                    entry.Size);
 
-                 archetype.WriteComponent(
-                     location.Index,
-                     entry.ComponentId,
-                     p,
-                     entry.Size);
-
-                 p += entry.Size;
-             }
-         };
+                p += entry.Size;
+            }
+        };
     }
 }

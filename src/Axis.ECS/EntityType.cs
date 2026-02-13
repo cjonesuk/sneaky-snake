@@ -18,10 +18,13 @@ public readonly struct EntityType : IEquatable<EntityType>
     public static EntityType Create(ReadOnlySpan<Id> componentIds)
     {
         var sortedArray = SortedArray<Id>.Create(componentIds);
+
+        DebugAssertNoDuplicates(sortedArray.AsSpan());
+
         return new EntityType(sortedArray);
     }
 
-    public Span<Id> ComponentIds => _componentIds.AsSpan();
+    public ReadOnlySpan<Id> ComponentIds => _componentIds.AsSpan();
 
     public bool HasSubset(EntityType other)
     {
@@ -66,6 +69,7 @@ public readonly struct EntityType : IEquatable<EntityType>
         }
     }
 
+
     public override int GetHashCode()
     {
         return _componentIds.GetHashCode();
@@ -84,5 +88,17 @@ public readonly struct EntityType : IEquatable<EntityType>
     public override string ToString()
     {
         return $"EntityType[{_componentIds}]";
+    }
+
+    [Conditional("DEBUG")]
+    private static void DebugAssertNoDuplicates(ReadOnlySpan<Id> ids)
+    {
+        for (int i = 1; i < ids.Length; i++)
+        {
+            if (ids[i - 1] == ids[i])
+            {
+                throw new InvalidOperationException($"Duplicate component id: {ids[i]}");
+            }
+        }
     }
 }

@@ -31,4 +31,10 @@ public class EntityTypeTests
         result.ShouldBeFalse();
     }
 
+    [Fact]
+    public void Create_WithDuplicates_Throws()
+    {
+        Should.Throw<InvalidOperationException>(() => EntityType.Create([_id1, _id2, _id3, _id2]));
+    }
+
 }

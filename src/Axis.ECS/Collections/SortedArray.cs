@@ -2,6 +2,8 @@ namespace Axis.ECS.Collections;
 
 readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparable<T>
 {
+    private static readonly EqualityComparer<T> Comparer = EqualityComparer<T>.Default;
+
     private readonly T[] _items;
 
     private SortedArray(T[] items)
@@ -24,28 +26,25 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
         return new SortedArray<T>(itemsArray);
     }
 
-    public Span<T> AsSpan() => _items;
+    public ReadOnlySpan<T> AsSpan() => _items;
 
     public bool HasSubset(SortedArray<T> other)
     {
-        IComparer<T> comparer = Comparer<T>.Default;
+        var otherArray = other._items;
 
-        var thisSpan = _items.AsSpan();
-        var otherSpan = other._items.AsSpan();
-        int thisIndex = 0;
-        int otherIndex = 0;
+        int i = 0, j = 0;
 
-        while (thisIndex < thisSpan.Length && otherIndex < otherSpan.Length)
+        while (i < _items.Length && j < otherArray.Length)
         {
-            int comparison = comparer.Compare(thisSpan[thisIndex], otherSpan[otherIndex]);
-            if (comparison == 0)
+            int cmp = _items[i].CompareTo(otherArray[j]);
+            if (cmp == 0)
             {
-                otherIndex++;
+                j++;
             }
-            thisIndex++;
+            i++;
         }
 
-        return otherIndex == otherSpan.Length;
+        return j == otherArray.Length;
     }
 
     public bool With(T item, out SortedArray<T> result)
@@ -126,7 +125,15 @@ readonly struct SortedArray<T> : IEquatable<SortedArray<T>> where T : IComparabl
             return false;
         }
 
-        return _items.SequenceEqual(other._items);
+        for (int i = 0; i < _items.Length; i++)
+        {
+            if (!Comparer.Equals(_items[i], other._items[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public override int GetHashCode()
