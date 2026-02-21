@@ -36,6 +36,12 @@ public readonly struct Entity
 
 public static class EntityWorldExtensions
 {
+    public static EntityType GetEntityType(this Entity entity)
+    {
+        World world = entity.GetWorld();
+        return world.GetEntityType(entity.Id);
+    }
+
     public static void Set<T>(this Entity entity, T component) where T : unmanaged
     {
         World world = entity.GetWorld();

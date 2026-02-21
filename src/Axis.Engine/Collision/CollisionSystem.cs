@@ -37,6 +37,7 @@ public sealed class CollisionSystem : IWorldSystem
         _worldSpace.Clear();
 
         CollisionSystem refthis = this;
+ 
 
         world.QueryEach(ref refthis, static (ref CollisionSystem sys, ref Iter iter, ref Transform2d transform, ref CollisionBody body) =>
         {

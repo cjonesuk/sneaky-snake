@@ -15,11 +15,6 @@ public ref struct ArchetypeEnumerator
 
     public Archetype Current => _current!;
 
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-
     public bool MoveNext()
     {
         while (++_index < _archetypes.Length)

@@ -58,10 +58,6 @@ public sealed class World : IWorld
 
     internal ArchetypeManager Archetypes => _archetypes;
 
-    public QueryBuilder CreateQuery()
-    {
-        return new QueryBuilder(this);
-    }
 
     internal void RegisterQuery(IArchetypeQuery query)
     {
@@ -109,13 +105,13 @@ public sealed class World : IWorld
 
     public void ExecuteSystems(float deltaTime)
     {
-        var data = new WorldSystemContext(this, deltaTime);
+        var context = WorldSystemContext.For(this, deltaTime);
         var systems = _systemScheduler.GetSystems();
 
         foreach (var system in systems)
         {
             using var deferredMode = BeginDeferringCommands();
-            system.Execute(ref data);
+            system.Execute(context);
         }
     }
 

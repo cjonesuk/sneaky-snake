@@ -17,6 +17,20 @@ public class EntityBuilderTests
     }
 
     [Fact]
+    public void DefineEntity_WithSingleComponent_EntityTypeIsCorrect()
+    {
+        var world = World.Create();
+        var builder = world.DefineEntity()
+            .With(new Position(1.0f, 2.0f));
+        var entity = builder.Build();
+
+        var debug = entity.DebugExport();
+        debug.EntityType.ShouldBe(EntityType.Create([
+            world.Components.GetId<Position>()
+        ]));
+    }
+
+    [Fact]
     public void DefineEntity_WithComponents_CreatesEntityWithComponents()
     {
         var world = World.Create();

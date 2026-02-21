@@ -182,7 +182,7 @@ public sealed class Archetype
         }
 
         // Add the new component
-        AppendComponentInternal(componentId, ref c1);
+        AppendComponentInternal(componentId, in c1);
 
         return new EntityLocation(this, targetIndex);
     }

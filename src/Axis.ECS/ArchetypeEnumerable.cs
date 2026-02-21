@@ -2,9 +2,9 @@ namespace Axis.ECS;
 
 public readonly ref struct ArchetypeEnumerable
 {
-    private readonly Span<Archetype> _archetypes;
+    private readonly ReadOnlySpan<Archetype> _archetypes;
 
-    public ArchetypeEnumerable(Span<Archetype> archetypes)
+    public ArchetypeEnumerable(ReadOnlySpan<Archetype> archetypes)
     {
         _archetypes = archetypes;
     }
