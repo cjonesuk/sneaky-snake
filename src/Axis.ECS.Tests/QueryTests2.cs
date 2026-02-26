@@ -89,15 +89,11 @@ public class QueryT0Tests
     [Fact]
     public void Iterate()
     {
-        var healthQuery = QueryBuilder
-           .For(_world)
-           .Add<Health>()
+        var healthQuery = DefineQuery.For<Health>(_world)
            .Build();
 
-        var healthQueryT0 = new Query<Health>(healthQuery);
-
         int healthTotal = 0;
-        healthQueryT0.Iterate((iter, health) =>
+        healthQuery.Iterate((iter, health) =>
         {
             foreach (var index in iter)
             {
@@ -110,15 +106,11 @@ public class QueryT0Tests
     [Fact]
     public void ForEach()
     {
-        var healthQuery = QueryBuilder
-           .For(_world)
-           .Add<Health>()
+        var healthQuery = DefineQuery.For<Health>(_world)
            .Build();
 
-        var healthQueryT0 = new Query<Health>(healthQuery);
-
         int healthTotal = 0;
-        healthQueryT0.ForEach((Entity entity, ref Health health) =>
+        healthQuery.ForEach((Entity entity, ref Health health) =>
         {
             healthTotal += health.Value;
         });

@@ -42,3 +42,28 @@ public sealed class QueryBuilder
     }
 }
 
+public static class DefineQuery
+{
+    public static QueryBuilder<T0> For<T0>(World world) where T0 : unmanaged
+    {
+        var builder = QueryBuilder.For(world);
+        builder.Add<T0>();
+        return new QueryBuilder<T0>(builder);
+    }
+}
+
+public struct QueryBuilder<T0> where T0 : unmanaged
+{
+    private QueryBuilder _builder;
+
+    internal QueryBuilder(QueryBuilder builder)
+    {
+        _builder = builder;
+    }
+
+    public Query<T0> Build()
+    {
+        var query = _builder.Build();
+        return new Query<T0>(query);
+    }
+}
