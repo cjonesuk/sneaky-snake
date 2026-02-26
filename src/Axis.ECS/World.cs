@@ -31,7 +31,7 @@ public sealed class World : IWorld
         _entityIds = new EntityIdManager();
         _entityIndices = new Dictionary<Id, EntityLocation>();
         _components = new ComponentEntityManager(_entityIds);
-        _archetypes = new ArchetypeManager(_components);
+        _archetypes = new ArchetypeManager(this, _components);
         _systemScheduler = new WorldSystemScheduler();
         _events = new EventManager();
         _commands = new WorldCommandQueue();

@@ -5,15 +5,17 @@ namespace Axis.ECS;
 
 internal sealed class ArchetypeManager
 {
+    private readonly World _world;
     private readonly ComponentEntityManager _components;
     private readonly Archetype _emptyArchetype;
     private readonly List<Archetype> _archetypes;
     private readonly Dictionary<EntityType, Archetype> _archetypesByEntityType;
 
-    internal ArchetypeManager(ComponentEntityManager components)
+    internal ArchetypeManager(World world, ComponentEntityManager components)
     {
+        _world = world;
         _components = components;
-        _emptyArchetype = new Archetype(_components, EntityType.Empty);
+        _emptyArchetype = new Archetype(_world, _components, EntityType.Empty);
         _archetypes = new List<Archetype>() { _emptyArchetype };
         _archetypesByEntityType = new Dictionary<EntityType, Archetype>()
         {
@@ -30,7 +32,7 @@ internal sealed class ArchetypeManager
             return archetype;
         }
 
-        archetype = new Archetype(_components, entityType);
+        archetype = new Archetype(_world, _components, entityType);
         _archetypesByEntityType[entityType] = archetype;
         _archetypes.Add(archetype);
 

@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Axis.Core/Axis.Core.csproj" />
+    <ProjectReference Include="../Axis.ECS.Generators/Axis.ECS.Generators.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>

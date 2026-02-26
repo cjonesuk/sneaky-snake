@@ -45,50 +45,6 @@ public sealed class ArchetypeQuery : IArchetypeQuery
     }
 }
 
-public readonly struct Query<T0> where T0 : unmanaged
-{
-    private readonly ArchetypeQuery _archetypeQuery;
-
-    internal Query(ArchetypeQuery archetypeQuery)
-    {
-        _archetypeQuery = archetypeQuery;
-    }
-
-    public delegate void IterateArchetypesDelegate(Iter iter, Span<T0> c0);
-    public delegate void ForEachDelegate(Entity entity, ref T0 c0);
-
-    public void Iterate(IterateArchetypesDelegate action)
-    {
-        var archetypes = _archetypeQuery.Run();
-
-        foreach (Archetype archetype in archetypes)
-        {
-            var iter = new Iter(archetype);
-            archetype.TryGetColumnSpan(out Span<T0> c0);
-            action(iter, c0);
-        }
-    }
-
-    public void ForEach(ForEachDelegate action)
-    {
-        var archetypes = _archetypeQuery.Run();
-
-        foreach (Archetype archetype in archetypes)
-        {
-            World world = archetype.World;
-            var entityIds = archetype.GetEntityIds();
-            archetype.TryGetColumnSpan(out Span<T0> c0);
-
-            for (int i = 0; i < c0.Length; i++)
-            {
-                var entity = Entity.Create(world, entityIds[i]);
-                action(entity, ref c0[i]);
-            }
-        }
-    }
-}
-
-
 public ref struct Iter : IEnumerable<int>
 {
     private readonly Archetype _archetype;
