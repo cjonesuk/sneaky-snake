@@ -70,20 +70,19 @@ public class QueryTests2
 public class QueryT0Tests
 {
     private readonly World _world;
-    private readonly Entity _entity1;
-    private readonly Entity _entity2;
 
     public QueryT0Tests()
     {
         _world = World.Create();
-        _entity1 = _world.DefineEntity()
-            .With(new Health(100))
-            .Build();
 
-        _entity2 = _world.DefineEntity()
-            .With(new Health(90))
-            .With(new Healing(10))
-            .Build();
+        _world.DefineEntity()
+           .With(new Health(100))
+           .Build();
+
+        _world.DefineEntity()
+           .With(new Health(90))
+           .With(new Healing(10))
+           .Build();
     }
 
     [Fact]
@@ -115,5 +114,62 @@ public class QueryT0Tests
             healthTotal += health.Value;
         });
         healthTotal.ShouldBe(190);
+    }
+}
+
+public class QueryT1Tests
+{
+    private readonly World _world;
+
+    public QueryT1Tests()
+    {
+        _world = World.Create();
+
+        _world.DefineEntity()
+           .With(new Health(100))
+           .With(new Healing(10))
+           .Build();
+
+        _world.DefineEntity()
+           .With(new Health(90))
+           .With(new Healing(20))
+           .Build();
+    }
+
+    [Fact]
+    public void Iterate()
+    {
+        var query = DefineQuery.For<Health, Healing>(_world)
+           .Build();
+
+        int healthTotal = 0;
+        int healingTotal = 0;
+        query.Iterate((iter, health, healing) =>
+        {
+            foreach (var index in iter)
+            {
+                healthTotal += health[index].Value;
+                healingTotal += healing[index].Amount;
+            }
+        });
+        healthTotal.ShouldBe(190);
+        healingTotal.ShouldBe(30);
+    }
+
+    [Fact]
+    public void ForEach()
+    {
+        var query = DefineQuery.For<Health, Healing>(_world)
+           .Build();
+
+        int healthTotal = 0;
+        int healingTotal = 0;
+        query.ForEach((Entity entity, ref Health health, ref Healing healing) =>
+        {
+            healthTotal += health.Value;
+            healingTotal += healing.Amount;
+        });
+        healthTotal.ShouldBe(190);
+        healingTotal.ShouldBe(30);
     }
 }
