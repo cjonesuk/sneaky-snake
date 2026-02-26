@@ -33,7 +33,51 @@ internal sealed class DelegatedWorldSystem : IWorldSystem
     }
 }
 
+public ref struct Field<T> where T : unmanaged
+{
+    private readonly Span<T> _span;
+    private readonly int _index;
+
+    internal Field(Span<T> span, int index)
+    {
+        _span = span;
+        _index = index;
+    }
+
+    public ref T Value => ref _span[_index];
+}
+
+// public ref struct Iter
+// {
+//     private readonly Archetype _archetype;
+//     private readonly ReadOnlySpan<Id> _entityIds;
+//     private int _current;
+
+//     internal Iter(Archetype archetype)
+//     {
+//         _archetype = archetype;
+//         _entityIds = archetype.GetEntityIds();
+//         _current = -1;
+//     }
+
+//     public int Current => _current;
+
+//     public Id EntityId => _entityIds[_current];
+
+//     public Span<T> GetColumn<T>() where T : unmanaged
+//     {
+//         _archetype.TryGetColumnSpan<T>(out var span);
+//         return span;
+//     }
+
+//     public bool MoveNext()
+//     {
+//         _current++;
+//         return _current < _entityIds.Length;
+//     }
+// }
+
 internal sealed class SystemBuilder
 {
-    
+
 }

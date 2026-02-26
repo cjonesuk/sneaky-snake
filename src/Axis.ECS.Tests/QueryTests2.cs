@@ -48,21 +48,80 @@ public class QueryTests2
             .Add<Healing>()
             .Build();
 
-        healthQuery.Run().ToList().Select(x => x.EntityType).ShouldBe(
+        healthQuery.Run().ToArray().Select(x => x.EntityType).ShouldBe(
         [
             entity1.GetEntityType(),
             entity2.GetEntityType()
         ]);
 
-        healthAndHealingQuery.Run().ToList().Select(x => x.EntityType).ShouldBe(
+        healthAndHealingQuery.Run().ToArray().Select(x => x.EntityType).ShouldBe(
         [
             entity2.GetEntityType()
         ]);
 
-        healingQuery.Run().ToList().Select(x => x.EntityType).ShouldBe(
+        healingQuery.Run().ToArray().Select(x => x.EntityType).ShouldBe(
         [
             entity2.GetEntityType(),
             entity3.GetEntityType()
         ]);
+    }
+}
+
+public class QueryT0Tests
+{
+    private readonly World _world;
+    private readonly Entity _entity1;
+    private readonly Entity _entity2;
+
+    public QueryT0Tests()
+    {
+        _world = World.Create();
+        _entity1 = _world.DefineEntity()
+            .With(new Health(100))
+            .Build();
+
+        _entity2 = _world.DefineEntity()
+            .With(new Health(90))
+            .With(new Healing(10))
+            .Build();
+    }
+
+    [Fact]
+    public void Iterate()
+    {
+        var healthQuery = QueryBuilder
+           .For(_world)
+           .Add<Health>()
+           .Build();
+
+        var healthQueryT0 = new Query<Health>(healthQuery);
+
+        int healthTotal = 0;
+        healthQueryT0.Iterate((iter, health) =>
+        {
+            foreach (var index in iter)
+            {
+                healthTotal += health[index].Value;
+            }
+        });
+        healthTotal.ShouldBe(190);
+    }
+
+    [Fact]
+    public void ForEach()
+    {
+        var healthQuery = QueryBuilder
+           .For(_world)
+           .Add<Health>()
+           .Build();
+
+        var healthQueryT0 = new Query<Health>(healthQuery);
+
+        int healthTotal = 0;
+        healthQueryT0.ForEach((Entity entity, ref Health health) =>
+        {
+            healthTotal += health.Value;
+        });
+        healthTotal.ShouldBe(190);
     }
 }

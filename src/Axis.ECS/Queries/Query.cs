@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Runtime.InteropServices;
 
 namespace Axis.ECS.Queries;
@@ -26,19 +27,13 @@ public sealed class ArchetypeQuery : IArchetypeQuery
         _isCacheValid = false;
     }
 
-    public ArchetypeEnumerable Run()
-    {
-        var results = GetResults();
-        return new ArchetypeEnumerable(results);
-    }
-
     void IArchetypeQuery.Invalidate()
     {
         _cachedResults.Clear();
         _isCacheValid = false;
     }
 
-    private ReadOnlySpan<Archetype> GetResults()
+    internal ReadOnlySpan<Archetype> Run()
     {
         if (!_isCacheValid)
         {
@@ -50,3 +45,118 @@ public sealed class ArchetypeQuery : IArchetypeQuery
     }
 }
 
+public readonly struct Query<T0> where T0 : unmanaged
+{
+    private readonly ArchetypeQuery _archetypeQuery;
+
+    internal Query(ArchetypeQuery archetypeQuery)
+    {
+        _archetypeQuery = archetypeQuery;
+    }
+
+    public delegate void IterateArchetypesDelegate(Iter iter, Span<T0> c0);
+    public delegate void ForEachDelegate(Entity entity, ref T0 c0);
+
+    public void Iterate(IterateArchetypesDelegate action)
+    {
+        var archetypes = _archetypeQuery.Run();
+
+        foreach (Archetype archetype in archetypes)
+        {
+            var iter = new Iter(archetype);
+            archetype.TryGetColumnSpan(out Span<T0> c0);
+            action(iter, c0);
+        }
+    }
+
+    public void ForEach(ForEachDelegate action)
+    {
+        var archetypes = _archetypeQuery.Run();
+
+        foreach (Archetype archetype in archetypes)
+        {
+            World world = archetype.World;
+            var entityIds = archetype.GetEntityIds();
+            archetype.TryGetColumnSpan(out Span<T0> c0);
+
+            for (int i = 0; i < c0.Length; i++)
+            {
+                var entity = Entity.Create(world, entityIds[i]);
+                action(entity, ref c0[i]);
+            }
+        }
+    }
+}
+
+
+public ref struct Iter : IEnumerable<int>
+{
+    private readonly Archetype _archetype;
+
+    public Iter(Archetype archetype)
+    {
+        _archetype = archetype;
+    }
+
+    public IterEnumerator GetEnumerator()
+    {
+        return new IterEnumerator(_archetype.EntityCount);
+    }
+
+    IEnumerator<int> IEnumerable<int>.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+}
+
+public struct IterEnumerator : IEnumerator<int>
+{
+    private readonly int _length;
+    private int _currentIndex;
+
+    internal IterEnumerator(int length)
+    {
+        _length = length;
+        _currentIndex = -1;
+    }
+
+    public bool MoveNext()
+    {
+        return ++_currentIndex < _length;
+    }
+
+    public int Current => _currentIndex;
+
+    int IEnumerator<int>.Current => Current;
+
+    public void Reset()
+    {
+        _currentIndex = -1;
+    }
+
+    public void Dispose()
+    {
+    }
+
+    object IEnumerator.Current => Current;
+
+    bool IEnumerator.MoveNext()
+    {
+        return MoveNext();
+    }
+
+    void IEnumerator.Reset()
+    {
+        Reset();
+    }
+
+    void IDisposable.Dispose()
+    {
+        Dispose();
+    }
+}

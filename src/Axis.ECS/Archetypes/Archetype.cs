@@ -4,14 +4,16 @@ namespace Axis.ECS;
 
 public sealed class Archetype
 {
+    private readonly World _world;
     private readonly ComponentEntityManager _components;
     private readonly Dictionary<Id, int> _componentIdToColumnIndex;
     private readonly IComponentValues[] _componentColumns;
     private readonly ComponentValues<Id> _entityIds;
     private readonly EntityType _entityType;
 
-    internal Archetype(ComponentEntityManager components, EntityType entityType)
+    internal Archetype(World world, ComponentEntityManager components, EntityType entityType)
     {
+        _world = world;
         _components = components;
         _entityType = entityType;
 
@@ -30,8 +32,9 @@ public sealed class Archetype
         }
     }
 
+    public World World => _world;
     public EntityType EntityType => _entityType;
-
+    public int EntityCount => _entityIds.Count;
 
     public bool TrySetComponent<T>(int entityIndex, Id componentId, in T component) where T : unmanaged
     {
