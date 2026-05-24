@@ -6,7 +6,7 @@ public interface IWorld
 {
     IEventManager Events { get; }
 
-    Entity CreateEntity();
+    Entity SpawnEntity();
 
     Entity GetEntity(Id id);
 
@@ -18,8 +18,8 @@ public interface IWorld
     void ClearAllEvents();
     void ExecuteSystems(float deltaTime);
 
-    void SetComponentOnEntity<T>(Id id, ref T component) where T : unmanaged;
-    void SetComponentOnEntity<T>(Id id, Id componentId, ref T component) where T : unmanaged;
+    void EnsureComponentOnEntity<T>(Id id, ref T component) where T : unmanaged;
+    void EnsureComponentOnEntity<T>(Id id, Id componentId, ref T component) where T : unmanaged;
     void SetPairOnEntity<TRelationship>(Id id, Id target, ref TRelationship component) where TRelationship : unmanaged;
 
     void AddComponentToEntity<T>(Id id) where T : unmanaged;

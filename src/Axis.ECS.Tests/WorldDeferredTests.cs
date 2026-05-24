@@ -13,7 +13,7 @@ public class WorldDeferredTests
 
         using (world.BeginDeferringCommands())
         {
-            entity1 = world.CreateEntity();
+            entity1 = world.SpawnEntity();
             entity2 = world.DefineEntity().With(new Position(1.0f, 2.0f)).Build();
             entity3 = world.DefineEntity().With(new Position(3.0f, 4.0f)).With(new Velocity(0.5f, 0.25f)).Build();
 
@@ -36,7 +36,7 @@ public class WorldDeferredTests
     {
         var world = World.Create();
 
-        var entity1 = world.CreateEntity();
+        var entity1 = world.SpawnEntity();
         var entity2 = world.DefineEntity().With(new Position(1.0f, 2.0f)).Build();
 
         using (world.BeginDeferringCommands())

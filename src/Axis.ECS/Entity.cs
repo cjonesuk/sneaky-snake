@@ -46,7 +46,7 @@ public static class EntityWorldExtensions
     {
         World world = entity.GetWorld();
         Id componentId = world.Components.GetId<T>();
-        world.SetComponentOnEntity(entity.Id, componentId, ref component);
+        world.EnsureComponentOnEntity(entity.Id, componentId, ref component);
     }
 
     public static void SetPair<T>(this Entity entity, T component, Entity target) where T : unmanaged

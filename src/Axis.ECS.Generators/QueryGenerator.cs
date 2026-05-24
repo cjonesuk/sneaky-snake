@@ -287,9 +287,10 @@ public sealed class QueryGenerator : IIncrementalGenerator
             var typeParams = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
             var whereClauses = string.Join(" ", Enumerable.Range(0, componentCount).Select(i => $"where T{i} : unmanaged"));
 
-            sb.AppendLine($"    public static QueryBuilder<{typeParams}> For<{typeParams}>(World world) {whereClauses}");
+            sb.AppendLine($"    public static QueryBuilder<{typeParams}> For<{typeParams}>(IWorld world) {whereClauses}");
             sb.AppendLine("    {");
-            sb.AppendLine("        var builder = QueryBuilder.For(world);");
+            sb.AppendLine("        var concrete = (World)world;");
+            sb.AppendLine("        var builder = QueryBuilder.For(concrete);");
             for (int i = 0; i < componentCount; i++)
             {
                 sb.AppendLine($"        builder.Add<T{i}>();");

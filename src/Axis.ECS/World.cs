@@ -67,7 +67,7 @@ public sealed class World : IWorld
     public void RegisterComponent<T>() where T : unmanaged
     {
         Id id = _components.Register<T>();
-        CreateEntityWithId(id);
+        SpawnEntityWithId(id);
     }
 
     public WorldDeferredCommandsScope BeginDeferringCommands()
@@ -125,16 +125,16 @@ public sealed class World : IWorld
         return new EntityBuilder(this, _commands, id);
     }
 
-    public Entity CreateEntity()
+    public Entity SpawnEntity()
     {
         Id id = AllocateEntityId();
 
-        CreateEntityWithId(id);
+        SpawnEntityWithId(id);
 
         return Entity.Create(this, id);
     }
 
-    internal void CreateEntityWithId(Id id)
+    internal void SpawnEntityWithId(Id id)
     {
         if (_deferredMode)
         {
@@ -186,10 +186,10 @@ public sealed class World : IWorld
         _entityIndices.Clear();
     }
 
-    public void SetComponentOnEntity<T>(Id id, ref T component) where T : unmanaged
+    public void EnsureComponentOnEntity<T>(Id id, ref T component) where T : unmanaged
     {
         Id componentId = _components.GetId<T>();
-        SetComponentOnEntity(id, componentId, ref component);
+        EnsureComponentOnEntity(id, componentId, ref component);
     }
 
     public void SetPairOnEntity<TRelationship>(Id id, Id target, ref TRelationship component) where TRelationship : unmanaged
@@ -197,10 +197,10 @@ public sealed class World : IWorld
         Id relationshipId = _components.GetId<TRelationship>();
         Id componentId = Id.Pair(relationshipId, target);
 
-        SetComponentOnEntity(id, componentId, ref component);
+        EnsureComponentOnEntity(id, componentId, ref component);
     }
 
-    public void SetComponentOnEntity<T>(Id id, Id componentId, ref T component) where T : unmanaged
+    public void EnsureComponentOnEntity<T>(Id id, Id componentId, ref T component) where T : unmanaged
     {
         if (_deferredMode)
         {

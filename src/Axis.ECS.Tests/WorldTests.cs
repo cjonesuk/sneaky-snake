@@ -12,10 +12,10 @@ public class WorldTests
     }
 
     [Fact]
-    public void CreateEntity_ShouldReturnValidEntity()
+    public void SpawnEntity_ShouldReturnValidEntity()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         entity.World.ShouldBe(world);
         entity.Id.Value.ShouldNotBe<ulong>(0);
     }
