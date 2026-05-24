@@ -90,6 +90,13 @@ public sealed class QueryGenerator : IIncrementalGenerator
         sb.AppendLine($"    public delegate void ForEachDelegate(Entity entity, {forEachRefParams});");
         sb.AppendLine();
 
+        // Unregister: stop receiving invalidation when archetypes change
+        sb.AppendLine("    public void Unregister()");
+        sb.AppendLine("    {");
+        sb.AppendLine("        _archetypeQuery.Unregister();");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+
         // Iterate method
         sb.AppendLine("    public void Iterate(IterateArchetypesDelegate action)");
         sb.AppendLine("    {");

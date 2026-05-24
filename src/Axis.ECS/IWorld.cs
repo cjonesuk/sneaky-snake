@@ -18,6 +18,8 @@ public interface IWorld
     void ClearAllEvents();
     void ExecuteSystems(float deltaTime);
 
+    void UnregisterAllQueries();
+
     void EnsureComponentOnEntity<T>(Id id, ref T component) where T : unmanaged;
     void EnsureComponentOnEntity<T>(Id id, Id componentId, ref T component) where T : unmanaged;
     void SetPairOnEntity<TRelationship>(Id id, Id target, ref TRelationship component) where TRelationship : unmanaged;

@@ -64,6 +64,21 @@ public sealed class World : IWorld
         _activeQueries.Add(query);
     }
 
+    internal void UnregisterQuery(IArchetypeQuery query)
+    {
+        _activeQueries.Remove(query);
+    }
+
+    /// <summary>
+    /// Removes all queries from the invalidation list. After calling, previously-registered
+    /// queries will silently return stale results after the next archetype change. Intended
+    /// for full world resets (e.g. game-mode reload) where the queries are also being discarded.
+    /// </summary>
+    public void UnregisterAllQueries()
+    {
+        _activeQueries.Clear();
+    }
+
     internal void InvalidateActiveQueries()
     {
         foreach (var query in _activeQueries)
