@@ -36,6 +36,8 @@ internal sealed class ArchetypeManager
         _archetypesByEntityType[entityType] = archetype;
         _archetypes.Add(archetype);
 
+        _world.InvalidateActiveQueries();
+
         return archetype;
     }
 

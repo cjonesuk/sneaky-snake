@@ -64,6 +64,14 @@ public sealed class World : IWorld
         _activeQueries.Add(query);
     }
 
+    internal void InvalidateActiveQueries()
+    {
+        foreach (var query in _activeQueries)
+        {
+            query.Invalidate();
+        }
+    }
+
     public void RegisterComponent<T>() where T : unmanaged
     {
         Id id = _components.Register<T>();

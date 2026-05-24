@@ -21,6 +21,7 @@ public sealed class ArchetypeQuery : IArchetypeQuery
         _terms = terms;
         _cachedResults = new List<Archetype>();
         _isCacheValid = false;
+        world.RegisterQuery(this);
     }
 
     void IArchetypeQuery.Invalidate()
