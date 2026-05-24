@@ -47,7 +47,7 @@ This is in-progress on the `components-as-entities` branch. See [BRANCH-STATUS.m
 
 Queries are constructed via `QueryBuilder.For(world).Add<T1>().Add<T2>().Build()` and return an `ArchetypeQuery` that caches matched archetypes until the world structure changes (then `Invalidate` is called).
 
-On top of that sits a source-generated typed family of `Query<T0..T7>` (up to 8 component types) with a fluent `ForEach((ref context, ref iter, ref T0, ..) => ...)` shape. The generator is in `Axis.ECS.Generators`. The wrapper `world.System<T...>().ForEach(...)` is what game code actually calls.
+On top of that sits a source-generated typed family of `Query<T0..T7>` (up to 8 component types). Two shapes: `ForEach((Entity entity, ref T0, ...) => ...)` for per-entity iteration, and `Iterate((Span<Id> ids, Span<T0> c0, ...) => ...)` for per-archetype span access. The generator is in `Axis.ECS.Generators`. The wrapper `world.System<T...>().ForEach(...)` registers an `IWorldSystem` that runs the body each frame.
 
 Systems implement `IWorldSystem` and are registered with `world.AddSystem(...)`. `ExecuteSystems(deltaTime)` runs them in registration order, each within a deferred-commands scope so structural changes (entity creation, component add/remove) don't invalidate iteration mid-frame.
 
@@ -56,7 +56,7 @@ Systems implement `IWorldSystem` and are registered with `world.AddSystem(...)`.
 `World.BeginDeferringCommands()` returns a `WorldDeferredCommandsScope` (disposable). While open, structural ops queue into `WorldCommandQueue` instead of executing immediately:
 - `AddEntityCommand`, `RemoveEntityCommand`
 - `AddComponentCommand`, `RemoveComponentFromEntityCommand`, `SetComponentCommand`
-- `BufferredEntityCreationCommand` (used by `EntityBuilder`)
+- `BufferedEntityCreationCommand` (used by `EntityBuilder`)
 - `ClearAllEntitiesCommand`
 
 On scope dispose, the queue is applied and cleared.
@@ -77,6 +77,16 @@ On scope dispose, the queue is applied and cleared.
 ## The game
 
 PingPong is a complete playable game: two paddles, ball physics, goal detection, scoring to a max score, end-game flow. Lives in `games/PingPong/`. Its `PlayGameMode.cs` is the closest thing to a "how do I actually use this framework" reference.
+
+## Benchmarks
+
+`src/Axis.ECS.Benchmarks/` is a BenchmarkDotNet project measuring the ECS hot paths. Run with:
+
+```bash
+dotnet run -c Release --project src/Axis.ECS.Benchmarks -- --filter '*'
+```
+
+Filter to a single class with `--filter '*ForEachAllocationBenchmark*'`, or smoke-test the infrastructure cheaply with `--job dry`. Three baselines today: ForEach allocation (validates the .NET 10 escape-analysis assumption — static and non-static lambdas should both report 0 B/op), Iterate-vs-ForEach throughput, and query cache hit cost.
 
 ---
 
