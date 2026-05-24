@@ -4,7 +4,7 @@ namespace Axis.ECS.Commands;
 
 internal static class RemoveComponentFromEntityCommand
 {
-    public static void RemoveComponent<T>(this WorldCommandQueue queue, ref Id id)
+    public static void RemoveComponent<T>(this WorldCommandQueue queue, Id id)
         where T : unmanaged
     {
         var payload = new Applier<T>.Payload(id);

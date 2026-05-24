@@ -210,7 +210,7 @@ public sealed class World : IWorld
 
         EntityLocation location = FindEntity(id);
 
-        if (!location.Archetype.TrySetComponent(location.Index, componentId, ref component))
+        if (!location.Archetype.TrySetComponent(location.Index, componentId, in component))
         {
             AddComponentToEntityInternal(id, componentId, ref component, location);
         }
@@ -253,7 +253,7 @@ public sealed class World : IWorld
     {
         if (_deferredMode)
         {
-            _commands.RemoveComponent<T>(ref id);
+            _commands.RemoveComponent<T>(id);
             return;
         }
 
