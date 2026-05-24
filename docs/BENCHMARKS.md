@@ -6,7 +6,7 @@ Performance baselines for Axis.ECS, run via the `Axis.ECS.Benchmarks` project. S
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-05-24 |
+| Last updated | 2026-05-25 |
 | Machine | AMD Ryzen 7 5800X, 16 logical / 8 physical cores |
 | OS | EndeavourOS (Linux 6.19.14-arch1-1) |
 | .NET | 10.0.4, RyuJIT AVX2 |
@@ -54,12 +54,12 @@ After the cache-invalidation fix (queries now self-register with the world), col
 
 | Method                 | Mean       | Allocated |
 |----------------------- |-----------:|----------:|
-| Spawn_Empty            |   210 ns   |   148 B   |
-| Define_OneComponent    |   804 ns   |   189 B   |
-| Define_FourComponents  | 1,585 ns * |   256 B   |
-| Define_EightComponents | 1,567 ns * |   318 B   |
+| Spawn_Empty            |   222 ns   |   148 B   |
+| Define_OneComponent    |   753 ns   |   189 B   |
+| Define_FourComponents  | 1,519 ns   |   255 B   |
+| Define_EightComponents | 2,658 ns   |   317 B   |
 
-\* 4-component and 8-component runs were multimodal with high variance (StdDev > 600 ns). Likely List growth happening at different points across iterations. Worth investigating.
+(`Define_EightComponents` previously reported 1,567 ns with multimodal warnings; the post-dict-elimination run has clean variance and matches expectation that Eight > Four. Earlier number was a measurement artifact.)
 
 ### ArchetypeMigrationBenchmark
 
@@ -67,11 +67,11 @@ After the cache-invalidation fix (queries now self-register with the world), col
 
 | Method                   | Mean       | Allocated |
 |------------------------- |-----------:|----------:|
-| AddComponent_FromOne     |   826 ns   |    81 B   |
-| AddComponent_FromFour    | 1,565 ns   |   137 B   |
-| RemoveComponent_FromFive | 1,484 ns   |   121 B   |
+| AddComponent_FromOne     |   650 ns   |    81 B   |
+| AddComponent_FromFour    | 1,037 ns   |   137 B   |
+| RemoveComponent_FromFive |   980 ns   |   121 B   |
 
-Per additional column migrated: ~246 ns (1565 - 826 = 739 ns for 3 extra columns).
+Per additional column migrated: ~129 ns (1037 - 650 = 387 ns for 3 extra columns). Down from ~246 ns before the dict elimination — confirms the dict lookup was the dominant per-column cost.
 
 ## Findings
 
@@ -85,15 +85,17 @@ The per-entity wrap (creating an `Entity` struct, invoking the delegate per step
 
 ### Query cache is now correctly invalidated; warm is the path that matters
 
-After fixing the invalidation bug ([commit](#TODO)), warm beats cold (1.37 vs 1.48 us) as expected. Cache is meaningful for any code that builds queries once during setup. The cold-build path costs 288 B per call plus `RegisterQuery` overhead — don't do that.
+After fixing the invalidation bug, warm beats cold (1.37 vs 1.48 us) as expected. Cache is meaningful for any code that builds queries once during setup. The cold-build path costs 288 B per call plus `RegisterQuery` overhead — don't do that.
 
-### Interface dispatch (`IComponentValues[]`) is **not** the dominant migration cost
+For unbounded growth in the `_activeQueries` list (game-mode reload, etc.), call `query.Unregister()` (per-query) or `world.UnregisterAllQueries()` (bulk reset). PingPong's `PlayGameMode.Activate` calls UnregisterAllQueries alongside `RemoveAllEntities`/`RemoveAllSystems`.
 
-Per-additional-column-migrated is ~246 ns. Interface dispatch on `column.Migrate(...)` is probably 5-15 ns of that. The other ~230 ns is split between dictionary lookups on both source and target archetypes (`_componentIdToColumnIndex[id]`) and the actual data copy + List growth amortization. **Conclusion**: replacing the `Dictionary<Id, int>` with a linear scan or sorted array would likely give bigger wins than monomorphizing the column array. Benchmark first.
+### Dict-lookup elimination delivered the predicted migration win
 
-### Entity creation allocates 148-318 B per spawn
+Removing `Archetype._componentIdToColumnIndex` (replaced with `Span<Id>.IndexOf` over the already-sorted `EntityType.ComponentIds`) dropped per-additional-column-migrated from ~246 ns to ~129 ns — a ~48% reduction. Two dict lookups per column (one each on source/target archetype) were the dominant cost. Interface dispatch on `IComponentValues.Migrate(...)` was ~5-15 ns of the original 246 — confirming the earlier hypothesis that interface dispatch *isn't* the migration hotspot.
 
-The bulk of this is `BufferedEntityCreationCommand` payload allocations and entity-table dictionary growth. At 60 FPS spawning 100 entities per frame, that's ~1.8 MB/sec GC pressure. Not catastrophic, but the deferred-command queue is a target if entity spawn becomes a real hotspot. Multimodal variance at higher arities suggests List<T> growth events are visible in the timing — fixed-size column arrays (already on the README TODO list) would smooth this.
+### Entity creation allocates 148-317 B per spawn
+
+The bulk is `BufferedEntityCreationCommand` payload allocations and entity-table dictionary growth. At 60 FPS spawning 100 entities per frame, that's ~1.8 MB/sec GC pressure. Not catastrophic, but the deferred-command queue is a target if entity spawn becomes a real hotspot. The previously-suspected `ComponentValues<T>.List<T>` growth turned out to be wrong — `ComponentValues<T>` is already `T[]`-backed with manual capacity doubling. Growth events still cause realloc+copy spikes (visible as variance), but it's array growth, not List growth.
 
 ---
 
@@ -107,7 +109,7 @@ Things worth measuring that aren't covered yet, roughly by priority.
 - **Deferred command flush cost**: a batch of 100/1k/10k queued commands flushed at scope exit. The `WorldCommandQueue` + `BufferedEntityCreationCommand` paths haven't been profiled.
 - **Multi-arity ForEach scaling**: `Query<T0>` through `Query<T0..T7>.ForEach`. Does each extra component add linear cost, or does column lookup overhead dominate?
 - **Event stream throughput**: per-entity vs world-level event emission + consumption. PingPong leans on these for collision/input.
-- **Investigate multimodal variance in `Define_FourComponents`/`Define_EightComponents`** — likely `ComponentValues<T>.List<T>` growth events; want to confirm.
+- **Pre-sized component column arrays** — the variance and allocation cost during entity creation comes from `ComponentValues<T>` array growth via capacity doubling. A way to hint expected capacity (or per-archetype pre-sizing on first allocation) could smooth the spikes.
 
 ### Medium-value
 
@@ -126,11 +128,6 @@ Things worth measuring that aren't covered yet, roughly by priority.
 
 Code areas worth looking at, ordered roughly by expected impact. Should be driven by benchmark data, not by speculation.
 
-### Backed by benchmark data
-
-- **`Archetype._componentIdToColumnIndex` is `Dictionary<Id, int>`** — migration data shows ~230 ns per column spent in dictionary lookups + List growth (not interface dispatch). For typical archetypes with <16 components, a linear scan over a sorted `Id[]` would likely beat the dictionary on cache and constant-factor. Low blast radius, measurable change. **Probably the highest-value next change.**
-- **`ComponentValues<T>` is `List<T>`** — already flagged in [README.md](../README.md#ecs-todo). Migration + creation benchmarks both show allocation cost dominated by List growth; the multimodal variance at higher arities is the smoking gun. Switching to a `T[]` with manual growth (or a `FastBuffer<T>`-like type) should give cleaner numbers and lower allocs.
-
 ### Speculative until benchmarked
 
 - **`Archetype._componentColumns` is `IComponentValues[]`** — earlier hypothesis flagged this as the inner-loop hotspot. **The data says otherwise**: interface dispatch is ~5-15 ns per column-migration, swamped by dictionary lookups and List growth. Worth keeping on the radar but not a priority. If we tackle it, the move is per-arity `Archetype<T0..Tn>` types (via source generator) or a typed column registry — both architecturally expensive. Don't start until the dictionary + List wins are claimed.
@@ -142,7 +139,6 @@ Code areas worth looking at, ordered roughly by expected impact. Should be drive
 - **Per-entity event streams** — `EventManager` keeps one stream per entity-id × event-type. With many short-lived entities, this could fragment. Pooling and reuse?
 - **System scheduler ordering** — currently registration-order. As real games grow, dependency-aware ordering or grouping will matter.
 - **Parallel system execution** — zero parallelism today. Query results are read-only between systems (deferred commands handle structural changes), so per-archetype parallelism over a single system's iteration is a natural fit. Benchmarks first.
-- **`_activeQueries` memory growth** — the cache-invalidation fix registers every `ArchetypeQuery` ever built and never unregisters. Fine for normal "build once at setup" usage, leaky for pathological per-frame rebuilds. Consider weak-reference or explicit dispose if a real use case appears.
 
 ### Speculative / want-to-try
 
