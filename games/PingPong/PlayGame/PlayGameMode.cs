@@ -1,5 +1,6 @@
 using System.Numerics;
 using Axis.ECS;
+using Axis.ECS.Queries;
 using Axis.Engine;
 using Axis.Engine.Collision;
 using Axis.Engine.Input;
@@ -119,14 +120,13 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
     {
         _world
             .System<Transform2d, Paddle>()
-            .ForEach(static (ref context, ref iter, ref transform, ref paddle) =>
+            .ForEach((Entity entity, ref Transform2d transform, ref Paddle paddle) =>
             {
-                if (!context.World.Events.TryGetEventStream<InputEvent>(iter.Id, out var inputBuffer))
+                if (!_world.Events.TryGetEventStream<InputEvent>(entity.Id, out var inputBuffer))
                 {
                     return;
                 }
 
-                float deltaTime = context.DeltaTime;
                 paddle.Speed = 0;
 
                 foreach (var inputEvent in inputBuffer.AsSpan())
@@ -141,37 +141,34 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
                     }
                 }
 
-                transform.Position.Y += paddle.Speed * deltaTime;
+                transform.Position.Y += paddle.Speed * _engine.DeltaTime;
             });
 
         _world
             .System<Transform2d, Ball>()
-            .ForEach(static (ref context, ref iter, ref transform, ref ball) =>
+            .ForEach((Entity entity, ref Transform2d transform, ref Ball ball) =>
             {
-                // Move the ball
-                float deltaTime = context.DeltaTime;
-                transform.Position += ball.Direction * ball.Speed * deltaTime;
+                transform.Position += ball.Direction * ball.Speed * _engine.DeltaTime;
             });
 
         _world.AddSystem(new CollisionSystem());
 
         _world
             .System<Transform2d, Paddle, CollisionBody>()
-            .ForEach(static (ref context, ref iter, ref transform, ref paddle, ref body) =>
+            .ForEach((Entity entity, ref Transform2d transform, ref Paddle paddle, ref CollisionBody body) =>
             {
                 // Dont let paddles go past the walls
-                var collisions = context.World.Events.GetEventStream<CollisionWithEvent>(iter.Id);
+                var collisions = _world.Events.GetEventStream<CollisionWithEvent>(entity.Id);
 
                 foreach (var ev in collisions.AsSpan())
                 {
-                    var wallEntity = context.World.GetEntity(ev.EntityId);
+                    var wallEntity = _world.GetEntity(ev.EntityId);
 
                     if (!wallEntity.Has<Wall>())
                     {
                         continue;
                     }
 
-                    ref var wall = ref wallEntity.GetRef<Wall>();
                     ref var wallTransform = ref wallEntity.GetRef<Transform2d>();
                     ref var wallBody = ref wallEntity.GetRef<CollisionBody>();
 
@@ -191,27 +188,27 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
 
         _world
             .System<Transform2d, Ball, CollisionBody>()
-            .ForEach(static (ref context, ref iter, ref transform, ref ball, ref body) =>
+            .ForEach((Entity entity, ref Transform2d transform, ref Ball ball, ref CollisionBody body) =>
             {
-                var collisionStarted = context.World.Events.GetEventStream<CollisionStartedWithEvent>(iter.Id);
+                var collisionStarted = _world.Events.GetEventStream<CollisionStartedWithEvent>(entity.Id);
 
                 foreach (var ev in collisionStarted.AsSpan())
                 {
-                    var entity = context.World.GetEntity(ev.EntityId);
+                    var other = _world.GetEntity(ev.EntityId);
 
-                    if (entity.Has<Paddle>())
+                    if (other.Has<Paddle>())
                     {
                         // Bounce off paddle, using the paddle's position to influence direction
-                        ref var paddleTransform = ref entity.GetRef<Transform2d>();
-                        float relativeIntersectY = (paddleTransform.Position.Y + 0) - (transform.Position.Y + 0);
-                        float normalizedRelativeIntersectionY = (relativeIntersectY / (body.HalfExtents.Y + entity.GetRef<CollisionBody>().HalfExtents.Y));
+                        ref var paddleTransform = ref other.GetRef<Transform2d>();
+                        float relativeIntersectY = paddleTransform.Position.Y - transform.Position.Y;
+                        float normalizedRelativeIntersectionY = relativeIntersectY / (body.HalfExtents.Y + other.GetRef<CollisionBody>().HalfExtents.Y);
                         float bounceAngle = normalizedRelativeIntersectionY * (5 * (float)(Math.PI / 12));
 
                         ball.Direction.X = MathF.Cos(bounceAngle) * (ball.Direction.X < 0 ? 1 : -1);
                         ball.Direction.Y = -MathF.Sin(bounceAngle);
                         ball.Direction = Vector2.Normalize(ball.Direction);
                     }
-                    else if (entity.Has<Wall>())
+                    else if (other.Has<Wall>())
                     {
                         // Bounce off wall
                         ball.Direction.Y = -ball.Direction.Y;
@@ -221,16 +218,16 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
 
         _world
             .System<Goal>()
-            .ForEach(static (ref context, ref iter, ref goal) =>
+            .ForEach((Entity entity, ref Goal goal) =>
             {
-                var collisionStarted = context.World.Events.GetEventStream<CollisionStartedWithEvent>(iter.Id);
+                var collisionStarted = _world.Events.GetEventStream<CollisionStartedWithEvent>(entity.Id);
 
                 foreach (var ev in collisionStarted.AsSpan())
                 {
-                    var entity = context.World.GetEntity(ev.EntityId);
-                    if (entity.Has<Ball>())
+                    var other = _world.GetEntity(ev.EntityId);
+                    if (other.Has<Ball>())
                     {
-                        context.World.Events.GetEventStream<PlayerGoalHit>().AddEvent(new PlayerGoalHit(goal.PlayerNumber));
+                        _world.Events.GetEventStream<PlayerGoalHit>().AddEvent(new PlayerGoalHit(goal.PlayerNumber));
                     }
                 }
             });

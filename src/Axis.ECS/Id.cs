@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace Axis.ECS;
 
 [DebuggerDisplay("{_id}")]
-public readonly struct Id : IEquatable<Id>
+public readonly struct Id : IEquatable<Id>, IComparable<Id>
 {
     private readonly ulong _id;
 
@@ -12,21 +12,36 @@ public readonly struct Id : IEquatable<Id>
 
     public static readonly Id Invalid = new Id();
 
-    public Id(uint id)
+    private Id(ulong id)
     {
         _id = id;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsValid()
+    public static Id Make(uint index, byte generation)
     {
-        return _id != 0; // tbd
+        ulong id = IdSpace.MakeEntity(index, generation);
+        return new Id(id);
     }
 
-    public bool HasFlags(ulong flags)
+    public static Id Pair(Id left, Id right)
     {
-        return (_id & Constants.IdFlagsMask) == flags;
+        ulong id = IdSpace.MakePair(left._id, right._id);
+        return new Id(id);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsPair() => IdSpace.IsPair(_id);
+
+    public Id GetRelationship()
+    {
+        Debug.Assert(IsPair());
+        ulong relationshipId = IdSpace.GetRelationship(_id);
+        return new Id(relationshipId);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsValid() => IdSpace.IsValid(_id);
+
 
     public bool Equals(Id other)
     {
@@ -67,4 +82,12 @@ public readonly struct Id : IEquatable<Id>
     {
         return _id.ToString();
     }
+
+    public int CompareTo(Id other)
+    {
+        return Value.CompareTo(other.Value);
+    }
+
+    // uint?
+    public static implicit operator int(Id id) => (int)id.Value;
 }

@@ -1,4 +1,5 @@
 using Axis.ECS;
+using Axis.ECS.Queries;
 using Engine.Components;
 
 namespace Axis.Engine.Collision;
@@ -6,6 +7,7 @@ namespace Axis.Engine.Collision;
 public sealed class CollisionSystem : IWorldSystem
 {
     private readonly WorldSpaceLists _worldSpace;
+    private Query<Transform2d, CollisionBody>? _shapeQuery;
 
     private HashSet<CollisionPair> _currentCollisions = new();
     private HashSet<CollisionPair> _previousCollisions = new();
@@ -28,36 +30,41 @@ public sealed class CollisionSystem : IWorldSystem
         // Prepare previous for reuse before we swap
         _previousCollisions.Clear();
 
-        // Swap sets, but don't clear current afterward — we’ll reuse the now-empty one next frame
+        // Swap sets, but don't clear current afterward — we'll reuse the now-empty one next frame
         (_previousCollisions, _currentCollisions) = (_currentCollisions, _previousCollisions);
     }
 
-    private void ComputeWorldspace(IWorld world)
+    private void ComputeWorldspace(World world)
     {
         _worldSpace.Clear();
 
-        CollisionSystem refthis = this;
+        _shapeQuery ??= DefineQuery.For<Transform2d, CollisionBody>(world).Build();
 
-        world.QueryEach(ref refthis, static (ref CollisionSystem sys, ref Iter iter, ref Transform2d transform, ref CollisionBody body) =>
+        _shapeQuery.Value.Iterate((Span<Id> ids, Span<Transform2d> transforms, Span<CollisionBody> bodies) =>
         {
-            ref Id entityId = ref iter.Id;
-
-            switch (body.Shape)
+            for (int i = 0; i < ids.Length; i++)
             {
-                case CollisionShape.Aabb:
-                    var worldAabb = LocalToWorldMath.WorldAabb(entityId, transform, body);
-                    sys._worldSpace.Aabbs.Add(worldAabb);
-                    break;
-                case CollisionShape.Obb:
-                    var worldObb = LocalToWorldMath.WorldObb(entityId, transform, body);
-                    sys._worldSpace.Obbs.Add(worldObb);
-                    break;
-                case CollisionShape.Circle:
-                    var worldCircle = LocalToWorldMath.WorldCircle(entityId, transform, body);
-                    sys._worldSpace.Circles.Add(worldCircle);
-                    break;
-                default:
-                    throw new InvalidOperationException($"Unknown collision shape: {body.Shape}");
+                ref var entityId = ref ids[i];
+                ref var transform = ref transforms[i];
+                ref var body = ref bodies[i];
+
+                switch (body.Shape)
+                {
+                    case CollisionShape.Aabb:
+                        var worldAabb = LocalToWorldMath.WorldAabb(entityId, transform, body);
+                        _worldSpace.Aabbs.Add(worldAabb);
+                        break;
+                    case CollisionShape.Obb:
+                        var worldObb = LocalToWorldMath.WorldObb(entityId, transform, body);
+                        _worldSpace.Obbs.Add(worldObb);
+                        break;
+                    case CollisionShape.Circle:
+                        var worldCircle = LocalToWorldMath.WorldCircle(entityId, transform, body);
+                        _worldSpace.Circles.Add(worldCircle);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Unknown collision shape: {body.Shape}");
+                }
             }
         });
     }

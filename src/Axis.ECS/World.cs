@@ -1,27 +1,49 @@
 using System.Diagnostics;
 using Axis.ECS.Commands;
 using Axis.ECS.Events;
+using Axis.ECS.Queries;
 
 namespace Axis.ECS;
 
+public class WorldPairs(Id isA)
+{
+    public Id IsA { get; } = isA;
+}
+
+public struct IsA { };
+
+
 public sealed class World : IWorld
 {
-    private uint _nextId = 1;
+    private readonly EntityIdManager _entityIds;
     private readonly Dictionary<Id, EntityLocation> _entityIndices;
     private readonly ArchetypeManager _archetypes;
+    private readonly ComponentEntityManager _components;
     private readonly WorldSystemScheduler _systemScheduler;
     private readonly EventManager _events;
     private readonly WorldCommandQueue _commands;
     private bool _deferredMode;
+    private List<IArchetypeQuery> _activeQueries;
+    private readonly WorldPairs _pairs;
 
     internal World()
     {
+        _entityIds = new EntityIdManager();
         _entityIndices = new Dictionary<Id, EntityLocation>();
-        _archetypes = new ArchetypeManager();
+        _components = new ComponentEntityManager(_entityIds);
+        _archetypes = new ArchetypeManager(this, _components);
         _systemScheduler = new WorldSystemScheduler();
         _events = new EventManager();
         _commands = new WorldCommandQueue();
         _deferredMode = false;
+        _activeQueries = new List<IArchetypeQuery>();
+        _pairs = CreatePairs();
+    }
+
+    private WorldPairs CreatePairs()
+    {
+        Id isAId = _components.Register<IsA>();
+        return new WorldPairs(isAId);
     }
 
     public static World Create()
@@ -29,8 +51,24 @@ public sealed class World : IWorld
         return new World();
     }
 
+    public WorldPairs Pairs => _pairs;
     public IEventManager Events => _events;
-    public WorldSystemScheduler Systems => _systemScheduler;
+    internal WorldSystemScheduler Systems => _systemScheduler;
+    internal ComponentEntityManager Components => _components;
+
+    internal ArchetypeManager Archetypes => _archetypes;
+
+
+    internal void RegisterQuery(IArchetypeQuery query)
+    {
+        _activeQueries.Add(query);
+    }
+
+    public void RegisterComponent<T>() where T : unmanaged
+    {
+        Id id = _components.Register<T>();
+        CreateEntityWithId(id);
+    }
 
     public WorldDeferredCommandsScope BeginDeferringCommands()
     {
@@ -48,6 +86,16 @@ public sealed class World : IWorld
         _commands.ApplyAndClear(this);
     }
 
+    internal void FlushCommands()
+    {
+        if (_deferredMode)
+        {
+            return;
+        }
+
+        _commands.ApplyAndClear(this);
+    }
+
     public void ClearAllEvents()
     {
         _events.ClearAllEvents();
@@ -55,31 +103,38 @@ public sealed class World : IWorld
 
     public void ExecuteSystems(float deltaTime)
     {
-        var data = new WorldSystemContext(this, deltaTime);
+        var context = WorldSystemContext.For(this, deltaTime);
         var systems = _systemScheduler.GetSystems();
 
         foreach (var system in systems)
         {
             using var deferredMode = BeginDeferringCommands();
-            system.Execute(ref data);
+            system.Execute(ref context);
         }
     }
 
-    private Id AllocateId()
+
+    private Id AllocateEntityId()
     {
-        return new Id(_nextId++);
+        return _entityIds.AllocateEntityId();
+    }
+
+    public EntityBuilder DefineEntity()
+    {
+        Id id = AllocateEntityId();
+        return new EntityBuilder(this, _commands, id);
     }
 
     public Entity CreateEntity()
     {
-        Id id = AllocateId();
+        Id id = AllocateEntityId();
 
         CreateEntityWithId(id);
 
         return Entity.Create(this, id);
     }
 
-    public void CreateEntityWithId(Id id)
+    internal void CreateEntityWithId(Id id)
     {
         if (_deferredMode)
         {
@@ -87,263 +142,15 @@ public sealed class World : IWorld
             return;
         }
 
-        Archetype archetype = _archetypes.EmptyArchetype;
-        EntityLocation location = archetype.AddEntity(id);
+        AllocateEntity(EntityType.Empty, id);
+    }
+
+    internal EntityLocation AllocateEntity(EntityType entityType, Id id)
+    {
+        Archetype archetype = _archetypes.GetOrCreate(entityType);
+        EntityLocation location = archetype.AllocateEntity(in id);
         _entityIndices[id] = location;
-    }
-
-    public Entity CreateEntity<T1>(T1 c1) where T1 : unmanaged
-    {
-        Id id = AllocateId();
-
-        CreateEntityWithId(ref id, ref c1);
-
-        return Entity.Create(this, id);
-    }
-
-    public void CreateEntityWithId<T1>(ref Id id, ref T1 c1) where T1 : unmanaged
-    {
-        if (_deferredMode)
-        {
-            _commands.AddEntity(id, ref c1);
-            return;
-        }
-
-        Archetype archetype = _archetypes.GetOrCreate<T1>();
-
-        EntityLocation location = archetype.AddEntity(id, ref c1);
-        _entityIndices[id] = location;
-    }
-
-    public Entity CreateEntity<T1, T2>(T1 c1, T2 c2)
-        where T1 : unmanaged
-        where T2 : unmanaged
-    {
-        Id id = AllocateId();
-
-        CreateEntityWithId(ref id, ref c1, ref c2);
-
-        return Entity.Create(this, id);
-    }
-
-    public void CreateEntityWithId<T1, T2>(ref Id id, ref T1 c1, ref T2 c2)
-        where T1 : unmanaged
-        where T2 : unmanaged
-    {
-        if (_deferredMode)
-        {
-            _commands.AddEntity(id, ref c1, ref c2);
-            return;
-        }
-
-        Archetype archetype = _archetypes.GetOrCreate<T1, T2>();
-
-        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2);
-        _entityIndices[id] = location;
-    }
-
-    public Entity CreateEntity<T1, T2, T3>(T1 c1, T2 c2, T3 c3)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-    {
-        Id id = AllocateId();
-
-        CreateEntityWithId(ref id, ref c1, ref c2, ref c3);
-
-        return Entity.Create(this, id);
-    }
-
-    public void CreateEntityWithId<T1, T2, T3>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-    {
-        if (_deferredMode)
-        {
-            _commands.AddEntity(id, ref c1, ref c2, ref c3);
-            return;
-        }
-
-        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3>();
-
-        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3);
-        _entityIndices[id] = location;
-    }
-
-    public Entity CreateEntity<T1, T2, T3, T4>(T1 c1, T2 c2, T3 c3, T4 c4)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-    {
-        Id id = AllocateId();
-
-        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4);
-
-        return Entity.Create(this, id);
-    }
-
-    public void CreateEntityWithId<T1, T2, T3, T4>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-    {
-        if (_deferredMode)
-        {
-            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4);
-            return;
-        }
-
-        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4>();
-
-        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4);
-        _entityIndices[id] = location;
-    }
-
-    public Entity CreateEntity<T1, T2, T3, T4, T5>(T1 c1, T2 c2, T3 c3, T4 c4, T5 c5)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-    {
-        Id id = AllocateId();
-
-        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5);
-
-        return Entity.Create(this, id);
-    }
-
-    public void CreateEntityWithId<T1, T2, T3, T4, T5>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-    {
-        if (_deferredMode)
-        {
-            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5);
-            return;
-        }
-
-        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4, T5>();
-
-        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5);
-        _entityIndices[id] = location;
-    }
-
-    public Entity CreateEntity<T1, T2, T3, T4, T5, T6>(T1 c1, T2 c2, T3 c3, T4 c4, T5 c5, T6 c6)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-        where T6 : unmanaged
-    {
-        Id id = AllocateId();
-
-        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6);
-
-        return Entity.Create(this, id);
-    }
-
-    public void CreateEntityWithId<T1, T2, T3, T4, T5, T6>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-        where T6 : unmanaged
-    {
-        if (_deferredMode)
-        {
-            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6);
-            return;
-        }
-
-        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4, T5, T6>();
-
-        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6);
-        _entityIndices[id] = location;
-    }
-
-    public Entity CreateEntity<T1, T2, T3, T4, T5, T6, T7>(T1 c1, T2 c2, T3 c3, T4 c4, T5 c5, T6 c6, T7 c7)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-        where T6 : unmanaged
-        where T7 : unmanaged
-    {
-        Id id = AllocateId();
-
-        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7);
-
-        return Entity.Create(this, id);
-    }
-
-    public void CreateEntityWithId<T1, T2, T3, T4, T5, T6, T7>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-        where T6 : unmanaged
-        where T7 : unmanaged
-    {
-        if (_deferredMode)
-        {
-            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7);
-            return;
-        }
-
-        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4, T5, T6, T7>();
-
-        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7);
-        _entityIndices[id] = location;
-    }
-
-    public Entity CreateEntity<T1, T2, T3, T4, T5, T6, T7, T8>(T1 c1, T2 c2, T3 c3, T4 c4, T5 c5, T6 c6, T7 c7, T8 c8)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-        where T6 : unmanaged
-        where T7 : unmanaged
-        where T8 : unmanaged
-    {
-        Id id = AllocateId();
-
-        CreateEntityWithId(ref id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7, ref c8);
-
-        return Entity.Create(this, id);
-    }
-
-    public void CreateEntityWithId<T1, T2, T3, T4, T5, T6, T7, T8>(ref Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7, ref T8 c8)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-        where T6 : unmanaged
-        where T7 : unmanaged
-        where T8 : unmanaged
-    {
-        if (_deferredMode)
-        {
-            _commands.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7, ref c8);
-            return;
-        }
-
-        Archetype archetype = _archetypes.GetOrCreate<T1, T2, T3, T4, T5, T6, T7, T8>();
-
-        EntityLocation location = archetype.AddEntity(id, ref c1, ref c2, ref c3, ref c4, ref c5, ref c6, ref c7, ref c8);
-        _entityIndices[id] = location;
+        return location;
     }
 
     public Entity GetEntity(Id id)
@@ -372,32 +179,44 @@ public sealed class World : IWorld
         if (_deferredMode)
         {
             _commands.ClearAllEntities();
+            return;
         }
 
         _archetypes.ClearAll();
         _entityIndices.Clear();
     }
 
-    public void SetComponentOnEntity<T>(Id id, T component) where T : unmanaged
+    public void SetComponentOnEntity<T>(Id id, ref T component) where T : unmanaged
+    {
+        Id componentId = _components.GetId<T>();
+        SetComponentOnEntity(id, componentId, ref component);
+    }
+
+    public void SetPairOnEntity<TRelationship>(Id id, Id target, ref TRelationship component) where TRelationship : unmanaged
+    {
+        Id relationshipId = _components.GetId<TRelationship>();
+        Id componentId = Id.Pair(relationshipId, target);
+
+        SetComponentOnEntity(id, componentId, ref component);
+    }
+
+    public void SetComponentOnEntity<T>(Id id, Id componentId, ref T component) where T : unmanaged
     {
         if (_deferredMode)
         {
-            _commands.SetComponent(ref id, ref component);
+            _commands.SetComponent(id, componentId, ref component);
             return;
         }
 
         EntityLocation location = FindEntity(id);
 
-        if (location.Archetype.SupportsComponentType<T>())
+        if (!location.Archetype.TrySetComponent(location.Index, componentId, ref component))
         {
-            location.Archetype.SetComponent(location.Index, component);
-            return;
+            AddComponentToEntityInternal(id, componentId, ref component, location);
         }
-
-        AddComponentToEntityInternal(id, component, location);
     }
 
-    private EntityLocation FindEntity(Id id)
+    public EntityLocation FindEntity(Id id)
     {
         if (!_entityIndices.TryGetValue(id, out EntityLocation location))
         {
@@ -424,8 +243,10 @@ public sealed class World : IWorld
         }
 
         EntityLocation location = FindEntity(id);
+        Id componentId = _components.GetId<T>();
+        T value = default;
 
-        AddComponentToEntityInternal<T>(id, default, location);
+        AddComponentToEntityInternal(id, componentId, ref value, location);
     }
 
     public void RemoveComponentFromEntity<T>(Id id) where T : unmanaged
@@ -436,10 +257,10 @@ public sealed class World : IWorld
             return;
         }
 
-        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
+        Id componentId = _components.GetId<T>();
         EntityLocation location = FindEntity(id);
 
-        if (!location.Archetype.EntityType.Without(componentTypeId, out var nextEntityType))
+        if (!location.Archetype.EntityType.Without(componentId, out var nextEntityType))
         {
             // Component not present, nothing to do.
             return;
@@ -447,7 +268,7 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        EntityLocation nextLocation = nextArchetype.MigrateEntity(location);
+        EntityLocation nextLocation = nextArchetype.MigrateEntityDown(location);
 
         _entityIndices[id] = nextLocation;
     }
@@ -465,179 +286,18 @@ public sealed class World : IWorld
         return location.Archetype.EntityType;
     }
 
-    private void AddComponentToEntityInternal<T>(Id id, T component, EntityLocation location) where T : unmanaged
+    private void AddComponentToEntityInternal<T>(Id id, Id componentId, ref T component, EntityLocation location) where T : unmanaged
     {
-        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
-
-        if (!location.Archetype.EntityType.With(componentTypeId, out var nextEntityType))
+        if (!location.Archetype.EntityType.With(componentId, out var nextEntityType))
         {
             throw new InvalidOperationException("Failed to extend entity: resulting EntityType is the same as the current one.");
         }
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        EntityLocation nextLocation = nextArchetype.MigrateEntity(location, ref component);
+        EntityLocation nextLocation = nextArchetype.MigrateEntityUp(location, componentId, ref component);
 
         _entityIndices[id] = nextLocation;
-    }
-
-
-    public void QueryAll<TContext, T1>(ref TContext context, QueryAllEntitiesAction<TContext, T1> action) where T1 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1>())
-        {
-            action(ref context, archetype.EntityIds, archetype.Col1);
-        }
-    }
-
-    public void QueryAll<TContext, T1, T2>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2> action)
-        where T1 : unmanaged
-        where T2 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2>())
-        {
-            action(ref context, archetype.EntityIds, archetype.Col1, archetype.Col2);
-        }
-    }
-
-    public void QueryAll<TContext, T1, T2, T3>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2, T3> action)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3>())
-        {
-            action(ref context, archetype.EntityIds, archetype.Col1, archetype.Col2, archetype.Col3);
-        }
-    }
-
-    public void QueryAll<TContext, T1, T2, T3, T4>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2, T3, T4> action)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3, T4>())
-        {
-            action(ref context, archetype.EntityIds, archetype.Col1, archetype.Col2, archetype.Col3, archetype.Col4);
-        }
-    }
-
-    public void QueryAll<TContext, T1, T2, T3, T4, T5>(ref TContext context, QueryAllEntitiesAction<TContext, T1, T2, T3, T4, T5> action)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3, T4, T5>())
-        {
-            action(ref context, archetype.EntityIds, archetype.Col1, archetype.Col2, archetype.Col3, archetype.Col4, archetype.Col5);
-        }
-    }
-
-    public void QueryEach<TContext>(ref TContext context, QueryEachEntityAction<TContext> action)
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes())
-        {
-            for (int index = 0; index < archetype.EntityIds.Length; index++)
-            {
-                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
-                action(ref context, ref iter);
-            }
-        }
-    }
-
-    public void QueryEach<TContext, T1>(ref TContext context, QueryEachEntityAction<TContext, T1> action) where T1 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1>())
-        {
-            for (int index = 0; index < archetype.EntityIds.Length; index++)
-            {
-                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
-                action(ref context, ref iter, ref archetype.Col1[index]);
-            }
-        }
-    }
-
-    public void QueryEach<TContext, T1, T2>(ref TContext context, QueryEachEntityAction<TContext, T1, T2> action)
-        where T1 : unmanaged
-        where T2 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2>())
-        {
-            for (int index = 0; index < archetype.EntityIds.Length; index++)
-            {
-                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
-                action(ref context,
-                       ref iter,
-                       ref archetype.Col1[index],
-                       ref archetype.Col2[index]);
-            }
-        }
-    }
-
-    public void QueryEach<TContext, T1, T2, T3>(ref TContext context, QueryEachEntityAction<TContext, T1, T2, T3> action)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3>())
-        {
-            for (int index = 0; index < archetype.EntityIds.Length; index++)
-            {
-                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
-                action(ref context,
-                       ref iter,
-                       ref archetype.Col1[index],
-                       ref archetype.Col2[index],
-                       ref archetype.Col3[index]);
-            }
-        }
-    }
-
-    public void QueryEach<TContext, T1, T2, T3, T4>(ref TContext context, QueryEachEntityAction<TContext, T1, T2, T3, T4> action)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3, T4>())
-        {
-            for (int index = 0; index < archetype.EntityIds.Length; index++)
-            {
-                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
-                action(ref context,
-                       ref iter,
-                       ref archetype.Col1[index],
-                       ref archetype.Col2[index],
-                       ref archetype.Col3[index],
-                       ref archetype.Col4[index]);
-            }
-        }
-    }
-
-    public void QueryEach<TContext, T1, T2, T3, T4, T5>(ref TContext context, QueryEachEntityAction<TContext, T1, T2, T3, T4, T5> action)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-    {
-        foreach (var archetype in _archetypes.QueryArchetypes<T1, T2, T3, T4, T5>())
-        {
-            for (int index = 0; index < archetype.EntityIds.Length; index++)
-            {
-                Iter iter = new Iter(archetype.Archetype, archetype.EntityIds, index);
-                action(ref context,
-                       ref iter,
-                       ref archetype.Col1[index],
-                       ref archetype.Col2[index],
-                       ref archetype.Col3[index],
-                       ref archetype.Col4[index],
-                       ref archetype.Col5[index]);
-            }
-        }
     }
 
     public bool IsEntityAlive(Id id)
@@ -645,3 +305,4 @@ public sealed class World : IWorld
         return _entityIndices.ContainsKey(id);
     }
 }
+

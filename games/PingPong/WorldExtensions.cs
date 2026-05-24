@@ -7,6 +7,9 @@ internal static class WorldExtensions
 {
     public static Entity SpawnCamera2d(this IWorld world, Vector2 position, float zoom)
     {
-        return world.CreateEntity(new Transform2d(position), new Camera2d(zoom));
+        return ((World)world).DefineEntity()
+            .With(new Transform2d(position))
+            .With(new Camera2d(zoom))
+            .Build();
     }
 }

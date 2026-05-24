@@ -4,352 +4,123 @@ namespace Axis.ECS;
 
 public sealed class Archetype
 {
-    private readonly Dictionary<ComponentTypeId, int> _componentTypeIdToColumnIndex;
+    private readonly World _world;
+    private readonly ComponentEntityManager _components;
+    private readonly Dictionary<Id, int> _componentIdToColumnIndex;
     private readonly IComponentValues[] _componentColumns;
     private readonly ComponentValues<Id> _entityIds;
     private readonly EntityType _entityType;
 
-
-    internal Archetype(EntityType entityType)
+    internal Archetype(World world, ComponentEntityManager components, EntityType entityType)
     {
-        Span<ComponentTypeId> componentTypeIds = entityType.ComponentTypeIds;
-
-        _componentTypeIdToColumnIndex = new Dictionary<ComponentTypeId, int>(componentTypeIds.Length);
-        _componentColumns = new IComponentValues[componentTypeIds.Length];
-        _entityIds = new ComponentValues<Id>();
-
+        _world = world;
+        _components = components;
         _entityType = entityType;
 
-        for (int index = 0; index < componentTypeIds.Length; index++)
+        ReadOnlySpan<Id> componentIds = entityType.ComponentIds;
+
+        _componentIdToColumnIndex = new Dictionary<Id, int>(componentIds.Length);
+        _componentColumns = new IComponentValues[componentIds.Length];
+        _entityIds = new ComponentValues<Id>();
+
+        for (int index = 0; index < componentIds.Length; index++)
         {
-            ComponentTypeId typeId = componentTypeIds[index];
-            _componentTypeIdToColumnIndex[typeId] = index;
+            Id componentId = componentIds[index];
+            _componentIdToColumnIndex[componentId] = index;
 
-            Type componentType = ComponentTypeRegistry.GetTypeById(typeId);
-            Type componentValuesType = typeof(ComponentValues<>).MakeGenericType(componentType);
-
-            _componentColumns[index] = (IComponentValues)(Activator.CreateInstance(componentValuesType) ?? throw new InvalidOperationException($"Could not create list of type {componentValuesType}"));
+            _componentColumns[index] = _components.CreateComponentStorage(componentId);
         }
     }
 
+    public World World => _world;
     public EntityType EntityType => _entityType;
+    public int EntityCount => _entityIds.Count;
 
-    public EntityLocation AddEntity(Id id)
+    public bool TrySetComponent<T>(int entityIndex, Id componentId, in T component) where T : unmanaged
     {
-        EntityTypeInformation.DebugAssertSupports(_entityType);
+        if (!TryFindComponentColumnById<T>(componentId, out var column))
+        {
+            return false;
+        }
 
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1>(Id id, ref T1 c1) where T1 : unmanaged
-    {
-        EntityTypeInformation<T1>.DebugAssertSupports(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2>(Id id, ref T1 c1, ref T2 c2) where T1 : unmanaged where T2 : unmanaged
-    {
-        EntityTypeInformation<T1, T2>.DebugAssertSupports(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3>(Id id, ref T1 c1, ref T2 c2, ref T3 c3)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged
-    {
-        EntityTypeInformation<T1, T2, T3>.DebugAssertSupports(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged
-    {
-        EntityTypeInformation<T1, T2, T3, T4>.DebugAssertSupports(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4, T5>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged
-    {
-        EntityTypeInformation<T1, T2, T3, T4, T5>.DebugAssertSupports(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-        AppendComponentInternal(ref c5);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4, T5, T6>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged
-    {
-        EntityTypeInformation<T1, T2, T3, T4, T5, T6>.DebugAssertSupports(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-        AppendComponentInternal(ref c5);
-        AppendComponentInternal(ref c6);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4, T5, T6, T7>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged
-    {
-        EntityTypeInformation<T1, T2, T3, T4, T5, T6, T7>.DebugAssertSupports(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-        AppendComponentInternal(ref c5);
-        AppendComponentInternal(ref c6);
-        AppendComponentInternal(ref c7);
-
-        return location;
-    }
-
-    public EntityLocation AddEntity<T1, T2, T3, T4, T5, T6, T7, T8>(Id id, ref T1 c1, ref T2 c2, ref T3 c3, ref T4 c4, ref T5 c5, ref T6 c6, ref T7 c7, ref T8 c8)
-        where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged where T8 : unmanaged
-    {
-        EntityTypeInformation<T1, T2, T3, T4, T5, T6, T7, T8>.DebugAssertSupports(_entityType);
-
-        EntityLocation location = AppendEntityIdInternal(ref id);
-
-        AppendComponentInternal(ref c1);
-        AppendComponentInternal(ref c2);
-        AppendComponentInternal(ref c3);
-        AppendComponentInternal(ref c4);
-        AppendComponentInternal(ref c5);
-        AppendComponentInternal(ref c6);
-        AppendComponentInternal(ref c7);
-        AppendComponentInternal(ref c8);
-
-        return location;
-    }
-
-    public void SetComponent<T>(int entityIndex, T component) where T : unmanaged
-    {
-        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
-        int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
-        var column = (ComponentValues<T>)_componentColumns[columnIndex];
         column.Set(entityIndex, component);
-    }
 
-    private EntityLocation AppendEntityIdInternal(ref Id id)
-    {
-        int index = _entityIds.Add(ref id);
-        return new EntityLocation(this, index);
-    }
-
-    private void AppendComponentInternal<T>(ref T component) where T : unmanaged
-    {
-        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
-        int columnIndex = _componentTypeIdToColumnIndex[componentTypeId];
-        var column = (ComponentValues<T>)_componentColumns[columnIndex];
-        column.Add(ref component);
-    }
-
-    internal bool TryGetColumnSpans(
-        out Span<Id> entityIds)
-    {
-        entityIds = _entityIds.AsSpan();
         return true;
     }
 
-    internal bool TryGetColumnSpans<T1>(
-        out Span<Id> entityIds,
+    internal EntityLocation AllocateEntity(in Id id)
+    {
+        int index = _entityIds.Add(in id);
+
+        foreach (var column in _componentColumns)
+        {
+            column.AddDefault();
+        }
+
+        return new EntityLocation(this, index);
+    }
+
+    internal unsafe void WriteComponent(int entityIndex, Id componentId, byte* data, int size)
+    {
+        var column = FindComponentColumn(componentId);
+        column.Write(entityIndex, data, size);
+    }
+
+    internal void AppendComponentInternal<T>(Id componentId, in T component) where T : unmanaged
+    {
+        var column = FindComponentColumn<T>(componentId);
+        column.Add(in component);
+    }
+
+    public Span<Id> GetEntityIds()
+    {
+        return _entityIds.AsSpan();
+    }
+
+    internal bool TryGetColumnSpan<T1>(
         out Span<T1> column1)
         where T1 : unmanaged
     {
         if (!TryFindComponentColumn<T1>(out var column1Data))
         {
-            entityIds = null;
             column1 = null;
             return false;
         }
 
-        entityIds = _entityIds.AsSpan();
         column1 = column1Data.AsSpan();
 
         return true;
     }
 
-    internal bool TryGetColumnSpans<T1, T2>(
-        out Span<Id> entityIds,
-        out Span<T1> column1,
-        out Span<T2> column2)
-        where T1 : unmanaged
-        where T2 : unmanaged
+    private IComponentValues FindComponentColumn(Id componentId)
     {
-        if (!TryFindComponentColumn<T1>(out var column1Data) ||
-            !TryFindComponentColumn<T2>(out var column2Data))
+        int columnIndex = _componentIdToColumnIndex[componentId];
+        return _componentColumns[columnIndex];
+    }
+
+    private ComponentValues<T> FindComponentColumn<T>(Id componentId) where T : unmanaged
+    {
+        int columnIndex = _componentIdToColumnIndex[componentId];
+        return (ComponentValues<T>)_componentColumns[columnIndex];
+    }
+
+    private bool TryFindComponentColumnById<T>(Id componentId, [NotNullWhen(true)] out ComponentValues<T>? column) where T : unmanaged
+    {
+        if (!_componentIdToColumnIndex.TryGetValue(componentId, out int columnIndex))
         {
-            entityIds = null;
-            column1 = null;
-            column2 = null;
-
+            column = null;
             return false;
         }
 
-        entityIds = _entityIds.AsSpan();
-        column1 = column1Data.AsSpan();
-        column2 = column2Data.AsSpan();
-
+        column = (ComponentValues<T>)_componentColumns[columnIndex];
         return true;
-    }
-
-    internal bool TryGetColumnSpans<T1, T2, T3>(
-        out Span<Id> entityIds,
-        out Span<T1> column1,
-        out Span<T2> column2,
-        out Span<T3> column3)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-    {
-        if (!TryFindComponentColumn<T1>(out var column1Data) ||
-            !TryFindComponentColumn<T2>(out var column2Data) ||
-            !TryFindComponentColumn<T3>(out var column3Data))
-        {
-            entityIds = null;
-            column1 = null;
-            column2 = null;
-            column3 = null;
-
-            return false;
-        }
-
-        entityIds = _entityIds.AsSpan();
-        column1 = column1Data.AsSpan();
-        column2 = column2Data.AsSpan();
-        column3 = column3Data.AsSpan();
-
-        return true;
-    }
-
-    internal bool TryGetColumnSpans<T1, T2, T3, T4>(
-        out Span<Id> entityIds,
-        out Span<T1> column1,
-        out Span<T2> column2,
-        out Span<T3> column3,
-        out Span<T4> column4)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-    {
-        if (!TryFindComponentColumn<T1>(out var column1Data) ||
-            !TryFindComponentColumn<T2>(out var column2Data) ||
-            !TryFindComponentColumn<T3>(out var column3Data) ||
-            !TryFindComponentColumn<T4>(out var column4Data))
-        {
-            entityIds = null;
-            column1 = null;
-            column2 = null;
-            column3 = null;
-            column4 = null;
-
-            return false;
-        }
-
-        entityIds = _entityIds.AsSpan();
-        column1 = column1Data.AsSpan();
-        column2 = column2Data.AsSpan();
-        column3 = column3Data.AsSpan();
-        column4 = column4Data.AsSpan();
-
-        return true;
-    }
-
-    internal bool TryGetColumnSpans<T1, T2, T3, T4, T5>(
-        out Span<Id> entityIds,
-        out Span<T1> column1,
-        out Span<T2> column2,
-        out Span<T3> column3,
-        out Span<T4> column4,
-        out Span<T5> column5)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-    {
-        if (!TryFindComponentColumn<T1>(out var column1Data) ||
-            !TryFindComponentColumn<T2>(out var column2Data) ||
-            !TryFindComponentColumn<T3>(out var column3Data) ||
-            !TryFindComponentColumn<T4>(out var column4Data) ||
-            !TryFindComponentColumn<T5>(out var column5Data))
-        {
-            entityIds = null;
-            column1 = null;
-            column2 = null;
-            column3 = null;
-            column4 = null;
-            column5 = null;
-
-            return false;
-        }
-
-        entityIds = _entityIds.AsSpan();
-        column1 = column1Data.AsSpan();
-        column2 = column2Data.AsSpan();
-        column3 = column3Data.AsSpan();
-        column4 = column4Data.AsSpan();
-        column5 = column5Data.AsSpan();
-
-        return true;
-    }
-
-    private ComponentValues<T> FindComponentColumn<T>() where T : unmanaged
-    {
-        var type = ComponentTypeInformation<T>.Id;
-        int columnIndex = _componentTypeIdToColumnIndex[type];
-        var column = (ComponentValues<T>)_componentColumns[columnIndex];
-        return column;
     }
 
     private bool TryFindComponentColumn<T>([NotNullWhen(true)] out ComponentValues<T>? column) where T : unmanaged
     {
-        var type = ComponentTypeInformation<T>.Id;
-        if (!_componentTypeIdToColumnIndex.TryGetValue(type, out int columnIndex))
+        var id = _components.GetId<T>();
+
+        if (!_componentIdToColumnIndex.TryGetValue(id, out int columnIndex))
         {
             column = null;
             return false;
@@ -362,7 +133,7 @@ public sealed class Archetype
     /// <summary>
     /// Remove an entities components by migrating it to a simpler archetype.
     /// </summary>
-    internal EntityLocation MigrateEntity(EntityLocation source)
+    internal EntityLocation MigrateEntityDown(EntityLocation source)
     {
         int sourceIndex = source.Index;
 
@@ -372,13 +143,13 @@ public sealed class Archetype
         _entityIds.Migrate(source.Archetype._entityIds, sourceIndex);
 
         // Migrate only components that exist in the target archetype
-        for (int targetComponentTypeIndex = 0; targetComponentTypeIndex < _entityType.ComponentTypeIds.Length; targetComponentTypeIndex++)
+        for (int targetComponentIndex = 0; targetComponentIndex < _entityType.ComponentIds.Length; targetComponentIndex++)
         {
-            ComponentTypeId componentTypeId = _entityType.ComponentTypeIds[targetComponentTypeIndex];
-            int sourceColumnIndex = source.Archetype._componentTypeIdToColumnIndex[componentTypeId];
+            Id targetComponentId = _entityType.ComponentIds[targetComponentIndex];
+            int sourceColumnIndex = source.Archetype._componentIdToColumnIndex[targetComponentId];
             var sourceColumn = source.Archetype._componentColumns[sourceColumnIndex];
 
-            int targetColumnIndex = _componentTypeIdToColumnIndex[componentTypeId];
+            int targetColumnIndex = _componentIdToColumnIndex[targetComponentId];
             var targetColumn = _componentColumns[targetColumnIndex];
 
             targetColumn.Migrate(sourceColumn, sourceIndex);
@@ -390,7 +161,7 @@ public sealed class Archetype
     /// <summary>
     /// Migrate an entity to a more complex archetype, adding in the new component.
     /// </summary> 
-    internal EntityLocation MigrateEntity<T>(EntityLocation source, ref T c1) where T : unmanaged
+    internal EntityLocation MigrateEntityUp<T>(EntityLocation source, Id componentId, ref T c1) where T : unmanaged
     {
         int sourceIndex = source.Index;
 
@@ -401,42 +172,42 @@ public sealed class Archetype
 
         // Migrate existing components
         EntityType sourceEntityType = source.Archetype.EntityType;
-        for (int sourceComponentTypeIndex = 0; sourceComponentTypeIndex < sourceEntityType.ComponentTypeIds.Length; sourceComponentTypeIndex++)
+        for (int sourceComponentIndex = 0; sourceComponentIndex < sourceEntityType.ComponentIds.Length; sourceComponentIndex++)
         {
-            ComponentTypeId componentTypeId = sourceEntityType.ComponentTypeIds[sourceComponentTypeIndex];
-            int sourceColumnIndex = source.Archetype._componentTypeIdToColumnIndex[componentTypeId];
+            Id targetComponentId = sourceEntityType.ComponentIds[sourceComponentIndex];
+            int sourceColumnIndex = source.Archetype._componentIdToColumnIndex[targetComponentId];
             var sourceColumn = source.Archetype._componentColumns[sourceColumnIndex];
 
-            int targetColumnIndex = _componentTypeIdToColumnIndex[componentTypeId];
+            int targetColumnIndex = _componentIdToColumnIndex[targetComponentId];
             var targetColumn = _componentColumns[targetColumnIndex];
 
             targetColumn.Migrate(sourceColumn, sourceIndex);
         }
 
         // Add the new component
-        {
-            var column = FindComponentColumn<T>();
-            column.Add(ref c1);
-        }
+        AppendComponentInternal(componentId, in c1);
 
         return new EntityLocation(this, targetIndex);
     }
 
     public bool SupportsComponentType<T>() where T : unmanaged
     {
-        ComponentTypeId componentTypeId = ComponentTypeInformation<T>.Id;
-        return _componentTypeIdToColumnIndex.ContainsKey(componentTypeId);
+        Id componentId = _components.GetId<T>();
+        return _componentIdToColumnIndex.ContainsKey(componentId);
     }
 
     internal ref T GetComponentRef<T>(int index) where T : unmanaged
     {
-        var column = FindComponentColumn<T>().AsSpan();
+        Id componentId = _components.GetId<T>();
+        var column = FindComponentColumn<T>(componentId).AsSpan();
         return ref column[index];
     }
 
     internal bool TryGetComponentRef<T>(int index, [NotNullWhen(true)] out Ref<T> component) where T : unmanaged
     {
-        if (!TryFindComponentColumn<T>(out var column))
+        Id componentId = _components.GetId<T>();
+
+        if (!TryFindComponentColumnById<T>(componentId, out var column))
         {
             component = default;
             return false;

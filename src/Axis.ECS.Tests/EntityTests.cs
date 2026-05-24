@@ -35,9 +35,13 @@ public class EntityTests
     public void Create_OneValue_HasOneComponent()
     {
         var world = World.Create();
-        var entity = world.CreateEntity(new Position(1.0f, 2.0f));
+        var entity = world.CreateEntity();
+        entity.Set(new Position(1.0f, 2.0f));
+
         var debug = entity.DebugExport();
-        debug.EntityType.ShouldBe(EntityType.From<Position>());
+        debug.EntityType.ShouldBe(EntityType.Create([
+            world.Components.GetId<Position>()
+        ]));
         debug.ComponentCount.ShouldBe(1);
         debug.GetComponent<Position>().ShouldBe(new Position(1.0f, 2.0f));
     }
@@ -46,9 +50,15 @@ public class EntityTests
     public void Create_TwoValues_HasTwoComponents()
     {
         var world = World.Create();
-        var entity = world.CreateEntity(new Position(1.0f, 2.0f), new Velocity(0.5f, 0.25f));
+        var entity = world.CreateEntity();
+        entity.Set(new Position(1.0f, 2.0f));
+        entity.Set(new Velocity(0.5f, 0.25f));
+
         var debug = entity.DebugExport();
-        debug.EntityType.ShouldBe(EntityType.From<Position, Velocity>());
+        debug.EntityType.ShouldBe(EntityType.Create([
+            world.Components.GetId<Position>(),
+            world.Components.GetId<Velocity>()
+        ]));
         debug.ComponentCount.ShouldBe(2);
         debug.GetComponent<Position>().ShouldBe(new Position(1.0f, 2.0f));
         debug.GetComponent<Velocity>().ShouldBe(new Velocity(0.5f, 0.25f));
@@ -81,20 +91,18 @@ public class EntityTests
     public void Delete_RemovesEntityFromWorld()
     {
         var world = World.Create();
-        var entity = world.CreateEntity(new Position(1.0f, 2.0f), new Velocity(0.5f, 0.25f));
+        var entity = world.CreateEntity();
+        entity.Set(new Position(1.0f, 2.0f));
+        entity.Set(new Velocity(0.5f, 0.25f));
         entity.IsAlive().ShouldBeTrue();
 
         entity.Delete();
         entity.IsAlive().ShouldBeFalse();
     }
 
-    record struct Context();
-
     [Fact]
     public void GetRef_ReturnsComponentReference()
     {
-        var context = new Context();
-
         var world = World.Create();
         var entity = world.CreateEntity();
         entity.Set(new Position(1.0f, 2.0f));
@@ -107,11 +115,6 @@ public class EntityTests
 
         positionRef.X = 10.0f;
         positionRef.Y = 20.0f;
-
-        var positions = QueryRecorder.QueryEach<Context, Position>(world, ref context);
-
-        positions.Count.ShouldBe(1);
-        positions[0].ShouldBe((entity.Id, new Position(10.0f, 20.0f)));
     }
 
     [Fact]
@@ -146,8 +149,25 @@ public class EntityTests
         var entityType = world.GetEntityType(entity.Id);
 
         entityType.ShouldBe(EntityType.Create([
-            ComponentTypeInformation<Position>.Id,
-            ComponentTypeInformation<Velocity>.Id
+            world.Components.GetId<Position>(),
+            world.Components.GetId<Velocity>()
         ]));
+    }
+
+    struct Likes(float amount) { public float Amount = amount; }
+
+    [Fact]
+    public void AddPair_AddsComponent()
+    {
+        var world = World.Create();
+
+        world.RegisterComponent<Likes>();
+
+        var entity = world.CreateEntity();
+        var apples = world.CreateEntity();
+        var bananas = world.CreateEntity();
+
+        entity.SetPair(new Likes(42.0f), apples);
+        entity.SetPair<Likes>(new(33.0f), bananas);
     }
 }

@@ -13,10 +13,22 @@ public unsafe readonly struct CommandPayload(void* payloadPtr)
         return new CommandPayload(payloadPtr);
     }
 
+    public void* Ptr
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _payloadPtr;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref TPayload GetRef<TPayload>()
         where TPayload : unmanaged
     {
         return ref Unsafe.AsRef<TPayload>(_payloadPtr);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public CommandPayload Slice(int byteOffset)
+    {
+        return new CommandPayload((byte*)_payloadPtr + byteOffset);
     }
 }

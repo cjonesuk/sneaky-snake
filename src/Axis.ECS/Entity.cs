@@ -4,7 +4,7 @@ namespace Axis.ECS;
 
 public readonly struct Entity
 {
-    private readonly IWorld _world;
+    private readonly World _world;
     private readonly Id _id;
 
     public static readonly Entity Invalid = new Entity(null!, Id.Invalid);
@@ -13,17 +13,20 @@ public readonly struct Entity
 
     public IWorld World => _world;
 
-    private Entity(IWorld world, Id id)
+    private Entity(World world, Id id)
     {
         _world = world;
         _id = id;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Entity Create(IWorld world, Id id)
+    internal static Entity Create(World world, Id id)
     {
         return new Entity(world, id);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal World GetWorld() => _world;
 
     public bool IsValid()
     {
@@ -33,24 +36,41 @@ public readonly struct Entity
 
 public static class EntityWorldExtensions
 {
+    public static EntityType GetEntityType(this Entity entity)
+    {
+        World world = entity.GetWorld();
+        return world.GetEntityType(entity.Id);
+    }
+
     public static void Set<T>(this Entity entity, T component) where T : unmanaged
     {
-        entity.World.SetComponentOnEntity(entity.Id, component);
+        World world = entity.GetWorld();
+        Id componentId = world.Components.GetId<T>();
+        world.SetComponentOnEntity(entity.Id, componentId, ref component);
+    }
+
+    public static void SetPair<T>(this Entity entity, T component, Entity target) where T : unmanaged
+    {
+        World world = entity.GetWorld();
+        world.SetPairOnEntity(entity.Id, target.Id, ref component);
     }
 
     public static void Add<T>(this Entity entity) where T : unmanaged
     {
-        entity.World.AddComponentToEntity<T>(entity.Id);
+        World world = entity.GetWorld();
+        world.AddComponentToEntity<T>(entity.Id);
     }
 
     public static bool Has<T>(this Entity entity) where T : unmanaged
     {
-        return entity.World.EntityHasComponent<T>(entity.Id);
+        World world = entity.GetWorld();
+        return world.EntityHasComponent<T>(entity.Id);
     }
 
     public static void Remove<T>(this Entity entity) where T : unmanaged
     {
-        entity.World.RemoveComponentFromEntity<T>(entity.Id);
+        World world = entity.GetWorld();
+        world.RemoveComponentFromEntity<T>(entity.Id);
     }
 
     /// <summary>
@@ -58,7 +78,8 @@ public static class EntityWorldExtensions
     /// </summary>
     public static ref T GetRef<T>(this Entity entity) where T : unmanaged
     {
-        return ref entity.World.GetComponentFromEntity<T>(entity.Id);
+        World world = entity.GetWorld();
+        return ref world.GetComponentFromEntity<T>(entity.Id);
     }
 
     /// <summary>
@@ -66,27 +87,31 @@ public static class EntityWorldExtensions
     /// </summary>
     public static T Get<T>(this Entity entity) where T : unmanaged
     {
-        return entity.World.GetComponentFromEntity<T>(entity.Id);
+        World world = entity.GetWorld();
+        return world.GetComponentFromEntity<T>(entity.Id);
     }
 
     public static bool IsAlive(this ref Entity entity)
     {
-        return entity.World.IsEntityAlive(entity.Id);
+        World world = entity.GetWorld();
+        return world.IsEntityAlive(entity.Id);
     }
 
     public static void Delete(this Entity entity)
     {
-        entity.World.RemoveEntity(entity.Id);
+        World world = entity.GetWorld();
+        world.RemoveEntity(entity.Id);
     }
 
     public static ExportedEntity DebugExport(this Entity entity)
     {
-        return ExportedEntity.Create(entity.World, entity.Id);
+        World world = entity.GetWorld();
+        return ExportedEntity.Create(world, entity.Id);
     }
-
     public static void AddEvent<TEvent>(this Entity entity, ref TEvent @event)
     {
-        entity.World.Events.AddEvent(entity.Id, @event);
+        World world = entity.GetWorld();
+        world.Events.AddEvent(entity.Id, @event);
     }
 }
 

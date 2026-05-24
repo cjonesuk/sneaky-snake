@@ -17,6 +17,7 @@ public interface IGameEngine
 {
     Settings Settings { get; }
     IDeviceManager Devices { get; }
+    float DeltaTime { get; }
 
     void SetWorld(IWorld world);
     void ClearWorld();
@@ -33,6 +34,7 @@ public sealed class GameEngine : IGameEngine
     private readonly WindowRenderTarget _window;
 
     private IWorld? _world;
+    private float _deltaTime;
 
     internal GameEngine(IDeviceManager devices, WindowRenderTarget window, Settings settings)
     {
@@ -51,6 +53,7 @@ public sealed class GameEngine : IGameEngine
 
     public Settings Settings => _settings;
     public IDeviceManager Devices => _devices;
+    public float DeltaTime => _deltaTime;
 
     public void SetWorld(IWorld world)
     {
@@ -75,13 +78,13 @@ public sealed class GameEngine : IGameEngine
 
         while (!Raylib.WindowShouldClose())
         {
-            float deltaTime = Raylib.GetFrameTime();
+            _deltaTime = Raylib.GetFrameTime();
 
             _world?.ClearAllEvents();
 
             _devices.Poll();
 
-            _world?.ExecuteSystems(deltaTime);
+            _world?.ExecuteSystems(_deltaTime);
 
             _window.Render();
         }
