@@ -86,7 +86,7 @@ PingPong is a complete playable game: two paddles, ball physics, goal detection,
 dotnet run -c Release --project src/Axis.ECS.Benchmarks -- --filter '*'
 ```
 
-Filter to a single class with `--filter '*ForEachAllocationBenchmark*'`, or smoke-test the infrastructure cheaply with `--job dry`. Three baselines today: ForEach allocation (validates the .NET 10 escape-analysis assumption — static and non-static lambdas should both report 0 B/op), Iterate-vs-ForEach throughput, and query cache hit cost.
+Filter to a single class with `--filter '*ForEachAllocationBenchmark*'`, or smoke-test the infrastructure cheaply with `--job dry`. Three baselines today: ForEach allocation (validates the .NET 10 escape-analysis assumption — static and non-static lambdas should both report 0 B/op), Iterate-vs-ForEach throughput, and query cache hit cost. See [BENCHMARKS.md](BENCHMARKS.md) for the current numbers, findings, and the benchmark/review backlog.
 
 ---
 
