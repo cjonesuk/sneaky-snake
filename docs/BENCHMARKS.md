@@ -6,14 +6,14 @@ Performance baselines for Axis.ECS, run via the `Axis.ECS.Benchmarks` project. S
 
 | Field | Value |
 |---|---|
-| Date | 2026-05-24 |
+| Last updated | 2026-05-24 |
 | Machine | AMD Ryzen 7 5800X, 16 logical / 8 physical cores |
 | OS | EndeavourOS (Linux 6.19.14-arch1-1) |
 | .NET | 10.0.4, RyuJIT AVX2 |
 | BenchmarkDotNet | 0.14.0 |
 | Build | Release, no debugger |
 
-Re-run on the same hardware to compare. Refresh this file when the numbers move materially (>~10%) or when a new benchmark is added.
+Re-run on the same hardware to compare. Refresh this file when the numbers move materially (>~10%) or when a new benchmark is added. **Always run a single benchmark project at a time** — concurrent runs contend for CPU and produce unreliable numbers.
 
 ## Baselines
 
@@ -23,8 +23,10 @@ Re-run on the same hardware to compare. Refresh this file when the numbers move 
 
 | Method                        | Mean     | Allocated |
 |------------------------------ |---------:|----------:|
-| Static_Lambda_NoCapture       | 6.46 us  | **0 B** |
-| NonStatic_Lambda_CapturesThis | 6.08 us  | **0 B** |
+| Static_Lambda_NoCapture       | 5.62 us  | **0 B** |
+| NonStatic_Lambda_CapturesThis | 6.19 us  | **0 B** |
+
+Static is ~10% faster this run; previous run had non-static slightly faster. Both within noise. Headline: **both allocate zero**.
 
 ### IterateVsForEachBenchmark
 
@@ -32,8 +34,8 @@ Same setup. `Query<Health, Healing>.Iterate(...)` (per-archetype span) vs `.ForE
 
 | Method             | Mean     | Allocated |
 |------------------- |---------:|----------:|
-| Iterate_SpanAccess | 4.34 us  | 0 B |
-| ForEach_PerEntity  | 5.63 us  | 0 B |
+| Iterate_SpanAccess | 4.42 us  | 0 B |
+| ForEach_PerEntity  | 6.57 us  | 0 B |
 
 ### QueryCacheBenchmark
 
@@ -41,22 +43,57 @@ Same setup. `Query<Health, Healing>.Iterate(...)` (per-archetype span) vs `.ForE
 
 | Method             | Mean     | Gen0   | Allocated |
 |------------------- |---------:|-------:|----------:|
-| Warm_CachedQuery   | 1.36 us  | -      | 0 B |
-| Cold_BuildEachCall | 1.21 us  | 0.0172 | 288 B |
+| Warm_CachedQuery   | 1.37 us  | -      | 0 B |
+| Cold_BuildEachCall | 1.48 us  | 0.0172 | 288 B |
+
+After the cache-invalidation fix (queries now self-register with the world), cold pays an extra ~270 ns for `RegisterQuery` and is now slower than warm. In real-world use queries are built once at setup, so the cold path doesn't matter.
+
+### EntityCreationBenchmark
+
+`Spawn_Empty` calls `World.SpawnEntity()`. `Define_*` use the `DefineEntity().With(...).Build()` builder. Each benchmark does 1,000 ops per invocation; fresh world per iteration.
+
+| Method                 | Mean       | Allocated |
+|----------------------- |-----------:|----------:|
+| Spawn_Empty            |   210 ns   |   148 B   |
+| Define_OneComponent    |   804 ns   |   189 B   |
+| Define_FourComponents  | 1,585 ns * |   256 B   |
+| Define_EightComponents | 1,567 ns * |   318 B   |
+
+\* 4-component and 8-component runs were multimodal with high variance (StdDev > 600 ns). Likely List growth happening at different points across iterations. Worth investigating.
+
+### ArchetypeMigrationBenchmark
+
+`entity.Add<T>()` or `entity.Remove<T>()` triggers archetype migration. Destination archetype pre-created (warm) so the measured cost is steady-state migration, not new-archetype creation. 1,000 ops per invocation; fresh world per iteration.
+
+| Method                   | Mean       | Allocated |
+|------------------------- |-----------:|----------:|
+| AddComponent_FromOne     |   826 ns   |    81 B   |
+| AddComponent_FromFour    | 1,565 ns   |   137 B   |
+| RemoveComponent_FromFive | 1,484 ns   |   121 B   |
+
+Per additional column migrated: ~246 ns (1565 - 826 = 739 ns for 3 extra columns).
 
 ## Findings
 
 ### .NET 10 escape analysis is doing what we hoped
 
-Non-static lambda capturing `this` allocates **zero** bytes — same as static lambda. The Systems API design (no TState variants, no required `static`) is validated. The non-static version is even slightly faster (~6%), probably because the JIT can specialize a concrete closure type more aggressively than a generic static delegate. See [dotnet10-closure-policy memory](../../.claude/projects/-home-chris-dev-sneaky-snake/memory/dotnet10-closure-policy.md).
+Non-static lambda capturing `this` allocates **zero** bytes — same as static lambda. The Systems API design (no TState variants, no required `static`) is validated. Static may be marginally faster on average (varies run to run), but well within noise. See [dotnet10-closure-policy memory](../../.claude/projects/-home-chris-dev-sneaky-snake/memory/dotnet10-closure-policy.md).
 
-### `Iterate` is ~30% faster than `ForEach`
+### `Iterate` is ~30-50% faster than `ForEach`
 
-The per-entity wrap (creating an `Entity` struct, invoking the delegate per step) costs ~130ps per entity. Negligible for game logic at 10k entities (1.3μs per frame), meaningful for tight inner loops. **Rule of thumb**: `ForEach` for ergonomics; `Iterate` when you're in the hot path and operating on spans.
+The per-entity wrap (creating an `Entity` struct, invoking the delegate per step) is meaningful in tight loops. Both allocate zero. **Rule of thumb**: `ForEach` for ergonomics; `Iterate` when you're in the hot path and operating on spans. Most game logic should use `ForEach`.
 
-### Query cache is a wash at this scale — needs a fairer test
+### Query cache is now correctly invalidated; warm is the path that matters
 
-Cold (rebuild + iterate) beats warm (cached + iterate) by 12% here. Almost certainly because iteration cost dwarfs the archetype scan when there are only 5 archetypes. The 288 B/call allocation on cold is real but small. The cache should win at higher archetype counts or higher per-frame call frequency — see backlog below.
+After fixing the invalidation bug ([commit](#TODO)), warm beats cold (1.37 vs 1.48 us) as expected. Cache is meaningful for any code that builds queries once during setup. The cold-build path costs 288 B per call plus `RegisterQuery` overhead — don't do that.
+
+### Interface dispatch (`IComponentValues[]`) is **not** the dominant migration cost
+
+Per-additional-column-migrated is ~246 ns. Interface dispatch on `column.Migrate(...)` is probably 5-15 ns of that. The other ~230 ns is split between dictionary lookups on both source and target archetypes (`_componentIdToColumnIndex[id]`) and the actual data copy + List growth amortization. **Conclusion**: replacing the `Dictionary<Id, int>` with a linear scan or sorted array would likely give bigger wins than monomorphizing the column array. Benchmark first.
+
+### Entity creation allocates 148-318 B per spawn
+
+The bulk of this is `BufferedEntityCreationCommand` payload allocations and entity-table dictionary growth. At 60 FPS spawning 100 entities per frame, that's ~1.8 MB/sec GC pressure. Not catastrophic, but the deferred-command queue is a target if entity spawn becomes a real hotspot. Multimodal variance at higher arities suggests List<T> growth events are visible in the timing — fixed-size column arrays (already on the README TODO list) would smooth this.
 
 ---
 
@@ -67,11 +104,10 @@ Things worth measuring that aren't covered yet, roughly by priority.
 ### High-value next benchmarks
 
 - **Query cache at scale**: same shape as `QueryCacheBenchmark` but with 50+ archetypes and only a few matching. Should make the cache win visible.
-- **Entity creation throughput**: `world.DefineEntity().With(...).Build()` for 1/2/4/8 component arities. PingPong spawns dozens of entities per game start; need to know the floor.
 - **Deferred command flush cost**: a batch of 100/1k/10k queued commands flushed at scope exit. The `WorldCommandQueue` + `BufferedEntityCreationCommand` paths haven't been profiled.
-- **Component add/remove (archetype migration)**: `entity.Add<T>()` and `entity.Remove<T>()` trigger `MigrateEntityUp`/`MigrateEntityDown` which copy all columns. Measure 1, 5, 10 existing components.
-- **Multi-arity scaling**: `Query<T0>` through `Query<T0..T7>.ForEach`. Does each extra component add linear cost, or does column lookup overhead dominate?
+- **Multi-arity ForEach scaling**: `Query<T0>` through `Query<T0..T7>.ForEach`. Does each extra component add linear cost, or does column lookup overhead dominate?
 - **Event stream throughput**: per-entity vs world-level event emission + consumption. PingPong leans on these for collision/input.
+- **Investigate multimodal variance in `Define_FourComponents`/`Define_EightComponents`** — likely `ComponentValues<T>.List<T>` growth events; want to confirm.
 
 ### Medium-value
 
@@ -90,20 +126,23 @@ Things worth measuring that aren't covered yet, roughly by priority.
 
 Code areas worth looking at, ordered roughly by expected impact. Should be driven by benchmark data, not by speculation.
 
-### Almost-certainly-worth-doing
+### Backed by benchmark data
 
-- **`Archetype._componentColumns` is `IComponentValues[]`** — iteration boxes through the interface. Plan: replace with a concrete array indexed by column type, or generate per-arity archetype types. Big architectural change; needs benchmark justification.
-- **`Archetype._componentIdToColumnIndex` is `Dictionary<Id, int>`** — for typical archetypes with <16 components, a linear scan over an `Id[]` would likely beat the dictionary on cache and constant-factor. Measurable change with low blast radius.
-- **`QueryBuilder.Build` allocates `_terms.ToArray()`** — every cold query call pays this (see Cold_BuildEachCall's 288 B). Cache by terms-fingerprint, or pool builders.
-- **`ArchetypeQuery._cachedResults` is `List<Archetype>`** with no automatic invalidation — `RegisterQuery` is defined ([World.cs:62](../src/Axis.ECS/World.cs#L62)) but never called. Need either (a) auto-register on `ArchetypeQuery` construction so cache invalidates on archetype churn, or (b) accept and document that queries are eternally-cached (current behavior).
-- **`ComponentValues<T>` is `List<T>`** — already flagged in the root [README.md](../README.md#ecs-todo) as a target for fixed-size arrays + `Span<T>`. The `CollectionsMarshal.AsSpan` trick gets us span access but allocations on growth are still List-shaped.
+- **`Archetype._componentIdToColumnIndex` is `Dictionary<Id, int>`** — migration data shows ~230 ns per column spent in dictionary lookups + List growth (not interface dispatch). For typical archetypes with <16 components, a linear scan over a sorted `Id[]` would likely beat the dictionary on cache and constant-factor. Low blast radius, measurable change. **Probably the highest-value next change.**
+- **`ComponentValues<T>` is `List<T>`** — already flagged in [README.md](../README.md#ecs-todo). Migration + creation benchmarks both show allocation cost dominated by List growth; the multimodal variance at higher arities is the smoking gun. Switching to a `T[]` with manual growth (or a `FastBuffer<T>`-like type) should give cleaner numbers and lower allocs.
+
+### Speculative until benchmarked
+
+- **`Archetype._componentColumns` is `IComponentValues[]`** — earlier hypothesis flagged this as the inner-loop hotspot. **The data says otherwise**: interface dispatch is ~5-15 ns per column-migration, swamped by dictionary lookups and List growth. Worth keeping on the radar but not a priority. If we tackle it, the move is per-arity `Archetype<T0..Tn>` types (via source generator) or a typed column registry — both architecturally expensive. Don't start until the dictionary + List wins are claimed.
+- **`QueryBuilder.Build` allocates `_terms.ToArray()`** — every cold build pays 288 B (visible in QueryCacheBenchmark). In real-world use queries are built once at setup so this is negligible. Skip unless a real workload starts rebuilding queries per frame.
 
 ### Worth investigating
 
-- **`RemoveEntity` linear cost** — currently iterates all component columns and shifts. Swap-and-pop with the last entry would be O(1). Already flagged in [README.md](../README.md#ecs-todo).
+- **`RemoveEntity` linear cost** — currently iterates all component columns and shifts. Swap-and-pop with the last entry would be O(1). Already flagged in [README.md](../README.md#ecs-todo). Add a `RemoveEntity` benchmark before touching.
 - **Per-entity event streams** — `EventManager` keeps one stream per entity-id × event-type. With many short-lived entities, this could fragment. Pooling and reuse?
 - **System scheduler ordering** — currently registration-order. As real games grow, dependency-aware ordering or grouping will matter.
 - **Parallel system execution** — zero parallelism today. Query results are read-only between systems (deferred commands handle structural changes), so per-archetype parallelism over a single system's iteration is a natural fit. Benchmarks first.
+- **`_activeQueries` memory growth** — the cache-invalidation fix registers every `ArchetypeQuery` ever built and never unregisters. Fine for normal "build once at setup" usage, leaky for pathological per-frame rebuilds. Consider weak-reference or explicit dispose if a real use case appears.
 
 ### Speculative / want-to-try
 
