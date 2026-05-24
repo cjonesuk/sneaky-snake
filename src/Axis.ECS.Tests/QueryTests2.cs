@@ -92,11 +92,11 @@ public class QueryT0Tests
            .Build();
 
         int healthTotal = 0;
-        healthQuery.Iterate((iter, health) =>
+        healthQuery.Iterate((ids, health) =>
         {
-            foreach (var index in iter)
+            for (int i = 0; i < ids.Length; i++)
             {
-                healthTotal += health[index].Value;
+                healthTotal += health[i].Value;
             }
         });
         healthTotal.ShouldBe(190);
@@ -144,12 +144,12 @@ public class QueryT1Tests
 
         int healthTotal = 0;
         int healingTotal = 0;
-        query.Iterate((iter, health, healing) =>
+        query.Iterate((ids, health, healing) =>
         {
-            foreach (var index in iter)
+            for (int i = 0; i < ids.Length; i++)
             {
-                healthTotal += health[index].Value;
-                healingTotal += healing[index].Amount;
+                healthTotal += health[i].Value;
+                healingTotal += healing[i].Amount;
             }
         });
         healthTotal.ShouldBe(190);

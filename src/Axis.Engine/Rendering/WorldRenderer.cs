@@ -1,5 +1,6 @@
 using System.Numerics;
 using Axis.ECS;
+using Axis.ECS.Queries;
 using Axis.Engine.Components;
 using Engine.Components;
 using Raylib_cs;
@@ -48,34 +49,35 @@ public sealed class WorldRenderer : IRenderer
             camera2d.Zoom,
             cameraTransform.Rotation);
 
-        var world = _camera.World;
+        var world = (World)_camera.World;
+        var renderContext = context;
 
-
-        world.QueryEach(ref context, (ref RenderContext context, ref Iter iter, ref Transform2d transform, ref BasicShape shape) =>
-        {
-            var position = transform.Position;
-            var halfExtents = shape.HalfExtents;
-            var rotation = transform.Rotation;
-            var color = shape.Color;
-            var type = shape.Type;
-
-            switch (type)
+        DefineQuery.For<Transform2d, BasicShape>(world).Build()
+            .ForEach((Entity entity, ref Transform2d transform, ref BasicShape shape) =>
             {
-                case ShapeType.Circle:
-                    context.RenderCommands.AddCircle(ref position, halfExtents.X, color, 0);
-                    return;
+                var position = transform.Position;
+                var halfExtents = shape.HalfExtents;
+                var rotation = transform.Rotation;
+                var color = shape.Color;
+                var type = shape.Type;
 
-                case ShapeType.Rectangle:
-                    Vector2 origin = halfExtents; // Center of the rectangle
-                    Rectangle rect = new Rectangle(
-                        position.X,
-                        position.Y,
-                        halfExtents.X * 2,
-                        halfExtents.Y * 2);
+                switch (type)
+                {
+                    case ShapeType.Circle:
+                        renderContext.RenderCommands.AddCircle(ref position, halfExtents.X, color, 0);
+                        return;
 
-                    context.RenderCommands.AddRectangle(ref rect, ref origin, rotation, color, 0);
-                    break;
-            }
-        });
+                    case ShapeType.Rectangle:
+                        Vector2 origin = halfExtents; // Center of the rectangle
+                        Rectangle rect = new Rectangle(
+                            position.X,
+                            position.Y,
+                            halfExtents.X * 2,
+                            halfExtents.Y * 2);
+
+                        renderContext.RenderCommands.AddRectangle(ref rect, ref origin, rotation, color, 0);
+                        break;
+                }
+            });
     }
 }

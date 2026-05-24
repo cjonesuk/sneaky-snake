@@ -52,7 +52,7 @@ public sealed class World : IWorld
     }
 
     public WorldPairs Pairs => _pairs;
-    internal IEventManager Events => _events;
+    public IEventManager Events => _events;
     internal WorldSystemScheduler Systems => _systemScheduler;
     internal ComponentEntityManager Components => _components;
 
@@ -67,8 +67,6 @@ public sealed class World : IWorld
     public void RegisterComponent<T>() where T : unmanaged
     {
         Id id = _components.Register<T>();
-        Console.WriteLine($"Registered component {typeof(T).Name} with Id {id}");
-
         CreateEntityWithId(id);
     }
 
@@ -111,7 +109,7 @@ public sealed class World : IWorld
         foreach (var system in systems)
         {
             using var deferredMode = BeginDeferringCommands();
-            system.Execute(context);
+            system.Execute(ref context);
         }
     }
 
@@ -181,6 +179,7 @@ public sealed class World : IWorld
         if (_deferredMode)
         {
             _commands.ClearAllEntities();
+            return;
         }
 
         _archetypes.ClearAll();
