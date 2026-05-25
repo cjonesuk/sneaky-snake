@@ -25,6 +25,7 @@ public sealed class World : IWorld
     private bool _deferredMode;
     private List<IArchetypeQuery> _activeQueries;
     private readonly WorldPairs _pairs;
+    private Entity _dataEntity;
 
     internal World()
     {
@@ -38,6 +39,7 @@ public sealed class World : IWorld
         _deferredMode = false;
         _activeQueries = new List<IArchetypeQuery>();
         _pairs = CreatePairs();
+        _dataEntity = SpawnEntity();
     }
 
     private WorldPairs CreatePairs()
@@ -69,11 +71,6 @@ public sealed class World : IWorld
         _activeQueries.Remove(query);
     }
 
-    /// <summary>
-    /// Removes all queries from the invalidation list. After calling, previously-registered
-    /// queries will silently return stale results after the next archetype change. Intended
-    /// for full world resets (e.g. game-mode reload) where the queries are also being discarded.
-    /// </summary>
     public void UnregisterAllQueries()
     {
         _activeQueries.Clear();
@@ -207,6 +204,33 @@ public sealed class World : IWorld
 
         _archetypes.ClearAll();
         _entityIndices.Clear();
+        _dataEntity = SpawnEntity();
+    }
+
+    public void SetData<T>(in T value) where T : unmanaged
+    {
+        T copy = value;
+        Id componentId = _components.GetId<T>();
+        EnsureComponentOnEntity(_dataEntity.Id, componentId, ref copy);
+    }
+
+    public ref T GetData<T>() where T : unmanaged
+    {
+        if (!HasData<T>())
+        {
+            throw new InvalidOperationException($"World data of type {typeof(T).Name} has not been set.");
+        }
+        return ref GetComponentFromEntity<T>(_dataEntity.Id);
+    }
+
+    public bool HasData<T>() where T : unmanaged
+    {
+        return EntityHasComponent<T>(_dataEntity.Id);
+    }
+
+    public void RemoveData<T>() where T : unmanaged
+    {
+        RemoveComponentFromEntity<T>(_dataEntity.Id);
     }
 
     public void EnsureComponentOnEntity<T>(Id id, ref T component) where T : unmanaged
