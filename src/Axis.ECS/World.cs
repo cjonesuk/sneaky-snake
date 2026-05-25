@@ -189,6 +189,7 @@ public sealed class World : IWorld
         EntityLocation location = FindEntity(id);
         location.Archetype.RemoveEntity(location.Index);
         _entityIndices.Remove(id);
+        _entityIds.Free(id);
     }
 
     /// <summary>
@@ -200,6 +201,11 @@ public sealed class World : IWorld
         {
             _commands.ClearAllEntities();
             return;
+        }
+
+        foreach (var id in _entityIndices.Keys)
+        {
+            _entityIds.Free(id);
         }
 
         _archetypes.ClearAll();

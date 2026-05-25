@@ -9,6 +9,8 @@ public readonly struct Id : IEquatable<Id>, IComparable<Id>
     private readonly ulong _id;
 
     public ulong Value => _id;
+    public uint Index => IdSpace.EntityIndex(_id);
+    public byte Generation => IdSpace.GetGeneration(_id);
 
     public static readonly Id Invalid = new Id();
 
