@@ -9,8 +9,7 @@ internal sealed class EntityIdManager
 
     private uint _nextEntityIndex = EntityIdStart;
     private uint _nextComponentId = ComponentIdStart;
-    private readonly Queue<uint> _freeIndices = new();
-    private byte[] _generations = new byte[1024];
+    private readonly Queue<Id> _freeIds = new();
 
     public Id AllocateComponentId()
     {
@@ -19,43 +18,26 @@ internal sealed class EntityIdManager
 
     public Id AllocateEntityId()
     {
-        if (_freeIndices.TryDequeue(out uint reusedIndex))
+        while (_freeIds.TryDequeue(out Id freedId))
         {
-            // Generation was bumped at Free-time, so _generations[reusedIndex] is the value to use now.
-            return Id.Make(reusedIndex, _generations[reusedIndex]);
+            byte gen = freedId.Generation;
+            if (gen < MaxGeneration)
+            {
+                return Id.Make(freedId.Index, (byte)(gen + 1));
+            }
+            // gen == 255: bumping would wrap and collide with the original Id at this index. Retire the slot.
         }
 
-        uint index = _nextEntityIndex++;
-        EnsureGenerationsCapacity(index);
-        _generations[index] = 0;
-        return Id.Make(index, 0);
+        return Id.Make(_nextEntityIndex++, 0);
     }
 
     public void Free(Id id)
     {
-        uint index = IdSpace.EntityIndex(id.Value);
+        uint index = id.Index;
         if (index < EntityIdStart || index >= _nextEntityIndex)
         {
             return;
         }
-
-        byte currentGen = _generations[index];
-        if (currentGen == MaxGeneration)
-        {
-            // Bumping would wrap to 0 and collide with the original Id at this index. Retire the slot.
-            return;
-        }
-
-        _generations[index] = (byte)(currentGen + 1);
-        _freeIndices.Enqueue(index);
-    }
-
-    private void EnsureGenerationsCapacity(uint index)
-    {
-        if (index >= _generations.Length)
-        {
-            int newSize = Math.Max((int)index + 1, _generations.Length * 2);
-            Array.Resize(ref _generations, newSize);
-        }
+        _freeIds.Enqueue(id);
     }
 }
