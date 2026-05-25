@@ -149,6 +149,8 @@ public sealed class Archetype
             targetColumn.Migrate(sourceColumn, sourceIndex);
         }
 
+        source.Archetype.NotifyEntitySwapAt(sourceIndex);
+
         return new EntityLocation(this, targetIndex);
     }
 
@@ -179,6 +181,8 @@ public sealed class Archetype
 
         // Add the new component
         AppendComponentInternal(componentId, in c1);
+
+        source.Archetype.NotifyEntitySwapAt(sourceIndex);
 
         return new EntityLocation(this, targetIndex);
     }
@@ -216,6 +220,18 @@ public sealed class Archetype
         foreach (var column in _componentColumns)
         {
             column.RemoveAndFillHoleAt(index);
+        }
+        _entityIds.RemoveAndFillHoleAt(index);
+        NotifyEntitySwapAt(index);
+    }
+
+    /// <summary>After swap-popping at <paramref name="index"/>, tell the world the entity now at that index moved.</summary>
+    private void NotifyEntitySwapAt(int index)
+    {
+        if (index < _entityIds.Count)
+        {
+            Id swappedEntity = _entityIds.AsSpan()[index];
+            _world.UpdateEntityLocation(swappedEntity, new EntityLocation(this, index));
         }
     }
 

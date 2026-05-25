@@ -25,6 +25,7 @@ public sealed class World : IWorld
     private bool _deferredMode;
     private List<IArchetypeQuery> _activeQueries;
     private readonly WorldPairs _pairs;
+    private readonly ArchetypeQuery _parentQuery;
     private Entity _dataEntity;
 
     internal World()
@@ -39,8 +40,11 @@ public sealed class World : IWorld
         _deferredMode = false;
         _activeQueries = new List<IArchetypeQuery>();
         _pairs = CreatePairs();
+        _parentQuery = QueryBuilder.For(this).Add<Parent>().Build();
         _dataEntity = SpawnEntity();
     }
+
+    internal ArchetypeQuery ParentQuery => _parentQuery;
 
     private WorldPairs CreatePairs()
     {
@@ -278,6 +282,12 @@ public sealed class World : IWorld
         }
 
         return location;
+    }
+
+    /// <summary>Called by an Archetype when a swap-pop moves an entity into a different slot.</summary>
+    internal void UpdateEntityLocation(Id id, EntityLocation location)
+    {
+        _entityIndices[id] = location;
     }
 
     public bool EntityHasComponent<T>(Id id) where T : unmanaged

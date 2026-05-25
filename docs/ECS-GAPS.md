@@ -38,7 +38,7 @@ Effort: S (hours), M (1-2 days), L (week), XL (multi-week). Value: how often a r
 | **Query: wildcard pairs (`Likes(*)`)** | const defined, unused | yes | n/a | n/a | M | low (advanced) |
 | **Hooks / observers (OnAdd/OnRemove/OnSet)** | missing | yes | partial (ISystemStartStop etc.) | observers | M | high |
 | **Change detection (Changed<T>)** | missing (needs hooks first) | observer-based | yes | `Changed<T>` filter | L | medium |
-| **Hierarchies (parent/child convenience)** | pair encoding exists, no API | built-in `ChildOf` | parent component | `Parent`/`Children` components | M | high |
+| **Hierarchies (parent/child convenience)** | ✓ as of 2026-05-25 (`Parent` component + extensions; see [ECS-HIERARCHIES.md](ECS-HIERARCHIES.md)) | built-in `ChildOf` | parent component | `Parent`/`Children` components | M | high |
 | **Prefabs / cloning** | missing | yes | `EntityPrefab` | scenes / `Bundle` | M | high |
 | **Bundles (reusable component sets)** | missing (EntityBuilder is per-call) | tags | bundles | `Bundle` trait | S-M | medium |
 | **World data / singletons** | missing | `world.set<T>` | singleton components | `Resource<T>` | S | high |
@@ -92,4 +92,4 @@ Update this doc when:
 - A new gap is found (add a row).
 - An engine's referenced feature changes meaningfully.
 
-Last reviewed: 2026-05-25.
+Last reviewed: 2026-05-25 (post-hierarchies).

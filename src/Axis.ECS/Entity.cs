@@ -113,5 +113,55 @@ public static class EntityWorldExtensions
         World world = entity.GetWorld();
         world.Events.AddEvent(entity.Id, @event);
     }
+
+    /// <summary>Set or replace the entity's parent.</summary>
+    public static void SetParent(this Entity entity, Entity parent)
+    {
+        var p = new Parent(parent.Id);
+        entity.Set(p);
+    }
+
+    /// <summary>Remove the entity's parent. No-op if not parented.</summary>
+    public static void RemoveParent(this Entity entity)
+    {
+        entity.Remove<Parent>();
+    }
+
+    /// <summary>True if the entity has a Parent component (regardless of whether the parent is alive).</summary>
+    public static bool HasParent(this Entity entity)
+    {
+        return entity.Has<Parent>();
+    }
+
+    /// <summary>Try to get the live parent entity. False if not parented or the parent is dead.</summary>
+    public static bool TryGetParent(this Entity entity, out Entity parent)
+    {
+        if (!entity.Has<Parent>())
+        {
+            parent = Entity.Invalid;
+            return false;
+        }
+
+        World world = entity.GetWorld();
+        Id parentId = entity.GetRef<Parent>().Value;
+        if (!world.IsEntityAlive(parentId))
+        {
+            parent = Entity.Invalid;
+            return false;
+        }
+
+        parent = world.GetEntity(parentId);
+        return true;
+    }
+
+    /// <summary>Get the live parent. Throws if not parented or parent is dead.</summary>
+    public static Entity GetParent(this Entity entity)
+    {
+        if (!entity.TryGetParent(out var parent))
+        {
+            throw new InvalidOperationException($"Entity {entity.Id} has no live parent.");
+        }
+        return parent;
+    }
 }
 
