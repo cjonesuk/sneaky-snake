@@ -192,17 +192,17 @@ public sealed class World : IWorld
         }
 
         EntityLocation location = FindEntity(id);
-        Id movedEntityId = location.Archetype.RemoveEntity(location.Index);
+        EntityRef displaced = location.Archetype.RemoveEntity(location.Index);
         _entityIndices.Remove(id);
-        UpdateMovedEntityLocation(movedEntityId, location);
+        RecordDisplaced(displaced);
         _entityIds.Free(id);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void UpdateMovedEntityLocation(Id movedEntityId, EntityLocation location)
+    private void RecordDisplaced(EntityRef displaced)
     {
-        if (!movedEntityId.IsValid()) return;
-        _entityIndices[movedEntityId] = location;
+        if (!displaced.Exists) return;
+        _entityIndices[displaced.Id] = displaced.Location;
     }
 
     /// <summary>
@@ -334,10 +334,10 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        (EntityLocation nextLocation, Id movedEntityId) = nextArchetype.MigrateEntityDown(location);
+        (EntityLocation migratedTo, EntityRef displaced) = nextArchetype.MigrateEntityDown(location);
 
-        _entityIndices[id] = nextLocation;
-        UpdateMovedEntityLocation(movedEntityId, location);
+        _entityIndices[id] = migratedTo;
+        RecordDisplaced(displaced);
     }
 
     public ref T GetComponentFromEntity<T>(Id id) where T : unmanaged
@@ -362,10 +362,10 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        (EntityLocation nextLocation, Id movedEntityId) = nextArchetype.MigrateEntityUp(location, componentId, ref component);
+        (EntityLocation migratedTo, EntityRef displaced) = nextArchetype.MigrateEntityUp(location, componentId, ref component);
 
-        _entityIndices[id] = nextLocation;
-        UpdateMovedEntityLocation(movedEntityId, location);
+        _entityIndices[id] = migratedTo;
+        RecordDisplaced(displaced);
     }
 
     public bool IsEntityAlive(Id id)
