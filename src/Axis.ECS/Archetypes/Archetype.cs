@@ -126,16 +126,15 @@ public sealed class Archetype
 
     /// <summary>
     /// Remove an entity's components by migrating it to a simpler archetype.
-    /// Returns the new location, and the Id of any entity that swapped into the freed source
+    /// Returns the new location, and the Id of any entity that moved to fill the freed source
     /// slot (<see cref="Id.Invalid"/> if none).
     /// </summary>
-    internal (EntityLocation NewLocation, Id SwappedSource) MigrateEntityDown(EntityLocation source)
+    internal (EntityLocation NewLocation, Id MovedEntityId) MigrateEntityDown(EntityLocation source)
     {
         int sourceIndex = source.Index;
-
         int targetIndex = _entityIds.Count;
+        Id movedEntityId = source.Archetype.PeekMoverOnRemoval(sourceIndex);
 
-        // Migrate the entity ID
         _entityIds.Migrate(source.Archetype._entityIds, sourceIndex);
 
         // Migrate only components that exist in the target archetype
@@ -145,28 +144,25 @@ public sealed class Archetype
             Id targetComponentId = targetIds[targetColumnIndex];
             int sourceColumnIndex = source.Archetype.FindColumnIndex(targetComponentId);
             var sourceColumn = source.Archetype._componentColumns[sourceColumnIndex];
-
             var targetColumn = _componentColumns[targetColumnIndex];
 
             targetColumn.Migrate(sourceColumn, sourceIndex);
         }
 
-        Id swappedSource = source.Archetype.SwappedEntityAt(sourceIndex);
-        return (new EntityLocation(this, targetIndex), swappedSource);
+        return (new EntityLocation(this, targetIndex), movedEntityId);
     }
 
     /// <summary>
     /// Migrate an entity to a more complex archetype, adding in the new component.
-    /// Returns the new location, and the Id of any entity that swapped into the freed source
+    /// Returns the new location, and the Id of any entity that moved to fill the freed source
     /// slot (<see cref="Id.Invalid"/> if none).
     /// </summary>
-    internal (EntityLocation NewLocation, Id SwappedSource) MigrateEntityUp<T>(EntityLocation source, Id componentId, ref T c1) where T : unmanaged
+    internal (EntityLocation NewLocation, Id MovedEntityId) MigrateEntityUp<T>(EntityLocation source, Id componentId, ref T c1) where T : unmanaged
     {
         int sourceIndex = source.Index;
-
         int targetIndex = _entityIds.Count;
+        Id movedEntityId = source.Archetype.PeekMoverOnRemoval(sourceIndex);
 
-        // Migrate the entity ID
         _entityIds.Migrate(source.Archetype._entityIds, sourceIndex);
 
         // Migrate existing components
@@ -182,11 +178,9 @@ public sealed class Archetype
             targetColumn.Migrate(sourceColumn, sourceIndex);
         }
 
-        // Add the new component
         AppendComponentInternal(componentId, in c1);
 
-        Id swappedSource = source.Archetype.SwappedEntityAt(sourceIndex);
-        return (new EntityLocation(this, targetIndex), swappedSource);
+        return (new EntityLocation(this, targetIndex), movedEntityId);
     }
 
     public bool SupportsComponentType<T>() where T : unmanaged
@@ -217,21 +211,27 @@ public sealed class Archetype
         return true;
     }
 
-    /// <summary>Remove the entity at <paramref name="index"/>; returns the Id of the entity that swapped into the freed slot (or <see cref="Id.Invalid"/>).</summary>
+    /// <summary>Remove the entity at <paramref name="index"/>; returns the Id of the entity that moved to fill the freed slot (or <see cref="Id.Invalid"/>).</summary>
     internal Id RemoveEntity(int index)
     {
+        Id movedEntityId = PeekMoverOnRemoval(index);
+
         foreach (var column in _componentColumns)
         {
             column.RemoveAndFillHoleAt(index);
         }
         _entityIds.RemoveAndFillHoleAt(index);
-        return SwappedEntityAt(index);
+
+        return movedEntityId;
     }
 
-    /// <summary>After a swap-pop at <paramref name="index"/>, returns the Id now at that index, or <see cref="Id.Invalid"/> if the index is past the end.</summary>
-    private Id SwappedEntityAt(int index)
+    /// <summary>The Id that would move to fill <paramref name="removalIndex"/> on a swap-pop there; <see cref="Id.Invalid"/> if removing the last entry (no swap needed).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Id PeekMoverOnRemoval(int removalIndex)
     {
-        return index < _entityIds.Count ? _entityIds.AsSpan()[index] : Id.Invalid;
+        int lastIndex = _entityIds.Count - 1;
+        if (removalIndex >= lastIndex) return Id.Invalid;
+        return _entityIds.AsSpan()[lastIndex];
     }
 
     /// <summary>

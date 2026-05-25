@@ -192,17 +192,17 @@ public sealed class World : IWorld
         }
 
         EntityLocation location = FindEntity(id);
-        Id swapped = location.Archetype.RemoveEntity(location.Index);
+        Id movedEntityId = location.Archetype.RemoveEntity(location.Index);
         _entityIndices.Remove(id);
-        UpdateSwappedEntityLocation(swapped, location);
+        UpdateMovedEntityLocation(movedEntityId, location);
         _entityIds.Free(id);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void UpdateSwappedEntityLocation(Id swapped, EntityLocation location)
+    private void UpdateMovedEntityLocation(Id movedEntityId, EntityLocation location)
     {
-        if (!swapped.IsValid()) return;
-        _entityIndices[swapped] = location;
+        if (!movedEntityId.IsValid()) return;
+        _entityIndices[movedEntityId] = location;
     }
 
     /// <summary>
@@ -334,10 +334,10 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        (EntityLocation nextLocation, Id swapped) = nextArchetype.MigrateEntityDown(location);
+        (EntityLocation nextLocation, Id movedEntityId) = nextArchetype.MigrateEntityDown(location);
 
         _entityIndices[id] = nextLocation;
-        UpdateSwappedEntityLocation(swapped, location);
+        UpdateMovedEntityLocation(movedEntityId, location);
     }
 
     public ref T GetComponentFromEntity<T>(Id id) where T : unmanaged
@@ -362,10 +362,10 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        (EntityLocation nextLocation, Id swapped) = nextArchetype.MigrateEntityUp(location, componentId, ref component);
+        (EntityLocation nextLocation, Id movedEntityId) = nextArchetype.MigrateEntityUp(location, componentId, ref component);
 
         _entityIndices[id] = nextLocation;
-        UpdateSwappedEntityLocation(swapped, location);
+        UpdateMovedEntityLocation(movedEntityId, location);
     }
 
     public bool IsEntityAlive(Id id)
