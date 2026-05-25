@@ -125,9 +125,11 @@ public sealed class Archetype
     }
 
     /// <summary>
-    /// Remove an entities components by migrating it to a simpler archetype.
+    /// Remove an entity's components by migrating it to a simpler archetype.
+    /// Returns the new location, and the Id of any entity that swapped into the freed source
+    /// slot (<see cref="Id.Invalid"/> if none).
     /// </summary>
-    internal EntityLocation MigrateEntityDown(EntityLocation source)
+    internal (EntityLocation NewLocation, Id SwappedSource) MigrateEntityDown(EntityLocation source)
     {
         int sourceIndex = source.Index;
 
@@ -149,15 +151,16 @@ public sealed class Archetype
             targetColumn.Migrate(sourceColumn, sourceIndex);
         }
 
-        source.Archetype.NotifyEntitySwapAt(sourceIndex);
-
-        return new EntityLocation(this, targetIndex);
+        Id swappedSource = source.Archetype.SwappedEntityAt(sourceIndex);
+        return (new EntityLocation(this, targetIndex), swappedSource);
     }
 
     /// <summary>
     /// Migrate an entity to a more complex archetype, adding in the new component.
+    /// Returns the new location, and the Id of any entity that swapped into the freed source
+    /// slot (<see cref="Id.Invalid"/> if none).
     /// </summary>
-    internal EntityLocation MigrateEntityUp<T>(EntityLocation source, Id componentId, ref T c1) where T : unmanaged
+    internal (EntityLocation NewLocation, Id SwappedSource) MigrateEntityUp<T>(EntityLocation source, Id componentId, ref T c1) where T : unmanaged
     {
         int sourceIndex = source.Index;
 
@@ -182,9 +185,8 @@ public sealed class Archetype
         // Add the new component
         AppendComponentInternal(componentId, in c1);
 
-        source.Archetype.NotifyEntitySwapAt(sourceIndex);
-
-        return new EntityLocation(this, targetIndex);
+        Id swappedSource = source.Archetype.SwappedEntityAt(sourceIndex);
+        return (new EntityLocation(this, targetIndex), swappedSource);
     }
 
     public bool SupportsComponentType<T>() where T : unmanaged
@@ -215,24 +217,21 @@ public sealed class Archetype
         return true;
     }
 
-    internal void RemoveEntity(int index)
+    /// <summary>Remove the entity at <paramref name="index"/>; returns the Id of the entity that swapped into the freed slot (or <see cref="Id.Invalid"/>).</summary>
+    internal Id RemoveEntity(int index)
     {
         foreach (var column in _componentColumns)
         {
             column.RemoveAndFillHoleAt(index);
         }
         _entityIds.RemoveAndFillHoleAt(index);
-        NotifyEntitySwapAt(index);
+        return SwappedEntityAt(index);
     }
 
-    /// <summary>After swap-popping at <paramref name="index"/>, tell the world the entity now at that index moved.</summary>
-    private void NotifyEntitySwapAt(int index)
+    /// <summary>After a swap-pop at <paramref name="index"/>, returns the Id now at that index, or <see cref="Id.Invalid"/> if the index is past the end.</summary>
+    private Id SwappedEntityAt(int index)
     {
-        if (index < _entityIds.Count)
-        {
-            Id swappedEntity = _entityIds.AsSpan()[index];
-            _world.UpdateEntityLocation(swappedEntity, new EntityLocation(this, index));
-        }
+        return index < _entityIds.Count ? _entityIds.AsSpan()[index] : Id.Invalid;
     }
 
     /// <summary>

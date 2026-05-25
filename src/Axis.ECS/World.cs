@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Axis.ECS.Commands;
 using Axis.ECS.Events;
 using Axis.ECS.Queries;
@@ -191,9 +192,17 @@ public sealed class World : IWorld
         }
 
         EntityLocation location = FindEntity(id);
-        location.Archetype.RemoveEntity(location.Index);
+        Id swapped = location.Archetype.RemoveEntity(location.Index);
         _entityIndices.Remove(id);
+        UpdateSwappedEntityLocation(swapped, location);
         _entityIds.Free(id);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void UpdateSwappedEntityLocation(Id swapped, EntityLocation location)
+    {
+        if (!swapped.IsValid()) return;
+        _entityIndices[swapped] = location;
     }
 
     /// <summary>
@@ -284,12 +293,6 @@ public sealed class World : IWorld
         return location;
     }
 
-    /// <summary>Called by an Archetype when a swap-pop moves an entity into a different slot.</summary>
-    internal void UpdateEntityLocation(Id id, EntityLocation location)
-    {
-        _entityIndices[id] = location;
-    }
-
     public bool EntityHasComponent<T>(Id id) where T : unmanaged
     {
         EntityLocation location = FindEntity(id);
@@ -331,9 +334,10 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        EntityLocation nextLocation = nextArchetype.MigrateEntityDown(location);
+        (EntityLocation nextLocation, Id swapped) = nextArchetype.MigrateEntityDown(location);
 
         _entityIndices[id] = nextLocation;
+        UpdateSwappedEntityLocation(swapped, location);
     }
 
     public ref T GetComponentFromEntity<T>(Id id) where T : unmanaged
@@ -358,9 +362,10 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        EntityLocation nextLocation = nextArchetype.MigrateEntityUp(location, componentId, ref component);
+        (EntityLocation nextLocation, Id swapped) = nextArchetype.MigrateEntityUp(location, componentId, ref component);
 
         _entityIndices[id] = nextLocation;
+        UpdateSwappedEntityLocation(swapped, location);
     }
 
     public bool IsEntityAlive(Id id)
