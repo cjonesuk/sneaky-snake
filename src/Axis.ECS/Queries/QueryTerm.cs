@@ -1,4 +1,9 @@
 namespace Axis.ECS.Queries;
 
-public record struct QueryTerm(Id ComponentId);
+public enum QueryTermKind
+{
+    Include,
+    Exclude,
+}
 
+public record struct QueryTerm(Id ComponentId, QueryTermKind Kind = QueryTermKind.Include);

@@ -163,6 +163,14 @@ public sealed class QueryGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         var typeArgs = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
+
+        sb.AppendLine($"    public QueryBuilder<{typeArgs}> Without<TExclude>() where TExclude : unmanaged");
+        sb.AppendLine("    {");
+        sb.AppendLine("        _builder.Without<TExclude>();");
+        sb.AppendLine("        return this;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+
         sb.AppendLine($"    public Query<{typeArgs}> Build()");
         sb.AppendLine("    {");
         sb.AppendLine("        var query = _builder.Build();");
