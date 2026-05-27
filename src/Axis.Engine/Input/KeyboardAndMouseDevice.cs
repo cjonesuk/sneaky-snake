@@ -17,6 +17,8 @@ internal sealed class KeyboardAndMouseDevice : InputDevice<KeyboardInputContext>
     {
         _blockedKeys.Clear();
 
+        float wheelDelta = Raylib.GetMouseWheelMove();
+
         foreach (var context in _contexts)
         {
             foreach (var mapping in context.KeyPressed)
@@ -47,7 +49,6 @@ internal sealed class KeyboardAndMouseDevice : InputDevice<KeyboardInputContext>
 
                 if (Raylib.IsKeyDown(mapping.Primary))
                 {
-                    // Console.WriteLine($"Key Down: {mapping.Primary} -> {mapping.Action.Name}");
                     context.Receiver.ReceiveInput(new InputEvent(mapping.ActionId, 1));
 
                     if (mapping.IsBlocking)
@@ -55,6 +56,24 @@ internal sealed class KeyboardAndMouseDevice : InputDevice<KeyboardInputContext>
                         _blockedKeys.Add(mapping.Primary);
                     }
                 }
+            }
+
+            if (wheelDelta == 0f)
+            {
+                continue;
+            }
+
+            var direction = wheelDelta > 0f ? MouseWheelDirection.Up : MouseWheelDirection.Down;
+            float magnitude = MathF.Abs(wheelDelta);
+
+            foreach (var mapping in context.MouseWheel)
+            {
+                if (mapping.Direction != direction)
+                {
+                    continue;
+                }
+
+                context.Receiver.ReceiveInput(new InputEvent(mapping.ActionId, magnitude));
             }
         }
     }

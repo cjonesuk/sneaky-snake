@@ -31,6 +31,8 @@ public sealed class RenderCommandQueue : CommandQueue<RenderContext, RenderComma
     {
     }
 
+    public int Count => _commands.Count;
+
     public void Write<T>(ref T value, CommandAction action, int zOrder)
         where T : unmanaged
     {

@@ -1,23 +1,34 @@
+using Axis.ECS;
+
 namespace Axis.Engine.Input;
 
-// internal sealed class EntityInputReceiver : IInputReceiver
-// {
-//     private readonly IWorld _world;
-//     private readonly EntityId _entityId;
+/// <summary>Forwards input events onto a specific entity's event stream.</summary>
+public sealed class EntityInputReceiver : IInputReceiver
+{
+    private Entity _entity;
 
-//     public EntityInputReceiver(IWorld world, EntityId entityId)
-//     {
-//         _world = world;
-//         _entityId = entityId;
-//     }
+    public EntityInputReceiver()
+    {
+        _entity = Entity.Invalid;
+    }
 
-//     public void ReceiveInput(InputEvent inputEvent)
-//     {
-//         if (!_world.Entities.TryQueryById(_entityId, out var entity))
-//         {
-//             return;
-//         }
+    public EntityInputReceiver(Entity entity)
+    {
+        _entity = entity;
+    }
 
-//         entity.GetRef<InputActionReceiver>().PendingActions.Add(inputEvent.Action);
-//     }
-// }
+    public void SetEntity(Entity entity)
+    {
+        _entity = entity;
+    }
+
+    public void ReceiveInput(InputEvent inputEvent)
+    {
+        if (!_entity.IsValid())
+        {
+            return;
+        }
+
+        _entity.World.Events.AddEvent(_entity.Id, ref inputEvent);
+    }
+}

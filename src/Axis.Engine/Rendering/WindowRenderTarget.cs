@@ -70,12 +70,6 @@ internal sealed class WindowRenderTarget
                 continue;
             }
 
-            if (renderMode.RenderType == RenderType.Render3d)
-            {
-                throw new NotImplementedException();
-            }
-
-
             if (renderMode.RenderType == RenderType.Render2d)
             {
                 int centerX = x + (width / 2);
@@ -87,6 +81,19 @@ internal sealed class WindowRenderTarget
 
                 Raylib.BeginMode2D(camera2d);
             }
+            else if (renderMode.RenderType == RenderType.Render3d)
+            {
+                Camera3D camera3d = new Camera3D(
+                    renderMode.Mode3d.Position,
+                    renderMode.Mode3d.Target,
+                    renderMode.Mode3d.Up,
+                    renderMode.Mode3d.FovYDegrees,
+                    renderMode.Mode3d.Projection == Axis.Engine.Components.Camera3dProjection.Orthographic
+                        ? CameraProjection.Orthographic
+                        : CameraProjection.Perspective);
+
+                Raylib.BeginMode3D(camera3d);
+            }
 
             Raylib.BeginScissorMode(x, y, width, height);
 
@@ -97,6 +104,10 @@ internal sealed class WindowRenderTarget
             if (renderMode.RenderType == RenderType.Render2d)
             {
                 Raylib.EndMode2D();
+            }
+            else if (renderMode.RenderType == RenderType.Render3d)
+            {
+                Raylib.EndMode3D();
             }
         }
 

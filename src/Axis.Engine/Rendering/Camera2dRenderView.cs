@@ -1,6 +1,7 @@
 
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Axis.Engine.Components;
 
 namespace Axis.Engine.Rendering;
 
@@ -20,7 +21,20 @@ public readonly struct RenderMode2d
 
 public readonly struct RenderMode3d
 {
-    // Placeholder for future 3D rendering parameters
+    public readonly Vector3 Position;
+    public readonly Vector3 Target;
+    public readonly Vector3 Up;
+    public readonly float FovYDegrees;
+    public readonly Camera3dProjection Projection;
+
+    public RenderMode3d(Vector3 position, Vector3 target, Vector3 up, float fovYDegrees, Camera3dProjection projection)
+    {
+        Position = position;
+        Target = target;
+        Up = up;
+        FovYDegrees = fovYDegrees;
+        Projection = projection;
+    }
 }
 
 public enum RenderType { None, Render2d, Render3d, ScreenSpace }
@@ -52,8 +66,9 @@ public readonly struct RenderMode
         return new RenderMode(RenderType.Render2d, mode2d, default);
     }
 
-    public static RenderMode Create3d(RenderMode3d mode3d)
+    public static RenderMode Create3d(in Camera3d camera)
     {
+        var mode3d = new RenderMode3d(camera.Position, camera.Target, camera.Up, camera.FovYDegrees, camera.Projection);
         return new RenderMode(RenderType.Render3d, default, mode3d);
     }
 
