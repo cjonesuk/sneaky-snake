@@ -70,7 +70,7 @@ public sealed class RtsCameraInputSystem : IWorldSystem
                 float worldZ = sinYaw * panInputXZ.Y + cosYaw * panInputXZ.X;
 
                 float magnitude = controller.PanSpeed * controller.Distance * deltaTime;
-                controller.FocusPoint.X += worldX * magnitude;
+                controller.FocusPoint.X -= worldX * magnitude;
                 controller.FocusPoint.Z += worldZ * magnitude;
             }
 

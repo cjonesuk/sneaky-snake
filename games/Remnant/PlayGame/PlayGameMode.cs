@@ -60,7 +60,7 @@ internal sealed class PlayGameMode : IGameMode
         _camera = _world.SpawnRtsCamera(controller);
         _cameraInputReceiver.SetEntity(_camera);
 
-        _world.SpawnFloor(Vector3.Zero, new Vector2(100f, 100f), Color.DarkGray);
+        _world.SpawnFloor(new Vector3(0f, -0.01f, 0f), new Vector2(100f, 100f), Color.DarkGray);
 
         _world.SpawnCube(new Vector3(0f, 0.5f, 0f), Vector3.One, Color.Red);
         _world.SpawnCube(new Vector3(10f, 0.5f, 0f), Vector3.One, Color.Green);
