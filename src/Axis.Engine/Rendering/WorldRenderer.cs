@@ -49,10 +49,9 @@ public sealed class WorldRenderer : IRenderer
             camera2d.Zoom,
             cameraTransform.Rotation);
 
-        var world = (World)_camera.World;
         var renderContext = context;
 
-        DefineQuery.For<Transform2d, BasicShape>(world).Build()
+        DefineQuery.For<Transform2d, BasicShape>(_camera.World).Build()
             .ForEach((Entity entity, ref Transform2d transform, ref BasicShape shape) =>
             {
                 var position = transform.Position;

@@ -33,7 +33,13 @@ public sealed class QueryBuilder
     public QueryBuilder Add<T>() where T : unmanaged
     {
         Id componentId = _world.Components.GetId<T>();
-        return Add(new QueryTerm(componentId));
+        return Add(new QueryTerm(componentId, QueryTermKind.Include));
+    }
+
+    public QueryBuilder Without<T>() where T : unmanaged
+    {
+        Id componentId = _world.Components.GetId<T>();
+        return Add(new QueryTerm(componentId, QueryTermKind.Exclude));
     }
 
     public ArchetypeQuery Build()

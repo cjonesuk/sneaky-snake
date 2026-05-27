@@ -9,7 +9,7 @@ public class EntityTests
     public void Set_AddsAndSetsComponent()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
 
@@ -25,7 +25,7 @@ public class EntityTests
     public void Create_Empty_HasNoComponents()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         var debug = entity.DebugExport();
         debug.EntityType.ShouldBe(EntityType.Empty);
         debug.Components.ShouldBeEmpty();
@@ -35,7 +35,7 @@ public class EntityTests
     public void Create_OneValue_HasOneComponent()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         entity.Set(new Position(1.0f, 2.0f));
 
         var debug = entity.DebugExport();
@@ -50,7 +50,7 @@ public class EntityTests
     public void Create_TwoValues_HasTwoComponents()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
 
@@ -68,7 +68,7 @@ public class EntityTests
     public void Remove_RemovesComponent()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
         entity.Has<Position>().ShouldBeTrue();
@@ -91,7 +91,7 @@ public class EntityTests
     public void Delete_RemovesEntityFromWorld()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
         entity.IsAlive().ShouldBeTrue();
@@ -104,7 +104,7 @@ public class EntityTests
     public void GetRef_ReturnsComponentReference()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
         entity.Add<PlayerTag>();
@@ -121,7 +121,7 @@ public class EntityTests
     public void Get_ReturnsACopyOfTheComponent()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         entity.Set(new Position(1.0f, 2.0f));
 
         var position = entity.Get<Position>();
@@ -142,7 +142,7 @@ public class EntityTests
     public void GetEntityType_ReturnsCorrectEntityType()
     {
         var world = World.Create();
-        var entity = world.CreateEntity();
+        var entity = world.SpawnEntity();
         entity.Set(new Position(1.0f, 2.0f));
         entity.Set(new Velocity(0.5f, 0.25f));
 
@@ -163,9 +163,9 @@ public class EntityTests
 
         world.RegisterComponent<Likes>();
 
-        var entity = world.CreateEntity();
-        var apples = world.CreateEntity();
-        var bananas = world.CreateEntity();
+        var entity = world.SpawnEntity();
+        var apples = world.SpawnEntity();
+        var bananas = world.SpawnEntity();
 
         entity.SetPair(new Likes(42.0f), apples);
         entity.SetPair<Likes>(new(33.0f), bananas);

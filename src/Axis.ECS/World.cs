@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Axis.ECS.Commands;
 using Axis.ECS.Events;
 using Axis.ECS.Queries;
@@ -25,6 +26,8 @@ public sealed class World : IWorld
     private bool _deferredMode;
     private List<IArchetypeQuery> _activeQueries;
     private readonly WorldPairs _pairs;
+    private readonly ArchetypeQuery _parentQuery;
+    private Entity _dataEntity;
 
     internal World()
     {
@@ -38,7 +41,11 @@ public sealed class World : IWorld
         _deferredMode = false;
         _activeQueries = new List<IArchetypeQuery>();
         _pairs = CreatePairs();
+        _parentQuery = QueryBuilder.For(this).Add<Parent>().Build();
+        _dataEntity = SpawnEntity();
     }
+
+    internal ArchetypeQuery ParentQuery => _parentQuery;
 
     private WorldPairs CreatePairs()
     {
@@ -64,10 +71,28 @@ public sealed class World : IWorld
         _activeQueries.Add(query);
     }
 
+    internal void UnregisterQuery(IArchetypeQuery query)
+    {
+        _activeQueries.Remove(query);
+    }
+
+    public void UnregisterAllQueries()
+    {
+        _activeQueries.Clear();
+    }
+
+    internal void InvalidateActiveQueries()
+    {
+        foreach (var query in _activeQueries)
+        {
+            query.Invalidate();
+        }
+    }
+
     public void RegisterComponent<T>() where T : unmanaged
     {
         Id id = _components.Register<T>();
-        CreateEntityWithId(id);
+        SpawnEntityWithId(id);
     }
 
     public WorldDeferredCommandsScope BeginDeferringCommands()
@@ -125,16 +150,16 @@ public sealed class World : IWorld
         return new EntityBuilder(this, _commands, id);
     }
 
-    public Entity CreateEntity()
+    public Entity SpawnEntity()
     {
         Id id = AllocateEntityId();
 
-        CreateEntityWithId(id);
+        SpawnEntityWithId(id);
 
         return Entity.Create(this, id);
     }
 
-    internal void CreateEntityWithId(Id id)
+    internal void SpawnEntityWithId(Id id)
     {
         if (_deferredMode)
         {
@@ -167,8 +192,17 @@ public sealed class World : IWorld
         }
 
         EntityLocation location = FindEntity(id);
-        location.Archetype.RemoveEntity(location.Index);
+        EntityRef displaced = location.Archetype.RemoveEntity(location.Index);
         _entityIndices.Remove(id);
+        RecordDisplaced(displaced);
+        _entityIds.Free(id);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void RecordDisplaced(EntityRef displaced)
+    {
+        if (!displaced.Exists) return;
+        _entityIndices[displaced.Id] = displaced.Location;
     }
 
     /// <summary>
@@ -182,14 +216,46 @@ public sealed class World : IWorld
             return;
         }
 
+        foreach (var id in _entityIndices.Keys)
+        {
+            _entityIds.Free(id);
+        }
+
         _archetypes.ClearAll();
         _entityIndices.Clear();
+        _dataEntity = SpawnEntity();
     }
 
-    public void SetComponentOnEntity<T>(Id id, ref T component) where T : unmanaged
+    public void SetData<T>(in T value) where T : unmanaged
+    {
+        T copy = value;
+        Id componentId = _components.GetId<T>();
+        EnsureComponentOnEntity(_dataEntity.Id, componentId, ref copy);
+    }
+
+    public ref T GetData<T>() where T : unmanaged
+    {
+        if (!HasData<T>())
+        {
+            throw new InvalidOperationException($"World data of type {typeof(T).Name} has not been set.");
+        }
+        return ref GetComponentFromEntity<T>(_dataEntity.Id);
+    }
+
+    public bool HasData<T>() where T : unmanaged
+    {
+        return EntityHasComponent<T>(_dataEntity.Id);
+    }
+
+    public void RemoveData<T>() where T : unmanaged
+    {
+        RemoveComponentFromEntity<T>(_dataEntity.Id);
+    }
+
+    public void EnsureComponentOnEntity<T>(Id id, ref T component) where T : unmanaged
     {
         Id componentId = _components.GetId<T>();
-        SetComponentOnEntity(id, componentId, ref component);
+        EnsureComponentOnEntity(id, componentId, ref component);
     }
 
     public void SetPairOnEntity<TRelationship>(Id id, Id target, ref TRelationship component) where TRelationship : unmanaged
@@ -197,10 +263,10 @@ public sealed class World : IWorld
         Id relationshipId = _components.GetId<TRelationship>();
         Id componentId = Id.Pair(relationshipId, target);
 
-        SetComponentOnEntity(id, componentId, ref component);
+        EnsureComponentOnEntity(id, componentId, ref component);
     }
 
-    public void SetComponentOnEntity<T>(Id id, Id componentId, ref T component) where T : unmanaged
+    public void EnsureComponentOnEntity<T>(Id id, Id componentId, ref T component) where T : unmanaged
     {
         if (_deferredMode)
         {
@@ -210,7 +276,7 @@ public sealed class World : IWorld
 
         EntityLocation location = FindEntity(id);
 
-        if (!location.Archetype.TrySetComponent(location.Index, componentId, ref component))
+        if (!location.Archetype.TrySetComponent(location.Index, componentId, in component))
         {
             AddComponentToEntityInternal(id, componentId, ref component, location);
         }
@@ -253,7 +319,7 @@ public sealed class World : IWorld
     {
         if (_deferredMode)
         {
-            _commands.RemoveComponent<T>(ref id);
+            _commands.RemoveComponent<T>(id);
             return;
         }
 
@@ -268,9 +334,10 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        EntityLocation nextLocation = nextArchetype.MigrateEntityDown(location);
+        (EntityLocation migratedTo, EntityRef displaced) = nextArchetype.MigrateEntityDown(location);
 
-        _entityIndices[id] = nextLocation;
+        _entityIndices[id] = migratedTo;
+        RecordDisplaced(displaced);
     }
 
     public ref T GetComponentFromEntity<T>(Id id) where T : unmanaged
@@ -295,9 +362,10 @@ public sealed class World : IWorld
 
         Archetype nextArchetype = _archetypes.GetOrCreate(nextEntityType);
 
-        EntityLocation nextLocation = nextArchetype.MigrateEntityUp(location, componentId, ref component);
+        (EntityLocation migratedTo, EntityRef displaced) = nextArchetype.MigrateEntityUp(location, componentId, ref component);
 
-        _entityIndices[id] = nextLocation;
+        _entityIndices[id] = migratedTo;
+        RecordDisplaced(displaced);
     }
 
     public bool IsEntityAlive(Id id)

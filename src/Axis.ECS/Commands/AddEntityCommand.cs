@@ -20,7 +20,7 @@ static class AddEntityCommand
         public static WorldCommandQueue.CommandAction Apply = (ref World world, CommandPayload payload) =>
         {
             ref Payload value = ref payload.GetRef<Payload>();
-            world.CreateEntityWithId(value.Id);
+            world.SpawnEntityWithId(value.Id);
         };
     }
 }

@@ -90,6 +90,13 @@ public sealed class QueryGenerator : IIncrementalGenerator
         sb.AppendLine($"    public delegate void ForEachDelegate(Entity entity, {forEachRefParams});");
         sb.AppendLine();
 
+        // Unregister: stop receiving invalidation when archetypes change
+        sb.AppendLine("    public void Unregister()");
+        sb.AppendLine("    {");
+        sb.AppendLine("        _archetypeQuery.Unregister();");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+
         // Iterate method
         sb.AppendLine("    public void Iterate(IterateArchetypesDelegate action)");
         sb.AppendLine("    {");
@@ -156,6 +163,14 @@ public sealed class QueryGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         var typeArgs = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
+
+        sb.AppendLine($"    public QueryBuilder<{typeArgs}> Without<TExclude>() where TExclude : unmanaged");
+        sb.AppendLine("    {");
+        sb.AppendLine("        _builder.Without<TExclude>();");
+        sb.AppendLine("        return this;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+
         sb.AppendLine($"    public Query<{typeArgs}> Build()");
         sb.AppendLine("    {");
         sb.AppendLine("        var query = _builder.Build();");
@@ -287,9 +302,10 @@ public sealed class QueryGenerator : IIncrementalGenerator
             var typeParams = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
             var whereClauses = string.Join(" ", Enumerable.Range(0, componentCount).Select(i => $"where T{i} : unmanaged"));
 
-            sb.AppendLine($"    public static QueryBuilder<{typeParams}> For<{typeParams}>(World world) {whereClauses}");
+            sb.AppendLine($"    public static QueryBuilder<{typeParams}> For<{typeParams}>(IWorld world) {whereClauses}");
             sb.AppendLine("    {");
-            sb.AppendLine("        var builder = QueryBuilder.For(world);");
+            sb.AppendLine("        var concrete = (World)world;");
+            sb.AppendLine("        var builder = QueryBuilder.For(concrete);");
             for (int i = 0; i < componentCount; i++)
             {
                 sb.AppendLine($"        builder.Add<T{i}>();");

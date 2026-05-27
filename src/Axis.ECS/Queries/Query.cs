@@ -21,12 +21,22 @@ public sealed class ArchetypeQuery : IArchetypeQuery
         _terms = terms;
         _cachedResults = new List<Archetype>();
         _isCacheValid = false;
+        world.RegisterQuery(this);
     }
 
     void IArchetypeQuery.Invalidate()
     {
         _cachedResults.Clear();
         _isCacheValid = false;
+    }
+
+    /// <summary>
+    /// Stops this query from being invalidated when archetypes change. After calling,
+    /// subsequent <see cref="Run"/> calls may return stale results. Idempotent.
+    /// </summary>
+    public void Unregister()
+    {
+        _world.UnregisterQuery(this);
     }
 
     internal ReadOnlySpan<Archetype> Run()

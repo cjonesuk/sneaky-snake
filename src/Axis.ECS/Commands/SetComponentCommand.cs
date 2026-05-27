@@ -24,7 +24,7 @@ internal static class SetComponentCommand
         public static readonly WorldCommandQueue.CommandAction Apply = (ref World world, CommandPayload payload) =>
         {
             ref Payload value = ref payload.GetRef<Payload>();
-            world.SetComponentOnEntity(value.Id, value.ComponentId, ref value.Component);
+            world.EnsureComponentOnEntity(value.Id, value.ComponentId, ref value.Component);
         };
     }
 }
