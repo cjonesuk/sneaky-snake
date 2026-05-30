@@ -137,18 +137,22 @@ public sealed class Archetype
         int targetIndex = _entityIds.Count;
         EntityRef displaced = source.Archetype.PeekMoverOnRemoval(sourceIndex);
 
-        _entityIds.Migrate(source.Archetype._entityIds, sourceIndex);
+        _entityIds.AddFrom(source.Archetype._entityIds, sourceIndex);
+        source.Archetype._entityIds.RemoveAndFillHoleAt(sourceIndex);
 
-        // Migrate only components that exist in the target archetype
-        ReadOnlySpan<Id> targetIds = _entityType.ComponentIds;
-        for (int targetColumnIndex = 0; targetColumnIndex < targetIds.Length; targetColumnIndex++)
+        ReadOnlySpan<Id> sourceIds = source.Archetype._entityType.ComponentIds;
+        for (int sourceColumnIndex = 0; sourceColumnIndex < sourceIds.Length; sourceColumnIndex++)
         {
-            Id targetComponentId = targetIds[targetColumnIndex];
-            int sourceColumnIndex = source.Archetype.FindColumnIndex(targetComponentId);
+            Id sourceComponentId = sourceIds[sourceColumnIndex];
             var sourceColumn = source.Archetype._componentColumns[sourceColumnIndex];
-            var targetColumn = _componentColumns[targetColumnIndex];
 
-            targetColumn.Migrate(sourceColumn, sourceIndex);
+            int targetColumnIndex = FindColumnIndex(sourceComponentId);
+            if (targetColumnIndex >= 0)
+            {
+                _componentColumns[targetColumnIndex].AddFrom(sourceColumn, sourceIndex);
+            }
+
+            sourceColumn.RemoveAndFillHoleAt(sourceIndex);
         }
 
         return (new EntityLocation(this, targetIndex), displaced);
@@ -165,9 +169,9 @@ public sealed class Archetype
         int targetIndex = _entityIds.Count;
         EntityRef displaced = source.Archetype.PeekMoverOnRemoval(sourceIndex);
 
-        _entityIds.Migrate(source.Archetype._entityIds, sourceIndex);
+        _entityIds.AddFrom(source.Archetype._entityIds, sourceIndex);
+        source.Archetype._entityIds.RemoveAndFillHoleAt(sourceIndex);
 
-        // Migrate existing components
         ReadOnlySpan<Id> sourceIds = source.Archetype._entityType.ComponentIds;
         for (int sourceColumnIndex = 0; sourceColumnIndex < sourceIds.Length; sourceColumnIndex++)
         {
@@ -175,9 +179,8 @@ public sealed class Archetype
             var sourceColumn = source.Archetype._componentColumns[sourceColumnIndex];
 
             int targetColumnIndex = FindColumnIndex(sharedComponentId);
-            var targetColumn = _componentColumns[targetColumnIndex];
-
-            targetColumn.Migrate(sourceColumn, sourceIndex);
+            _componentColumns[targetColumnIndex].AddFrom(sourceColumn, sourceIndex);
+            sourceColumn.RemoveAndFillHoleAt(sourceIndex);
         }
 
         AppendComponentInternal(componentId, in c1);

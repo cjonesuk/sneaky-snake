@@ -21,7 +21,7 @@ internal sealed class TagComponentValues : IComponentValues
     {
     }
 
-    public void Migrate(IComponentValues source, int sourceIndex)
+    public void AddFrom(IComponentValues source, int sourceIndex)
     {
     }
 

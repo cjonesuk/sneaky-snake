@@ -13,7 +13,7 @@ internal interface IComponentValues
     void AddDefault();
     void Add<TInput>(ref TInput value) where TInput : unmanaged;
     void RemoveAndFillHoleAt(int index);
-    void Migrate(IComponentValues source, int sourceIndex);
+    void AddFrom(IComponentValues source, int sourceIndex);
     void Clear();
     unsafe void Write(int entityIndex, byte* data, int size);
 }
@@ -116,20 +116,16 @@ internal sealed class ComponentValues<T> : IComponentValues where T : unmanaged
         RemoveAndFillHoleAt(index);
     }
 
-    void IComponentValues.Migrate(IComponentValues source, int sourceIndex)
+    void IComponentValues.AddFrom(IComponentValues source, int sourceIndex)
     {
         var sourceValues = (ComponentValues<T>)source;
-        Migrate(sourceValues, sourceIndex);
+        AddFrom(sourceValues, sourceIndex);
     }
 
-
-    internal void Migrate(ComponentValues<T> sourceValues, int sourceIndex)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AddFrom(ComponentValues<T> sourceValues, int sourceIndex)
     {
-        // Append the source value to this collection
         Add(in sourceValues._values[sourceIndex]);
-
-        // Remove the source value by replacing it with the last value to maintain density
-        sourceValues.RemoveAndFillHoleAt(sourceIndex);
     }
 
     internal void Clear()
