@@ -12,4 +12,8 @@
     <ProjectReference Include="../../src/Axis.Engine/Axis.Engine.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Remnant.Tests" />
+  </ItemGroup>
+
 </Project>

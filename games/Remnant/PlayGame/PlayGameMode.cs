@@ -98,5 +98,7 @@ internal sealed class PlayGameMode : IGameMode
         _world.AddSystem(new RtsCameraInputSystem());
         _world.AddSystem(new RtsCameraSystem());
         _world.AddSystem(new SelectionSystem(_engine.Mouse));
+        _world.AddSystem(new MoveCommandSystem(_engine.Mouse));
+        _world.AddSystem(new MovementSystem());
     }
 }
