@@ -32,18 +32,18 @@ public class QueryTests2
             .With(new Healing(10))
             .Build();
 
-        var healthQuery = QueryBuilder
+        var healthQuery = RawQueryBuilder
            .For(world)
            .Add<Health>()
            .Build();
 
-        var healthAndHealingQuery = QueryBuilder
+        var healthAndHealingQuery = RawQueryBuilder
             .For(world)
             .Add<Health>()
             .Add<Healing>()
             .Build();
 
-        var healingQuery = QueryBuilder
+        var healingQuery = RawQueryBuilder
             .For(world)
             .Add<Healing>()
             .Build();

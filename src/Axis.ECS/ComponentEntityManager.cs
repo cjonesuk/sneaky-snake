@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace Axis.ECS;
 
-public record class ComponentEntityMetadata(ComponentTypeId ComponentTypeId, Type ComponentType, Type ComponentValuesType);
+public record class ComponentEntityMetadata(ComponentTypeId ComponentTypeId, Type ComponentType, Type ComponentValuesType, bool IsTag);
 
 public sealed class ComponentEntityManager
 {
@@ -51,10 +51,13 @@ public sealed class ComponentEntityManager
     {
         Id componentStorageId = componentId.IsPair() ? componentId.GetRelationship() : componentId;
 
-        Console.WriteLine($"Creating component storage for componentId {componentId} (using storageId {componentStorageId})");
         var metadata = _componentMetadata[componentStorageId];
-        Type componentValuesType = metadata.ComponentValuesType;
+        if (metadata.IsTag)
+        {
+            return TagComponentValues.Shared;
+        }
 
+        Type componentValuesType = metadata.ComponentValuesType;
         return (IComponentValues)(Activator.CreateInstance(componentValuesType) ?? throw new InvalidOperationException($"Could not create list of type {componentValuesType}"));
     }
 
@@ -67,7 +70,8 @@ public sealed class ComponentEntityManager
 
         Type componentType = typeof(T);
         Type componentValuesType = typeof(ComponentValues<T>);
-        _componentMetadata[id] = new ComponentEntityMetadata(componentTypeId, componentType, componentValuesType);
+        bool isTag = ComponentTypeInformation<T>.IsTag;
+        _componentMetadata[id] = new ComponentEntityMetadata(componentTypeId, componentType, componentValuesType, isTag);
 
         return id;
     }

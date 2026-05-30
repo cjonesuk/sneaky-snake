@@ -49,4 +49,15 @@ public sealed class ArchetypeQuery : IArchetypeQuery
 
         return CollectionsMarshal.AsSpan(_cachedResults);
     }
+
+    /// <summary>Sum of entity counts across every matching archetype.</summary>
+    public int Count()
+    {
+        int total = 0;
+        foreach (var archetype in Run())
+        {
+            total += archetype.EntityCount;
+        }
+        return total;
+    }
 }

@@ -97,5 +97,6 @@ internal sealed class PlayGameMode : IGameMode
         _world.AddSystem(new RemnantUiSystem(_game.Ui, _hud, _engine.Mouse));
         _world.AddSystem(new RtsCameraInputSystem());
         _world.AddSystem(new RtsCameraSystem());
+        _world.AddSystem(new SelectionSystem(_engine.Mouse));
     }
 }

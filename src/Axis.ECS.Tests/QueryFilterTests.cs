@@ -37,7 +37,7 @@ public class QueryFilterTests
         world.DefineEntity().With(new Health(10)).Build();
         world.DefineEntity().With(new Health(20)).With(new Armor(1)).Build();
 
-        var query = QueryBuilder.For(world)
+        var query = RawQueryBuilder.For(world)
             .Add<Health>()
             .Without<Armor>()
             .Build();

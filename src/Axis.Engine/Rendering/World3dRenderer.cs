@@ -70,5 +70,12 @@ public sealed class World3dRenderer : IRenderer
                         return;
                 }
             });
+
+        DefineQuery.For<Transform3d, BasicShape3d, Outline>(_camera.World).Build()
+            .ForEach((Entity entity, ref Transform3d transform, ref BasicShape3d shape, ref Outline outline) =>
+            {
+                if (shape.Kind != Shape3dKind.Cube) return;
+                renderContext.RenderCommands.AddCubeWires(transform.Position, shape.Size, outline.Color, 0);
+            });
     }
 }

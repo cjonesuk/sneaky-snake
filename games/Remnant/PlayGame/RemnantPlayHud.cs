@@ -1,5 +1,6 @@
 using System.Numerics;
 using Axis.ECS;
+using Axis.ECS.Queries;
 using Axis.Engine.UI;
 using Raylib_cs;
 
@@ -9,11 +10,16 @@ namespace Remnant.PlayGame;
 internal sealed class RemnantPlayHud
 {
     private bool _buildMenuOpen;
+    private Query? _selectedQuery;
 
     public void Build(UiContext ui, IWorld world)
     {
         ui.BeginPanel("selection", new Rectangle(0, 0, 220, 720));
         ui.Label("Selection", new Vector2(20, 20));
+
+        _selectedQuery ??= DefineQuery.For(world).With<Selected>().Build();
+        ui.Label($"Selected: {_selectedQuery.Value.Count()}", new Vector2(20, 50));
+
         ui.EndPanel();
 
         ui.BeginPanel("buildbar", new Rectangle(220, 640, 1060, 80));

@@ -43,16 +43,20 @@ public sealed class QueryGenerator : IIncrementalGenerator
         EmitDefineQuery(sb);
         sb.AppendLine();
 
-        for (int n = 1; n <= MaxComponents; n++)
+        for (int n = 0; n <= MaxComponents; n++)
         {
             EmitQueryType(sb, n);
             sb.AppendLine();
             EmitQueryBuilderType(sb, n);
             sb.AppendLine();
-            EmitSystemRegistration(sb, n);
-            sb.AppendLine();
-            EmitSystemWrappers(sb, n);
-            sb.AppendLine();
+
+            if (n >= 1)
+            {
+                EmitSystemRegistration(sb, n);
+                sb.AppendLine();
+                EmitSystemWrappers(sb, n);
+                sb.AppendLine();
+            }
         }
 
         EmitWorldSystemExtensions(sb);
@@ -60,34 +64,59 @@ public sealed class QueryGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private static void EmitQueryType(StringBuilder sb, int componentCount)
+    private static string GenericArgs(int componentCount)
     {
+        if (componentCount == 0) return string.Empty;
         var typeParams = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
+        return "<" + typeParams + ">";
+    }
 
-        sb.AppendLine($"public readonly struct Query<{typeParams}>");
+    private static void EmitWhereClauses(StringBuilder sb, int componentCount)
+    {
         for (int i = 0; i < componentCount; i++)
         {
             sb.AppendLine($"    where T{i} : unmanaged");
         }
+    }
+
+    private static void EmitQueryType(StringBuilder sb, int componentCount)
+    {
+        var generics = GenericArgs(componentCount);
+
+        sb.AppendLine($"public readonly struct Query{generics}");
+        EmitWhereClauses(sb, componentCount);
         sb.AppendLine("{");
         sb.AppendLine("    private readonly ArchetypeQuery _archetypeQuery;");
         sb.AppendLine();
-        sb.AppendLine("    internal Query(ArchetypeQuery archetypeQuery)");
+        sb.AppendLine($"    internal Query(ArchetypeQuery archetypeQuery)");
         sb.AppendLine("    {");
         sb.AppendLine("        _archetypeQuery = archetypeQuery;");
         sb.AppendLine("    }");
         sb.AppendLine();
 
-        // Iterate delegate: per-archetype span access. No Iter — caller iterates spans themselves
-        // and uses ids[i] for entity Id.
-        var iterateSpanParams = string.Join(", ", Enumerable.Range(0, componentCount)
-            .Select(i => $"Span<T{i}> c{i}"));
-        sb.AppendLine($"    public delegate void IterateArchetypesDelegate(Span<Id> ids, {iterateSpanParams});");
+        // Iterate delegate: per-archetype span access. Arity-0 yields just the entity-ids span.
+        if (componentCount == 0)
+        {
+            sb.AppendLine("    public delegate void IterateArchetypesDelegate(Span<Id> ids);");
+        }
+        else
+        {
+            var iterateSpanParams = string.Join(", ", Enumerable.Range(0, componentCount)
+                .Select(i => $"Span<T{i}> c{i}"));
+            sb.AppendLine($"    public delegate void IterateArchetypesDelegate(Span<Id> ids, {iterateSpanParams});");
+        }
 
-        // ForEach delegate: per-entity convenience.
-        var forEachRefParams = string.Join(", ", Enumerable.Range(0, componentCount)
-            .Select(i => $"ref T{i} c{i}"));
-        sb.AppendLine($"    public delegate void ForEachDelegate(Entity entity, {forEachRefParams});");
+        // ForEach delegate: per-entity convenience. Arity-0 yields just the Entity.
+        if (componentCount == 0)
+        {
+            sb.AppendLine("    public delegate void ForEachDelegate(Entity entity);");
+        }
+        else
+        {
+            var forEachRefParams = string.Join(", ", Enumerable.Range(0, componentCount)
+                .Select(i => $"ref T{i} c{i}"));
+            sb.AppendLine($"    public delegate void ForEachDelegate(Entity entity, {forEachRefParams});");
+        }
         sb.AppendLine();
 
         // Unregister: stop receiving invalidation when archetypes change
@@ -95,6 +124,10 @@ public sealed class QueryGenerator : IIncrementalGenerator
         sb.AppendLine("    {");
         sb.AppendLine("        _archetypeQuery.Unregister();");
         sb.AppendLine("    }");
+        sb.AppendLine();
+
+        // Count: entity count across matching archetypes
+        sb.AppendLine("    public int Count() => _archetypeQuery.Count();");
         sb.AppendLine();
 
         // Iterate method
@@ -110,8 +143,15 @@ public sealed class QueryGenerator : IIncrementalGenerator
             sb.AppendLine($"            archetype.TryGetColumnSpan(out Span<T{i}> c{i});");
         }
 
-        var iterateArgs = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"c{i}"));
-        sb.AppendLine($"            action(ids, {iterateArgs});");
+        if (componentCount == 0)
+        {
+            sb.AppendLine("            action(ids);");
+        }
+        else
+        {
+            var iterateArgs = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"c{i}"));
+            sb.AppendLine($"            action(ids, {iterateArgs});");
+        }
         sb.AppendLine("        }");
         sb.AppendLine("    }");
         sb.AppendLine();
@@ -130,13 +170,20 @@ public sealed class QueryGenerator : IIncrementalGenerator
             sb.AppendLine($"            archetype.TryGetColumnSpan(out Span<T{i}> c{i});");
         }
         sb.AppendLine();
-        sb.AppendLine("            for (int i = 0; i < c0.Length; i++)");
+        sb.AppendLine("            for (int i = 0; i < entityIds.Length; i++)");
         sb.AppendLine("            {");
         sb.AppendLine("                var entity = Entity.Create(world, entityIds[i]);");
 
-        var forEachArgs = string.Join(string.Empty, Enumerable.Range(0, componentCount)
-            .Select(i => $", ref c{i}[i]"));
-        sb.AppendLine($"                action(entity{forEachArgs});");
+        if (componentCount == 0)
+        {
+            sb.AppendLine("                action(entity);");
+        }
+        else
+        {
+            var forEachArgs = string.Join(string.Empty, Enumerable.Range(0, componentCount)
+                .Select(i => $", ref c{i}[i]"));
+            sb.AppendLine($"                action(entity{forEachArgs});");
+        }
         sb.AppendLine("            }");
         sb.AppendLine("        }");
         sb.AppendLine("    }");
@@ -146,68 +193,66 @@ public sealed class QueryGenerator : IIncrementalGenerator
 
     private static void EmitQueryBuilderType(StringBuilder sb, int componentCount)
     {
-        var typeParams = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
+        var generics = GenericArgs(componentCount);
 
-        sb.AppendLine($"public struct QueryBuilder<{typeParams}>");
-        for (int i = 0; i < componentCount; i++)
-        {
-            sb.AppendLine($"    where T{i} : unmanaged");
-        }
+        sb.AppendLine($"public struct QueryBuilder{generics}");
+        EmitWhereClauses(sb, componentCount);
         sb.AppendLine("{");
-        sb.AppendLine("    private QueryBuilder _builder;");
+        sb.AppendLine("    private RawQueryBuilder _builder;");
         sb.AppendLine();
-        sb.AppendLine("    internal QueryBuilder(QueryBuilder builder)");
+        sb.AppendLine($"    internal QueryBuilder(RawQueryBuilder builder)");
         sb.AppendLine("    {");
         sb.AppendLine("        _builder = builder;");
         sb.AppendLine("    }");
         sb.AppendLine();
 
-        var typeArgs = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
+        sb.AppendLine($"    public QueryBuilder{generics} With<TExtra>() where TExtra : unmanaged");
+        sb.AppendLine("    {");
+        sb.AppendLine("        _builder.With<TExtra>();");
+        sb.AppendLine("        return this;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
 
-        sb.AppendLine($"    public QueryBuilder<{typeArgs}> Without<TExclude>() where TExclude : unmanaged");
+        sb.AppendLine($"    public QueryBuilder{generics} Without<TExclude>() where TExclude : unmanaged");
         sb.AppendLine("    {");
         sb.AppendLine("        _builder.Without<TExclude>();");
         sb.AppendLine("        return this;");
         sb.AppendLine("    }");
         sb.AppendLine();
 
-        sb.AppendLine($"    public Query<{typeArgs}> Build()");
+        sb.AppendLine($"    public Query{generics} Build()");
         sb.AppendLine("    {");
         sb.AppendLine("        var query = _builder.Build();");
-        sb.AppendLine($"        return new Query<{typeArgs}>(query);");
+        sb.AppendLine($"        return new Query{generics}(query);");
         sb.AppendLine("    }");
         sb.AppendLine("}");
     }
 
     private static void EmitSystemRegistration(StringBuilder sb, int componentCount)
     {
-        var typeParams = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
-        var typeArgs = typeParams;
+        var generics = GenericArgs(componentCount);
 
-        sb.AppendLine($"public readonly struct SystemRegistration<{typeParams}>");
-        for (int i = 0; i < componentCount; i++)
-        {
-            sb.AppendLine($"    where T{i} : unmanaged");
-        }
+        sb.AppendLine($"public readonly struct SystemRegistration{generics}");
+        EmitWhereClauses(sb, componentCount);
         sb.AppendLine("{");
         sb.AppendLine("    private readonly World _world;");
-        sb.AppendLine($"    private readonly Query<{typeArgs}> _query;");
+        sb.AppendLine($"    private readonly Query{generics} _query;");
         sb.AppendLine();
-        sb.AppendLine($"    internal SystemRegistration(World world, Query<{typeArgs}> query)");
+        sb.AppendLine($"    internal SystemRegistration(World world, Query{generics} query)");
         sb.AppendLine("    {");
         sb.AppendLine("        _world = world;");
         sb.AppendLine("        _query = query;");
         sb.AppendLine("    }");
         sb.AppendLine();
-        sb.AppendLine($"    public void ForEach(Query<{typeArgs}>.ForEachDelegate action)");
+        sb.AppendLine($"    public void ForEach(Query{generics}.ForEachDelegate action)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        var system = new SystemForEachWrapper<{typeArgs}>(_query, action);");
+        sb.AppendLine($"        var system = new SystemForEachWrapper{generics}(_query, action);");
         sb.AppendLine("        WorldExtensions.AddSystem(_world, system);");
         sb.AppendLine("    }");
         sb.AppendLine();
-        sb.AppendLine($"    public void Iterate(Query<{typeArgs}>.IterateArchetypesDelegate action)");
+        sb.AppendLine($"    public void Iterate(Query{generics}.IterateArchetypesDelegate action)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        var system = new SystemIterateWrapper<{typeArgs}>(_query, action);");
+        sb.AppendLine($"        var system = new SystemIterateWrapper{generics}(_query, action);");
         sb.AppendLine("        WorldExtensions.AddSystem(_world, system);");
         sb.AppendLine("    }");
         sb.AppendLine("}");
@@ -215,20 +260,16 @@ public sealed class QueryGenerator : IIncrementalGenerator
 
     private static void EmitSystemWrappers(StringBuilder sb, int componentCount)
     {
-        var typeParams = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
-        var typeArgs = typeParams;
+        var generics = GenericArgs(componentCount);
 
         // ForEach wrapper
-        sb.AppendLine($"internal sealed class SystemForEachWrapper<{typeParams}> : IWorldSystem");
-        for (int i = 0; i < componentCount; i++)
-        {
-            sb.AppendLine($"    where T{i} : unmanaged");
-        }
+        sb.AppendLine($"internal sealed class SystemForEachWrapper{generics} : IWorldSystem");
+        EmitWhereClauses(sb, componentCount);
         sb.AppendLine("{");
-        sb.AppendLine($"    private readonly Query<{typeArgs}> _query;");
-        sb.AppendLine($"    private readonly Query<{typeArgs}>.ForEachDelegate _action;");
+        sb.AppendLine($"    private readonly Query{generics} _query;");
+        sb.AppendLine($"    private readonly Query{generics}.ForEachDelegate _action;");
         sb.AppendLine();
-        sb.AppendLine($"    internal SystemForEachWrapper(Query<{typeArgs}> query, Query<{typeArgs}>.ForEachDelegate action)");
+        sb.AppendLine($"    internal SystemForEachWrapper(Query{generics} query, Query{generics}.ForEachDelegate action)");
         sb.AppendLine("    {");
         sb.AppendLine("        _query = query;");
         sb.AppendLine("        _action = action;");
@@ -242,16 +283,13 @@ public sealed class QueryGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         // Iterate wrapper
-        sb.AppendLine($"internal sealed class SystemIterateWrapper<{typeParams}> : IWorldSystem");
-        for (int i = 0; i < componentCount; i++)
-        {
-            sb.AppendLine($"    where T{i} : unmanaged");
-        }
+        sb.AppendLine($"internal sealed class SystemIterateWrapper{generics} : IWorldSystem");
+        EmitWhereClauses(sb, componentCount);
         sb.AppendLine("{");
-        sb.AppendLine($"    private readonly Query<{typeArgs}> _query;");
-        sb.AppendLine($"    private readonly Query<{typeArgs}>.IterateArchetypesDelegate _action;");
+        sb.AppendLine($"    private readonly Query{generics} _query;");
+        sb.AppendLine($"    private readonly Query{generics}.IterateArchetypesDelegate _action;");
         sb.AppendLine();
-        sb.AppendLine($"    internal SystemIterateWrapper(Query<{typeArgs}> query, Query<{typeArgs}>.IterateArchetypesDelegate action)");
+        sb.AppendLine($"    internal SystemIterateWrapper(Query{generics} query, Query{generics}.IterateArchetypesDelegate action)");
         sb.AppendLine("    {");
         sb.AppendLine("        _query = query;");
         sb.AppendLine("        _action = action;");
@@ -271,20 +309,20 @@ public sealed class QueryGenerator : IIncrementalGenerator
 
         for (int componentCount = 1; componentCount <= MaxComponents; componentCount++)
         {
-            var typeParams = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
+            var generics = GenericArgs(componentCount);
             var whereClauses = string.Join(" ", Enumerable.Range(0, componentCount).Select(i => $"where T{i} : unmanaged"));
 
-            sb.AppendLine($"    public static SystemRegistration<{typeParams}> System<{typeParams}>(this IWorld world) {whereClauses}");
+            sb.AppendLine($"    public static SystemRegistration{generics} System{generics}(this IWorld world) {whereClauses}");
             sb.AppendLine("    {");
             sb.AppendLine("        var concrete = (World)world;");
-            sb.AppendLine("        var builder = QueryBuilder.For(concrete);");
+            sb.AppendLine("        var builder = RawQueryBuilder.For(concrete);");
             for (int i = 0; i < componentCount; i++)
             {
                 sb.AppendLine($"        builder.Add<T{i}>();");
             }
             sb.AppendLine("        var archetypeQuery = builder.Build();");
-            sb.AppendLine($"        var typedQuery = new Query<{typeParams}>(archetypeQuery);");
-            sb.AppendLine($"        return new SystemRegistration<{typeParams}>(concrete, typedQuery);");
+            sb.AppendLine($"        var typedQuery = new Query{generics}(archetypeQuery);");
+            sb.AppendLine($"        return new SystemRegistration{generics}(concrete, typedQuery);");
             sb.AppendLine("    }");
             sb.AppendLine();
         }
@@ -297,20 +335,20 @@ public sealed class QueryGenerator : IIncrementalGenerator
         sb.AppendLine("public static partial class DefineQuery");
         sb.AppendLine("{");
 
-        for (int componentCount = 1; componentCount <= MaxComponents; componentCount++)
+        for (int componentCount = 0; componentCount <= MaxComponents; componentCount++)
         {
-            var typeParams = string.Join(", ", Enumerable.Range(0, componentCount).Select(i => $"T{i}"));
+            var generics = GenericArgs(componentCount);
             var whereClauses = string.Join(" ", Enumerable.Range(0, componentCount).Select(i => $"where T{i} : unmanaged"));
 
-            sb.AppendLine($"    public static QueryBuilder<{typeParams}> For<{typeParams}>(IWorld world) {whereClauses}");
+            sb.AppendLine($"    public static QueryBuilder{generics} For{generics}(IWorld world) {whereClauses}");
             sb.AppendLine("    {");
             sb.AppendLine("        var concrete = (World)world;");
-            sb.AppendLine("        var builder = QueryBuilder.For(concrete);");
+            sb.AppendLine("        var builder = RawQueryBuilder.For(concrete);");
             for (int i = 0; i < componentCount; i++)
             {
                 sb.AppendLine($"        builder.Add<T{i}>();");
             }
-            sb.AppendLine($"        return new QueryBuilder<{typeParams}>(builder);");
+            sb.AppendLine($"        return new QueryBuilder{generics}(builder);");
             sb.AppendLine("    }");
             sb.AppendLine();
         }

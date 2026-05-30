@@ -41,7 +41,7 @@ public sealed class World : IWorld
         _deferredMode = false;
         _activeQueries = new List<IArchetypeQuery>();
         _pairs = CreatePairs();
-        _parentQuery = QueryBuilder.For(this).Add<Parent>().Build();
+        _parentQuery = RawQueryBuilder.For(this).Add<Parent>().Build();
         _dataEntity = SpawnEntity();
     }
 

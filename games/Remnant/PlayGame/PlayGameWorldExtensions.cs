@@ -33,6 +33,7 @@ internal static class PlayGameWorldExtensions
         var entity = world.SpawnEntity();
         entity.Set(new Transform3d(position));
         entity.Set(new BasicShape3d(Shape3dKind.Cube, size, color));
+        entity.Add<Selectable>();
         return entity;
     }
 }

@@ -64,8 +64,10 @@ public sealed class Archetype
 
     internal void AppendComponentInternal<T>(Id componentId, in T component) where T : unmanaged
     {
-        var column = FindComponentColumn<T>(componentId);
-        column.Add(in component);
+        int columnIndex = FindColumnIndex(componentId);
+        IComponentValues column = _componentColumns[columnIndex];
+        T local = component;
+        column.Add<T>(ref local);
     }
 
     public Span<Id> GetEntityIds()
@@ -100,12 +102,6 @@ public sealed class Archetype
         return _componentColumns[columnIndex];
     }
 
-    private ComponentValues<T> FindComponentColumn<T>(Id componentId) where T : unmanaged
-    {
-        int columnIndex = FindColumnIndex(componentId);
-        return (ComponentValues<T>)_componentColumns[columnIndex];
-    }
-
     private bool TryFindComponentColumnById<T>(Id componentId, [NotNullWhen(true)] out ComponentValues<T>? column) where T : unmanaged
     {
         int columnIndex = FindColumnIndex(componentId);
@@ -115,7 +111,13 @@ public sealed class Archetype
             return false;
         }
 
-        column = (ComponentValues<T>)_componentColumns[columnIndex];
+        IComponentValues raw = _componentColumns[columnIndex];
+        if (raw is TagComponentValues)
+        {
+            throw new InvalidOperationException($"'{typeof(T).Name}' is a tag; values cannot be read.");
+        }
+
+        column = (ComponentValues<T>)raw;
         return true;
     }
 
@@ -192,8 +194,11 @@ public sealed class Archetype
     internal ref T GetComponentRef<T>(int index) where T : unmanaged
     {
         Id componentId = _components.GetId<T>();
-        var column = FindComponentColumn<T>(componentId).AsSpan();
-        return ref column[index];
+        if (!TryFindComponentColumnById<T>(componentId, out var column))
+        {
+            throw new InvalidOperationException($"Component '{typeof(T).Name}' not present on archetype.");
+        }
+        return ref column.AsSpan()[index];
     }
 
     internal bool TryGetComponentRef<T>(int index, [NotNullWhen(true)] out Ref<T> component) where T : unmanaged
