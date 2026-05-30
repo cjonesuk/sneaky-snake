@@ -12,6 +12,7 @@ internal sealed class PlayGameMode : IGameMode
     private readonly IGameEngine _engine;
     private readonly IWorld _world;
     private readonly EntityInputReceiver _cameraInputReceiver;
+    private readonly RemnantPlayHud _hud;
     private Entity _camera;
 
     public PlayGameMode(IRemnantGame game)
@@ -20,6 +21,7 @@ internal sealed class PlayGameMode : IGameMode
         _engine = game.Engine;
         _world = game.World;
         _cameraInputReceiver = new EntityInputReceiver();
+        _hud = new RemnantPlayHud();
     }
 
     void IGameMode.Activate()
@@ -92,6 +94,7 @@ internal sealed class PlayGameMode : IGameMode
 
     private void SetupSystems()
     {
+        _world.AddSystem(new RemnantUiSystem(_game.Ui, _hud, _engine.Mouse));
         _world.AddSystem(new RtsCameraInputSystem());
         _world.AddSystem(new RtsCameraSystem());
     }

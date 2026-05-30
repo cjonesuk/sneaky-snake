@@ -19,6 +19,9 @@ public interface IGameEngine
     IDeviceManager Devices { get; }
     float DeltaTime { get; }
 
+    /// <summary>Live mouse position and button-edge state. Equivalent to <c>Devices.KeyboardAndMouse.Mouse</c>.</summary>
+    MouseState Mouse { get; }
+
     void SetWorld(IWorld world);
     void ClearWorld();
 
@@ -54,6 +57,7 @@ public sealed class GameEngine : IGameEngine
     public Settings Settings => _settings;
     public IDeviceManager Devices => _devices;
     public float DeltaTime => _deltaTime;
+    public MouseState Mouse => _devices.KeyboardAndMouse.Mouse;
 
     public void SetWorld(IWorld world)
     {
