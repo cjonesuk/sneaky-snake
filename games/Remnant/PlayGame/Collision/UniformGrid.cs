@@ -9,8 +9,12 @@ namespace Remnant.PlayGame.Collision;
 /// </summary> 
 public readonly record struct ColliderProxy(Entity Entity, Vector2 Position, float Radius);
 
+public record struct Bounds(Vector2 Min, Vector2 Max);
+
 public interface IBroadphase
 {
+    Bounds Bounds { get; }
+
     /// <summary>
     /// Builds the broadphase data structure from a set of collider proxies. This is called once per frame before collision detection.
     /// </summary> 
@@ -23,11 +27,11 @@ public interface IBroadphase
 }
 
 
-public sealed class UniformGridCollisionWorld : IBroadphase
+public sealed class UniformGridBroadphase : IBroadphase
 {
     private const int InitialCapacity = 64;
-    private readonly Vector2 _origin; // minimum corner of the grid (world X, Z)
-    private readonly float _cellSize;
+    private readonly Bounds _bounds;
+    private readonly Vector2 _cellSize;
     private readonly int _columns;
     private readonly int _rows;
     private readonly int _cellCount;
@@ -41,10 +45,10 @@ public sealed class UniformGridCollisionWorld : IBroadphase
     private Entity[] _entities; // Final array of entities, sorted by cell
     private Vector2[] _positions; // Final array of positions, sorted by cell
 
-    public UniformGridCollisionWorld(Vector2 origin, float cellSize, int columns, int rows)
+    public UniformGridBroadphase(Bounds bounds, int columns, int rows)
     {
-        _origin = origin;
-        _cellSize = cellSize;
+        _bounds = bounds;
+        _cellSize = new Vector2((bounds.Max.X - bounds.Min.X) / columns, (bounds.Max.Y - bounds.Min.Y) / rows);
         _columns = columns;
         _rows = rows;
 
@@ -57,6 +61,8 @@ public sealed class UniformGridCollisionWorld : IBroadphase
         _entities = new Entity[InitialCapacity];
         _positions = new Vector2[InitialCapacity];
     }
+
+    public Bounds Bounds => _bounds;
 
 
     public void Build(in ReadOnlySpan<ColliderProxy> items)
@@ -158,8 +164,8 @@ public sealed class UniformGridCollisionWorld : IBroadphase
         throw new NotImplementedException();
     }
 
-    private int ClampX(float wx) => Math.Clamp((int)((wx - _origin.X) / _cellSize), 0, _columns - 1);
-    private int ClampY(float wz) => Math.Clamp((int)((wz - _origin.Y) / _cellSize), 0, _rows - 1);
+    private int ClampX(float wx) => Math.Clamp((int)((wx - _bounds.Min.X) / _cellSize.X), 0, _columns - 1);
+    private int ClampY(float wz) => Math.Clamp((int)((wz - _bounds.Min.Y) / _cellSize.Y), 0, _rows - 1);
 
     private int CellIndex(Vector2 position)
     {

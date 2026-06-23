@@ -3,14 +3,19 @@ using Axis.ECS;
 using Axis.Engine;
 using Axis.Engine.Input;
 using Raylib_cs;
+using Remnant.PlayGame.Collision;
+using Remnant.PlayGame.Systems;
 
 namespace Remnant.PlayGame;
 
 internal sealed class PlayGameMode : IGameMode
 {
+    private static Vector2 WorldSize = new Vector2(100f, 100f);
+    private static Bounds WorldBounds = new Bounds(new Vector2(-WorldSize.X / 2f, -WorldSize.Y / 2f), new Vector2(WorldSize.X / 2f, WorldSize.Y / 2f));
     private readonly IRemnantGame _game;
     private readonly IGameEngine _engine;
     private readonly IWorld _world;
+    private readonly ICollisionWorld _collisionWorld;
     private readonly EntityInputReceiver _cameraInputReceiver;
     private readonly RemnantPlayHud _hud;
     private Entity _camera;
@@ -20,8 +25,14 @@ internal sealed class PlayGameMode : IGameMode
         _game = game;
         _engine = game.Engine;
         _world = game.World;
+        _collisionWorld = InitialiseCollisionWorld();
         _cameraInputReceiver = new EntityInputReceiver();
         _hud = new RemnantPlayHud();
+    }
+
+    private ICollisionWorld InitialiseCollisionWorld()
+    {
+        return new CollisionWorld(new UniformGridBroadphase(WorldBounds, 10, 10));
     }
 
     void IGameMode.Activate()
@@ -62,7 +73,7 @@ internal sealed class PlayGameMode : IGameMode
         _camera = _world.SpawnRtsCamera(controller);
         _cameraInputReceiver.SetEntity(_camera);
 
-        _world.SpawnFloor(new Vector3(0f, -0.01f, 0f), new Vector2(100f, 100f), Color.DarkGray);
+        _world.SpawnFloor(new Vector3(0f, -0.01f, 0f), WorldSize, Color.DarkGray);
 
         _world.SpawnCube(new Vector3(0f, 0.5f, 0f), Vector3.One, Color.Red);
         _world.SpawnCube(new Vector3(10f, 0.5f, 0f), Vector3.One, Color.Green);
@@ -94,11 +105,19 @@ internal sealed class PlayGameMode : IGameMode
 
     private void SetupSystems()
     {
+        // Input systems
         _world.AddSystem(new RemnantUiSystem(_game.Ui, _hud, _engine.Mouse));
         _world.AddSystem(new RtsCameraInputSystem());
+
+        // Simulation systems
         _world.AddSystem(new RtsCameraSystem());
+        _world.AddSystem(new MovementSystem());
+
+        // Collision systems
+        _world.AddSystem(new CollisionSyncSystem(_collisionWorld));
+
+        // Action systems
         _world.AddSystem(new SelectionSystem(_engine.Mouse));
         _world.AddSystem(new MoveCommandSystem(_engine.Mouse));
-        _world.AddSystem(new MovementSystem());
     }
 }

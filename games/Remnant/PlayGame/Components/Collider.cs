@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Numerics;
 
-namespace Remant.PlayGame;
+namespace Remnant.PlayGame;
 
 public enum ColliderShape
 {
