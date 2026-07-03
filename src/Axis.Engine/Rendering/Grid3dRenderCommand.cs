@@ -5,9 +5,9 @@ namespace Axis.Engine.Rendering;
 
 using static CommandQueue<RenderContext, RenderCommand>;
 
-public static class Grid3dRenderCommand
+public static class DebugGrid3dRenderCommand
 {
-    public static void AddGrid(
+    public static void AddDebugGrid(
         this RenderCommandQueue queue,
         int slices,
         float spacing,
@@ -24,6 +24,7 @@ public static class Grid3dRenderCommand
 
         Raylib.DrawGrid(value.Slices, value.Spacing);
     };
+
 
     internal struct Payload(int slices, float spacing)
     {

@@ -61,9 +61,12 @@ internal sealed class WindowRenderTarget
             int y = (int)(viewport.Y * renderHeight);
             int width = (int)(viewport.Width * renderWidth);
             int height = (int)(viewport.Height * renderHeight);
-            var renderer = viewport.Renderer;
-            var context = new RenderContext(new Resolution(width, height), _frameResources, _renderCommands);
-            renderer.GenerateRenderCommands(ref context, out var renderMode);
+            var resolution = new Resolution(width, height);
+
+            var prepContext = RenderPrepContext.Create(resolution, _frameResources, _renderCommands);
+            viewport.Renderer.Apply(prepContext);
+
+            RenderMode renderMode = prepContext.RenderMode;
 
             if (renderMode.RenderType == RenderType.None)
             {
@@ -97,7 +100,8 @@ internal sealed class WindowRenderTarget
 
             Raylib.BeginScissorMode(x, y, width, height);
 
-            _renderCommands.ApplyAndClear(ref context);
+            RenderContext renderContext = new(resolution, _frameResources);
+            _renderCommands.ApplyAndClear(ref renderContext);
 
             Raylib.EndScissorMode();
 

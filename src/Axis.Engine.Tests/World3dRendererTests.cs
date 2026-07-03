@@ -15,9 +15,9 @@ public class World3dRendererTests
         var renderer = World3dRenderer.Create(drawGrid: false);
         var context = NewContext();
 
-        renderer.GenerateRenderCommands(ref context, out var renderMode);
+        renderer.GenerateRenderCommands(ref context);
 
-        Assert.Equal(RenderType.None, renderMode.RenderType);
+        Assert.Equal(RenderType.None, context.RenderMode.RenderType);
         Assert.Equal(0, context.RenderCommands.Count);
     }
 
@@ -32,9 +32,9 @@ public class World3dRendererTests
         renderer.SetCamera(camera);
         var context = NewContext();
 
-        renderer.GenerateRenderCommands(ref context, out var renderMode);
+        renderer.GenerateRenderCommands(ref context);
 
-        Assert.Equal(RenderType.Render3d, renderMode.RenderType);
+        Assert.Equal(RenderType.Render3d, context.RenderMode.RenderType);
         Assert.Equal(0, context.RenderCommands.Count);
     }
 
@@ -49,7 +49,7 @@ public class World3dRendererTests
         renderer.SetCamera(camera);
         var context = NewContext();
 
-        renderer.GenerateRenderCommands(ref context, out _);
+        renderer.GenerateRenderCommands(ref context);
 
         Assert.Equal(1, context.RenderCommands.Count);
     }
@@ -69,7 +69,7 @@ public class World3dRendererTests
         renderer.SetCamera(camera);
         var context = NewContext();
 
-        renderer.GenerateRenderCommands(ref context, out _);
+        renderer.GenerateRenderCommands(ref context);
 
         Assert.Equal(3, context.RenderCommands.Count);
     }
@@ -84,7 +84,7 @@ public class World3dRendererTests
 
     private static RenderContext NewContext()
     {
-        return new RenderContext(
+        return RenderContext.Create(
             new Resolution(800, 600),
             new FrameResources(),
             new RenderCommandQueue());

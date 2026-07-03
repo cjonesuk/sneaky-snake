@@ -26,13 +26,11 @@ public sealed class WorldRenderer : IRenderer
         _camera = camera;
     }
 
-    public void GenerateRenderCommands(
-        ref RenderContext context,
-        out RenderMode renderMode)
+    public void Apply(IRenderPrepContext context)
     {
         if (!_camera.IsValid())
         {
-            renderMode = RenderMode.None;
+            context.SetRenderMode(RenderMode.None);
             return;
         }
 
@@ -44,10 +42,10 @@ public sealed class WorldRenderer : IRenderer
         ref var cameraTransform = ref _camera.GetRef<Transform2d>();
         ref var camera2d = ref _camera.GetRef<Camera2d>();
 
-        renderMode = RenderMode.Create2d(
+        context.SetRenderMode(RenderMode.Create2d(
             cameraTransform.Position,
             camera2d.Zoom,
-            cameraTransform.Rotation);
+            cameraTransform.Rotation));
 
         var renderContext = context;
 

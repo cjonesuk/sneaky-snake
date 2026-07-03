@@ -144,7 +144,7 @@ public sealed class UiContext
     }
 
     /// <summary>Replay recorded ops into the render command queue. Called by <see cref="UiRenderer"/>.</summary>
-    public void Flush(ref RenderContext context)
+    public void Flush(IRenderPrepContext context)
     {
         int zOrder = 0;
         var queue = context.RenderCommands;

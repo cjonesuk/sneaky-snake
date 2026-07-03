@@ -16,6 +16,7 @@ public sealed class CollisionWorld : ICollisionWorld
         _broadphase = broadphase;
     }
 
+    public IBroadphase Broadphase => _broadphase;
     public Bounds Bounds => _broadphase.Bounds;
 
     public void Build(in ReadOnlySpan<ColliderProxy> items)

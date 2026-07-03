@@ -10,8 +10,12 @@ namespace Remnant.PlayGame;
 
 internal sealed class PlayGameMode : IGameMode
 {
-    private static Vector2 WorldSize = new Vector2(100f, 100f);
+    private static float CollisionCellSize = 10f;
+    private static int CollisionColumns = 10;
+    private static int CollisionRows = 10;
+    private static Vector2 WorldSize = new Vector2(CollisionCellSize * CollisionColumns, CollisionCellSize * CollisionRows);
     private static Bounds WorldBounds = new Bounds(new Vector2(-WorldSize.X / 2f, -WorldSize.Y / 2f), new Vector2(WorldSize.X / 2f, WorldSize.Y / 2f));
+
     private readonly IRemnantGame _game;
     private readonly IGameEngine _engine;
     private readonly IWorld _world;
@@ -32,7 +36,12 @@ internal sealed class PlayGameMode : IGameMode
 
     private ICollisionWorld InitialiseCollisionWorld()
     {
-        return new CollisionWorld(new UniformGridBroadphase(WorldBounds, 10, 10));
+        var broadphase = new UniformGridBroadphase(
+            Vector2.Zero,
+            CollisionCellSize,
+            CollisionColumns,
+            CollisionRows);
+        return new CollisionWorld(broadphase);
     }
 
     void IGameMode.Activate()

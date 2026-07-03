@@ -37,11 +37,11 @@ internal sealed class RemnantGame : IRemnantGame, IGameInstance
     {
         _engine = null;
         _gameMode = null;
-        _worldRenderer = World3dRenderer.Create(gridSlices: 100, gridSpacing: 1f, drawGrid: true);
+        _world = Axis.ECS.World.Create();
+        _worldRenderer = World3dRenderer.Create(_world, gridSlices: 100, gridSpacing: 1f, drawGrid: true);
         _fpsRenderer = new RemnantUiRenderer(this);
         _ui = new UiContext();
         _uiRenderer = new UiRenderer(_ui);
-        _world = Axis.ECS.World.Create();
     }
 
     public IGameEngine Engine => _engine!;

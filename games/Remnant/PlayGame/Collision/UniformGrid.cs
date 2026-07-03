@@ -1,5 +1,6 @@
 using System.Numerics;
 using Axis.ECS;
+using Raylib_cs;
 
 namespace Remnant.PlayGame.Collision;
 
@@ -26,6 +27,24 @@ public interface IBroadphase
     void QueryRay(in Vector2 origin, in Vector2 direction, float maxDistance, List<Entity> results);
 }
 
+public interface IDebugDraw
+{
+    void Box(Vector3 min, Vector3 max, Color color);
+}
+
+public interface IBroadphaseDebug
+{
+
+}
+
+public sealed class CollisionDebugRenderer
+{
+    public void Run()
+    {
+
+    }
+}
+
 
 public sealed class UniformGridBroadphase : IBroadphase
 {
@@ -45,16 +64,18 @@ public sealed class UniformGridBroadphase : IBroadphase
     private Entity[] _entities; // Final array of entities, sorted by cell
     private Vector2[] _positions; // Final array of positions, sorted by cell
 
-    public UniformGridBroadphase(Bounds bounds, int columns, int rows)
+    public UniformGridBroadphase(Vector2 center, float cellSize, int columns, int rows)
     {
-        _bounds = bounds;
-        _cellSize = new Vector2((bounds.Max.X - bounds.Min.X) / columns, (bounds.Max.Y - bounds.Min.Y) / rows);
+        _bounds = new Bounds(
+            new Vector2(center.X - cellSize * columns / 2f, center.Y - cellSize * rows / 2f),
+            new Vector2(center.X + cellSize * columns / 2f, center.Y + cellSize * rows / 2f));
+        _cellSize = new Vector2(cellSize, cellSize);
         _columns = columns;
         _rows = rows;
 
         _cellCount = _columns * _rows;
-        _counts = new int[_cellCount + 1];
-        _cellStart = new int[_cellCount];
+        _cellStart = new int[_cellCount + 1];
+        _counts = new int[_cellCount];
         _cursor = new int[_cellCount];
 
         _itemCount = 0;
@@ -63,12 +84,12 @@ public sealed class UniformGridBroadphase : IBroadphase
     }
 
     public Bounds Bounds => _bounds;
+    public Vector2 CellSize => _cellSize;
 
 
     public void Build(in ReadOnlySpan<ColliderProxy> items)
     {
         int itemCount = items.Length;
-        int cellCount = _columns * _rows;
 
         // Allocate enough space for all items
         if (_entities.Length < itemCount)
@@ -76,6 +97,8 @@ public sealed class UniformGridBroadphase : IBroadphase
             Array.Resize(ref _entities, itemCount);
             Array.Resize(ref _positions, itemCount);
         }
+
+        Array.Clear(_counts);
 
         // 1. Build a histogram of how many items are in each cell
         for (int index = 0; index < itemCount; index++)
@@ -86,13 +109,13 @@ public sealed class UniformGridBroadphase : IBroadphase
 
         // 2. Compute the prefix sum of the counts to determine the starting index of each cell in the output arrays
         _cellStart[0] = 0;
-        for (int cellIndex = 0; cellIndex < cellCount; cellIndex++)
+        for (int cellIndex = 0; cellIndex < _cellCount; cellIndex++)
         {
             _cellStart[cellIndex + 1] = _cellStart[cellIndex] + _counts[cellIndex];
         }
 
         // 3. Copy the entities and positions into the final output arrays
-        Array.Copy(_cellStart, _cursor, cellCount);
+        Array.Copy(_cellStart, _cursor, _cellCount);
 
         for (int itemIndex = 0; itemIndex < itemCount; itemIndex++)
         {

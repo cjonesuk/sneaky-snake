@@ -14,11 +14,9 @@ internal sealed class RemnantUiRenderer : IRenderer
         _game = game;
     }
 
-    public void GenerateRenderCommands(
-        ref RenderContext context,
-        out RenderMode renderMode)
+    public void Apply(IRenderPrepContext context)
     {
-        renderMode = RenderMode.CreateScreenSpace();
+        context.SetRenderMode(RenderMode.CreateScreenSpace());
 
         Span<byte> buffer = stackalloc byte[64];
         Utf8StringBuilder sb = new Utf8StringBuilder(buffer);

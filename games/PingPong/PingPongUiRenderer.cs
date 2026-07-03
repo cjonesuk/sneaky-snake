@@ -16,11 +16,9 @@ internal sealed class PingPongUiRenderer : IRenderer
         _game = game;
     }
 
-    public void GenerateRenderCommands(
-        ref RenderContext context,
-        out RenderMode renderMode)
+    public void Apply(IRenderPrepContext context)
     {
-        renderMode = RenderMode.CreateScreenSpace();
+        context.SetRenderMode(RenderMode.CreateScreenSpace());
 
         var gameMode = _game.CurrentGameMode;
         if (gameMode is null)

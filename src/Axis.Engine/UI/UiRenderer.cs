@@ -5,16 +5,16 @@ namespace Axis.Engine.UI;
 /// <summary>Screen-space renderer that flushes an <see cref="UiContext"/>'s recorded draw ops.</summary>
 public sealed class UiRenderer : IRenderer
 {
-    private readonly UiContext _context;
+    private readonly UiContext _uiContext;
 
-    public UiRenderer(UiContext context)
+    public UiRenderer(UiContext uiContext)
     {
-        _context = context;
+        _uiContext = uiContext;
     }
 
-    public void GenerateRenderCommands(ref RenderContext context, out RenderMode renderMode)
+    public void Apply(IRenderPrepContext context)
     {
-        renderMode = RenderMode.CreateScreenSpace();
-        _context.Flush(ref context);
+        context.SetRenderMode(RenderMode.CreateScreenSpace());
+        _uiContext.Flush(context);
     }
 }
