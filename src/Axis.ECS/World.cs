@@ -24,7 +24,6 @@ public sealed class World : IWorld
     private readonly EventManager _events;
     private readonly WorldCommandQueue _commands;
     private bool _deferredMode;
-    private List<IArchetypeQuery> _activeQueries;
     private readonly WorldPairs _pairs;
     private readonly ArchetypeQuery _parentQuery;
     private Entity _dataEntity;
@@ -39,7 +38,6 @@ public sealed class World : IWorld
         _events = new EventManager();
         _commands = new WorldCommandQueue();
         _deferredMode = false;
-        _activeQueries = new List<IArchetypeQuery>();
         _pairs = CreatePairs();
         _parentQuery = RawQueryBuilder.For(this).Add<Parent>().Build();
         _dataEntity = SpawnEntity();
@@ -64,30 +62,6 @@ public sealed class World : IWorld
     internal ComponentEntityManager Components => _components;
 
     internal ArchetypeManager Archetypes => _archetypes;
-
-
-    internal void RegisterQuery(IArchetypeQuery query)
-    {
-        _activeQueries.Add(query);
-    }
-
-    internal void UnregisterQuery(IArchetypeQuery query)
-    {
-        _activeQueries.Remove(query);
-    }
-
-    public void UnregisterAllQueries()
-    {
-        _activeQueries.Clear();
-    }
-
-    internal void InvalidateActiveQueries()
-    {
-        foreach (var query in _activeQueries)
-        {
-            query.Invalidate();
-        }
-    }
 
     public void RegisterComponent<T>() where T : unmanaged
     {

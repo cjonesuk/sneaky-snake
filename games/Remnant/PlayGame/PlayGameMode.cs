@@ -48,7 +48,6 @@ internal sealed class PlayGameMode : IGameMode
     {
         _world.RemoveAllEntities();
         _world.RemoveAllSystems();
-        _world.UnregisterAllQueries();
 
         SpawnScene();
         BindInputs();

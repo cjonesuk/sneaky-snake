@@ -119,13 +119,6 @@ public sealed class QueryGenerator : IIncrementalGenerator
         }
         sb.AppendLine();
 
-        // Unregister: stop receiving invalidation when archetypes change
-        sb.AppendLine("    public void Unregister()");
-        sb.AppendLine("    {");
-        sb.AppendLine("        _archetypeQuery.Unregister();");
-        sb.AppendLine("    }");
-        sb.AppendLine();
-
         // Count: entity count across matching archetypes
         sb.AppendLine("    public int Count() => _archetypeQuery.Count();");
         sb.AppendLine();

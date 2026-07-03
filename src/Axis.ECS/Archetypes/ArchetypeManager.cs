@@ -10,6 +10,7 @@ internal sealed class ArchetypeManager
     private readonly Archetype _emptyArchetype;
     private readonly List<Archetype> _archetypes;
     private readonly Dictionary<EntityType, Archetype> _archetypesByEntityType;
+    private ulong _structuralVersion;
 
     internal ArchetypeManager(World world, ComponentEntityManager components)
     {
@@ -21,9 +22,11 @@ internal sealed class ArchetypeManager
         {
             { EntityType.Empty, _emptyArchetype }
         };
+        _structuralVersion = 0;
     }
 
     internal Archetype EmptyArchetype => _emptyArchetype;
+    public ulong StructuralVersion => _structuralVersion;
 
     internal Archetype GetOrCreate(EntityType entityType)
     {
@@ -36,12 +39,12 @@ internal sealed class ArchetypeManager
         _archetypesByEntityType[entityType] = archetype;
         _archetypes.Add(archetype);
 
-        _world.InvalidateActiveQueries();
+        _structuralVersion++;
 
         return archetype;
     }
 
-    internal Span<Archetype> GetAllArchetypes()
+    internal ReadOnlySpan<Archetype> GetAllArchetypes()
     {
         return CollectionsMarshal.AsSpan(_archetypes);
     }

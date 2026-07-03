@@ -52,7 +52,6 @@ internal sealed class PlayGameMode : IGameMode, IInputReceiver, IWorldSystem
     {
         _world.RemoveAllEntities();
         _world.RemoveAllSystems();
-        _world.UnregisterAllQueries();
 
         ResetScores();
 

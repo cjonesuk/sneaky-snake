@@ -12,10 +12,12 @@ public class World3dRendererTests
     [Fact]
     public void NoCamera_ReturnsRenderModeNone()
     {
-        var renderer = World3dRenderer.Create(drawGrid: false);
+        var world = World.Create();
+
+        var renderer = World3dRenderer.Create(world, drawGrid: false);
         var context = NewContext();
 
-        renderer.GenerateRenderCommands(ref context);
+        renderer.Apply(context);
 
         Assert.Equal(RenderType.None, context.RenderMode.RenderType);
         Assert.Equal(0, context.RenderCommands.Count);
@@ -28,11 +30,11 @@ public class World3dRendererTests
         var camera = world.SpawnEntity();
         camera.Add<Camera3d>();
 
-        var renderer = World3dRenderer.Create(drawGrid: false);
+        var renderer = World3dRenderer.Create(world, drawGrid: false);
         renderer.SetCamera(camera);
         var context = NewContext();
 
-        renderer.GenerateRenderCommands(ref context);
+        renderer.Apply(context);
 
         Assert.Equal(RenderType.Render3d, context.RenderMode.RenderType);
         Assert.Equal(0, context.RenderCommands.Count);
@@ -45,11 +47,11 @@ public class World3dRendererTests
         var camera = world.SpawnEntity();
         camera.Add<Camera3d>();
 
-        var renderer = World3dRenderer.Create(drawGrid: true);
+        var renderer = World3dRenderer.Create(world, drawGrid: true);
         renderer.SetCamera(camera);
         var context = NewContext();
 
-        renderer.GenerateRenderCommands(ref context);
+        renderer.Apply(context);
 
         Assert.Equal(1, context.RenderCommands.Count);
     }
@@ -65,11 +67,11 @@ public class World3dRendererTests
         SpawnCube(world, new Vector3(10, 0, 0));
         SpawnCube(world, new Vector3(0, 0, 10));
 
-        var renderer = World3dRenderer.Create(drawGrid: false);
+        var renderer = World3dRenderer.Create(world, drawGrid: false);
         renderer.SetCamera(camera);
         var context = NewContext();
 
-        renderer.GenerateRenderCommands(ref context);
+        renderer.Apply(context);
 
         Assert.Equal(3, context.RenderCommands.Count);
     }
@@ -82,9 +84,9 @@ public class World3dRendererTests
         return entity;
     }
 
-    private static RenderContext NewContext()
+    private static RenderPrepContext NewContext()
     {
-        return RenderContext.Create(
+        return RenderPrepContext.Create(
             new Resolution(800, 600),
             new FrameResources(),
             new RenderCommandQueue());

@@ -32,9 +32,6 @@ public interface IWorld
     /// <summary>Run all registered systems in registration order.</summary>
     void ExecuteSystems(float deltaTime);
 
-    /// <summary>Stop every previously-built query from being invalidated when archetypes change.</summary>
-    void UnregisterAllQueries();
-
     /// <summary>Add the component if missing, otherwise overwrite its value.</summary>
     void EnsureComponentOnEntity<T>(Id id, ref T component) where T : unmanaged;
 

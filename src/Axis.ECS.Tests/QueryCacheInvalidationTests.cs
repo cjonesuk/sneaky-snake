@@ -53,66 +53,23 @@ public class QueryCacheInvalidationTests
     }
 
     [Fact]
-    public void UnregisteredQuery_NoLongerInvalidates()
+    public void CachedQuery_SeesEntityAfterItMigratesToANewArchetype()
     {
+        // Mirrors the render bug: a long-lived cached query (built once, reused every frame)
+        // must still find an entity after Add<T>() migrates it into a brand-new archetype.
+        // If invalidation fails, the entity's old archetype empties and the new one is absent
+        // from the stale cache, so Count() drops to 0 -- i.e. the entity "disappears".
         var world = World.Create();
-        world.DefineEntity().With(new Health(100)).Build();
+
+        var entity = world.SpawnEntity();
+        entity.Set(new Health(100));
 
         var healthQuery = DefineQuery.For<Health>(world).Build();
+        healthQuery.Count().ShouldBe(1); // prime the cache with the (Health) archetype
 
-        int count = 0;
-        healthQuery.ForEach((Entity entity, ref Health h) => count++);
-        count.ShouldBe(1);
+        // Gaining a component migrates the entity to a new (Health, Healing) archetype.
+        entity.Add<Healing>();
 
-        healthQuery.Unregister();
-
-        // Create a new matching archetype. Without invalidation the cache stays stale.
-        world.DefineEntity().With(new Health(50)).With(new Healing(10)).Build();
-
-        count = 0;
-        healthQuery.ForEach((Entity entity, ref Health h) => count++);
-        count.ShouldBe(1, "unregistered query should return stale cached results");
-    }
-
-    [Fact]
-    public void UnregisterAllQueries_StopsInvalidationForEveryRegisteredQuery()
-    {
-        var world = World.Create();
-        world.DefineEntity().With(new Health(100)).Build();
-        world.DefineEntity().With(new Healing(5)).Build();
-
-        var healthQuery = DefineQuery.For<Health>(world).Build();
-        var healingQuery = DefineQuery.For<Healing>(world).Build();
-
-        // Prime both caches
-        int hCount = 0, gCount = 0;
-        healthQuery.ForEach((Entity entity, ref Health h) => hCount++);
-        healingQuery.ForEach((Entity entity, ref Healing g) => gCount++);
-        hCount.ShouldBe(1);
-        gCount.ShouldBe(1);
-
-        world.UnregisterAllQueries();
-
-        // Create new matching archetypes for both
-        world.DefineEntity().With(new Health(10)).With(new Healing(2)).Build();
-        world.DefineEntity().With(new Healing(7)).With(new Armor(1)).Build();
-
-        hCount = 0; gCount = 0;
-        healthQuery.ForEach((Entity entity, ref Health h) => hCount++);
-        healingQuery.ForEach((Entity entity, ref Healing g) => gCount++);
-
-        hCount.ShouldBe(1, "health query should be stale after unregister-all");
-        gCount.ShouldBe(1, "healing query should be stale after unregister-all");
-    }
-
-    [Fact]
-    public void Unregister_IsIdempotent()
-    {
-        var world = World.Create();
-        world.DefineEntity().With(new Health(100)).Build();
-
-        var query = DefineQuery.For<Health>(world).Build();
-        query.Unregister();
-        query.Unregister(); // second call should be a no-op, not throw
+        healthQuery.Count().ShouldBe(1, "cached query should still match the entity after it migrates to a new archetype");
     }
 }

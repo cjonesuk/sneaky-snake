@@ -3,48 +3,27 @@ using System.Runtime.InteropServices;
 namespace Axis.ECS.Queries;
 
 
-public interface IArchetypeQuery
-{
-    void Invalidate();
-}
-
-public sealed class ArchetypeQuery : IArchetypeQuery
+public sealed class ArchetypeQuery
 {
     private readonly World _world;
     private readonly QueryTerm[] _terms;
     private readonly List<Archetype> _cachedResults;
-    private bool _isCacheValid;
+    private ulong _cachedStructuralVersion;
 
     internal ArchetypeQuery(World world, QueryTerm[] terms)
     {
         _world = world;
         _terms = terms;
         _cachedResults = new List<Archetype>();
-        _isCacheValid = false;
-        world.RegisterQuery(this);
-    }
-
-    void IArchetypeQuery.Invalidate()
-    {
-        _cachedResults.Clear();
-        _isCacheValid = false;
-    }
-
-    /// <summary>
-    /// Stops this query from being invalidated when archetypes change. After calling,
-    /// subsequent <see cref="Run"/> calls may return stale results. Idempotent.
-    /// </summary>
-    public void Unregister()
-    {
-        _world.UnregisterQuery(this);
+        _cachedStructuralVersion = 0;
     }
 
     internal ReadOnlySpan<Archetype> Run()
     {
-        if (!_isCacheValid)
+        if (_cachedStructuralVersion != _world.Archetypes.StructuralVersion)
         {
             QueryAlgorithms.FindArchetypes(_world, _terms, _cachedResults);
-            _isCacheValid = true;
+            _cachedStructuralVersion = _world.Archetypes.StructuralVersion;
         }
 
         return CollectionsMarshal.AsSpan(_cachedResults);
