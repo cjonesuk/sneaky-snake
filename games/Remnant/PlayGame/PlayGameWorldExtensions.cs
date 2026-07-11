@@ -10,7 +10,6 @@ internal static class PlayGameWorldExtensions
     public static Entity SpawnRtsCamera(this IWorld world, RtsCameraController initialController)
     {
         var entity = world.SpawnEntity();
-        entity.Set(new Transform3d(initialController.FocusPoint));
         entity.Set(new Camera3d(
             position: Vector3.Zero,
             target: initialController.FocusPoint,

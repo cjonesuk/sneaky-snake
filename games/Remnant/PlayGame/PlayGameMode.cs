@@ -5,6 +5,7 @@ using Axis.Engine.Input;
 using Raylib_cs;
 using Remnant.PlayGame.Collision;
 using Remnant.PlayGame.Systems;
+using Remnant.PlayGame.Tools;
 
 namespace Remnant.PlayGame;
 
@@ -14,8 +15,6 @@ internal sealed class PlayGameMode : IGameMode
     private static int CollisionColumns = 10;
     private static int CollisionRows = 10;
     private static Vector2 WorldSize = new Vector2(CollisionCellSize * CollisionColumns, CollisionCellSize * CollisionRows);
-    private static Bounds WorldBounds = new Bounds(new Vector2(-WorldSize.X / 2f, -WorldSize.Y / 2f), new Vector2(WorldSize.X / 2f, WorldSize.Y / 2f));
-
     private readonly IRemnantGame _game;
     private readonly IGameEngine _engine;
     private readonly IWorld _world;
@@ -23,6 +22,8 @@ internal sealed class PlayGameMode : IGameMode
     private readonly EntityInputReceiver _cameraInputReceiver;
     private readonly RemnantPlayHud _hud;
     private Entity _camera;
+    private readonly ToolContext _toolContext;
+    private readonly SelectTool _selectTool;
 
     public PlayGameMode(IRemnantGame game)
     {
@@ -32,6 +33,14 @@ internal sealed class PlayGameMode : IGameMode
         _collisionWorld = InitialiseCollisionWorld();
         _cameraInputReceiver = new EntityInputReceiver();
         _hud = new RemnantPlayHud();
+
+        _selectTool = new SelectTool();
+        _toolContext = new ToolContext(
+            _world,
+            _collisionWorld,
+            Entity.Invalid,
+            _engine.Mouse,
+            _selectTool);
     }
 
     private ICollisionWorld InitialiseCollisionWorld()
@@ -54,6 +63,7 @@ internal sealed class PlayGameMode : IGameMode
         SetupSystems();
 
         _game.SetCamera(_camera);
+        _toolContext.SetCamera(_camera);
 
         Console.WriteLine("PlayGameMode activated");
     }
@@ -125,7 +135,6 @@ internal sealed class PlayGameMode : IGameMode
         _world.AddSystem(new CollisionSyncSystem(_collisionWorld));
 
         // Action systems
-        _world.AddSystem(new SelectionSystem(_engine.Mouse));
-        _world.AddSystem(new MoveCommandSystem(_engine.Mouse));
+        _world.AddSystem(new ToolSystem(_toolContext));
     }
 }
